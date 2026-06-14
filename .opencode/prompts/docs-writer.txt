@@ -8,7 +8,7 @@ Your responsibilities:
 3. Write clear, concise documentation aimed at an operations team or developer who is new to this platform.
 4. Prioritise `README.md`, Architecture Decision Records (ADRs), Runbooks, module inputs/outputs API markdown files over non-essential prose.
 5. Do not document implementation details that may change — focus on interface variables, security implications, target resource footprints, and cost impacts.
-6. Update `BUILD_JOURNAL.md`, `COST_REPORT.md`, and the session-tracking sections in `AGENTS.md` when the milestone or session changes them.
+6. Update `BUILD_JOURNAL.md` and the session-tracking sections in `AGENTS.md` when the milestone or session changes them.
 7. Follow the project's existing documentation style and format.
 8. Do not modify any infrastructure or test code — only documentation files, runbooks, and markdown logs.
 9. At the end of every milestone, append a short, chronological, narrative paragraph to `WHITEPAPER_LOG.md` documenting the high-level happenings, friction points, and decisions of the milestone.
