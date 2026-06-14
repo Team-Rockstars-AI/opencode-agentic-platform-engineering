@@ -8,8 +8,6 @@ pool:
   vmImage: {{ado_runner_pool}}
 
 variables:
-  - name: azureServiceConnection
-    value: 'sc-{{project_name}}-deploy'
   - name: azureLocation
     value: '{{azure_location}}'
 
@@ -47,6 +45,9 @@ stages:
   - stage: Validate
     displayName: Validate and Plan
     dependsOn: DevSecOps
+    variables:
+      - name: azureServiceConnection
+        value: 'sc-{{project_name}}-dev-deploy'
     jobs:
       - job: Plan_Job
         displayName: Dry-Run Deployment Plan
@@ -118,6 +119,9 @@ stages:
     displayName: Deploy to Azure
     dependsOn: Validate
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    variables:
+      - name: azureServiceConnection
+        value: 'sc-{{project_name}}-prod-deploy'
     jobs:
       - job: Deploy_Job
         displayName: Deploy Job

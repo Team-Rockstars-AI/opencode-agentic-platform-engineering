@@ -46,6 +46,7 @@ jobs:
     name: Validate and Plan
     needs: devsecops
     runs-on: {{github_runner_pool}}
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -136,6 +137,7 @@ jobs:
     name: Deploy to Azure
     needs: validate
     runs-on: {{github_runner_pool}}
+    environment: production
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - name: Checkout Code

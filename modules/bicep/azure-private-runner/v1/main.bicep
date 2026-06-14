@@ -24,9 +24,33 @@ param githubOrgName string
 @maxLength(100)
 param githubRepoName string
 
-@description('GitHub fine-grained PAT for runner registration. MUST be scoped to a single repository with admin:org (self-hosted runners) permission. MUST have a maximum 7-day expiration. Prefer GitHub App installation tokens.')
+@description('GitHub fine-grained PAT or GitHub App installation token for runner registration. MUST be scoped to a single repository with admin:org (self-hosted runners) permission. MUST have a maximum 7-day expiration. Prefer GitHub App installation tokens for automated rotation and security.')
 @secure()
 param runnerToken string = 'placeholder-pat'
+@description('CPU cores allocated to the runner container (e.g., "0.5", "1.0", "2.0")')
+@allowed([
+  '0.25'
+  '0.5'
+  '0.75'
+  '1.0'
+  '1.25'
+  '1.5'
+  '1.75'
+  '2.0'
+])
+param runnerCpu string = '1.0'
+
+@description('Memory allocated to the runner container (e.g., "0.5Gi", "1.0Gi", "2.0Gi")')
+@allowed([
+  '0.5Gi'
+  '1.0Gi'
+  '1.5Gi'
+  '2.0Gi'
+  '3.0Gi'
+  '4.0Gi'
+])
+param runnerMemory string = '2.0Gi'
+
 param tags object = {}
 
 @description('The resource ID of the central Log Analytics workspace for diagnostics')
@@ -79,8 +103,8 @@ resource runnerApp 'Microsoft.App/containerApps@2023-05-01' = {
           name: 'ubuntu-runner'
           image: 'mcr.microsoft.com/dotnet/runtime-deps:6.0-jammy'
           resources: {
-            cpu: any('1.0')
-            memory: '2.0Gi'
+            cpu: runnerCpu
+            memory: runnerMemory
           }
           env: [
             {

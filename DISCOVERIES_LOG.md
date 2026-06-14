@@ -97,3 +97,24 @@ This log serves as a persistent, in-project memory of discoveries, findings, and
 *   **Automated Scaffolding Script (`scripts/scaffold.py`):** Authored a self-contained, zero-dependency Python script supporting both interactive CLI wizard and non-interactive CLI modes. It automates copying templates, copying modules (making the repo completely self-contained), performing placeholder substitutions, correcting relative paths, and initializing git.
 *   **Pre-Commit Hook Configurations:** Created `.pre-commit-config.yaml` configurations for both Terraform and Bicep templates (enforcing standard hygiene, Gitleaks secret scanning, Checkov SAST, and Terraform formatting/validation). The scaffolding script automatically moves the correct config to the repository root.
 *   **Pre-Populated ADRs:** Created five core ADRs under `templates/docs/adr/` (documenting ADR practice, OIDC federation, Private Endpoints, NSG micro-segmentation, and self-hosted runners) which are automatically copied to the target repository root during scaffolding.
+
+---
+
+## Milestone: Security Audit Remediation & Hardening (June 2026)
+
+### 🔍 Discoveries
+*   **Implicit Environment Access:** Pipeline templates that use a single set of credentials or service connections across all branches/stages create a risk of accidental cross-environment access (e.g., a dev branch deploying to a prod subscription).
+*   **Bicep Type Safety Gaps:** Using `any()` in Bicep templates bypasses compile-time type checking, which can mask configuration errors and lead to runtime deployment failures.
+*   **PAT Rotation Burden:** Accepting a GitHub Personal Access Token (PAT) for self-hosted runner registration creates a manual rotation burden and security risk compared to auto-rotating GitHub App installation tokens.
+
+### ⚠️ Findings
+*   **Single Credential Set in Pipelines:** Both GitHub Actions and Azure DevOps templates used a single set of credentials/service connections, lacking explicit environment-specific isolation.
+*   **Bicep `any()` Bypass:** The private runner module used `any('1.0')` for the container CPU resource, bypassing Bicep's type system.
+*   **PAT Rotational Risk:** The private runner modules accepted a PAT for runner registration without explicitly documenting the preferred GitHub App-based approach.
+
+### 💡 Solutions
+*   **Environment-Specific Pipeline Isolation:**
+    - **GitHub Actions:** Configured the `validate` job to dynamically target the `development` or `production` environment based on the branch, and bound the `deploy` job explicitly to the `production` environment.
+    - **Azure DevOps:** Removed the global `azureServiceConnection` variable and defined it at the stage level, using `'sc-{{project_name}}-dev-deploy'` for validation and `'sc-{{project_name}}-prod-deploy'` for deployment.
+*   **Strongly-Typed Bicep Parameters:** Added parameterized `runnerCpu` and `runnerMemory` variables with strict `@allowed` decorators, replacing the `any()` bypass with strongly-typed parameters.
+*   **GitHub App-Based Runner Registration Documentation:** Expanded the variable descriptions across all modules and templates to explicitly document the GitHub App-based runner registration approach as the preferred, secure, and auto-rotating path.

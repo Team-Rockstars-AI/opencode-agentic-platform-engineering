@@ -289,3 +289,35 @@ This milestone delivered three high-value provisioning system enhancements that 
 - Add Dependabot/Renovate configuration to auto-update pre-commit hook revisions
 - Draft ADR 0006 placeholder to guide consumers on extending the ADR log
 - Integrate `scaffold.py` as the backend for the `/scaffold` slash command workflow
+
+---
+
+## Milestone: Security Audit Remediation & Hardening
+
+**Date:** 2026-06-14
+
+### Summary
+
+This milestone remediated three security findings identified during the `@security-auditor`'s workspace compliance scan. The changes address pipeline environment isolation, Bicep type safety, and self-hosted runner credential rotation risks.
+
+### Changes Made
+
+1. **Pipeline Environment Isolation (GitHub & Azure DevOps):**
+   - **GitHub Actions (`templates/github/workflows/deploy.yml`):** Configured environment-specific credential mappings. The `validate` job now dynamically targets the `development` or `production` environment based on the branch (`environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}`), and the `deploy` job is explicitly bound to the `production` environment.
+   - **Azure DevOps (`templates/azure-devops/pipelines/azure-pipelines.yml`):** Removed the global `azureServiceConnection` variable and defined it at the stage level. The `Validate` stage now uses `'sc-{{project_name}}-dev-deploy'` and the `Deploy` stage uses `'sc-{{project_name}}-prod-deploy'`, ensuring strict environment isolation.
+
+2. **Bicep Type Safety Hardening:**
+   - **Bicep Private Runner Module (`modules/bicep/azure-private-runner/v1/main.bicep`):** Added parameterized `runnerCpu` and `runnerMemory` variables with strict `@allowed` decorators. Replaced the `cpu: any('1.0')` bypass with the strongly-typed `runnerCpu` parameter, restoring full compile-time type safety.
+
+3. **GitHub PAT Rotational Risk Mitigation:**
+   - Expanded the variable descriptions in `modules/terraform/azure-private-runner/v1/variables.tf`, `modules/bicep/azure-private-runner/v1/main.bicep`, `templates/terraform/variables.tf`, and `templates/bicep/main.bicep` to explicitly document the GitHub App-based runner registration approach as the preferred, secure, and auto-rotating path.
+
+### Friction Points
+
+- **Bicep vs. Terraform validation parity:** While both frameworks now have input validation, Bicep's decorator system is compile-time only and does not support custom error messages as rich as Terraform's `error_message` field in `validation {}` blocks.
+- **GitHub App-based runner registration complexity:** While documented as the preferred path, implementing GitHub App-based runner registration requires additional setup steps (creating the App, installing it, and generating private keys) compared to a simple PAT.
+
+### Next Steps
+
+- Implement automated rotation scripts or GitHub App integration examples for self-hosted runner registration.
+- Add `bicep build` validation hook to the Bicep pre-commit configuration.

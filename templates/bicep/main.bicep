@@ -34,6 +34,7 @@ param githubOrgName string = '{{github_org_name}}'
 
 @description('The GitHub Repository Name')
 param githubRepoName string = '{{github_repo_name}}'
+@description('GitHub fine-grained PAT or GitHub App installation token for runner registration. MUST be scoped to a single repository with admin:org (self-hosted runners) permission. MUST have a maximum 7-day expiration. Prefer GitHub App installation tokens for automated rotation and security.')
 @secure()
 param runnerToken string = 'placeholder-pat'
 
