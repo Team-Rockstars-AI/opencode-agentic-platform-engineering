@@ -11,6 +11,6 @@ Before writing documentation, load the `doc-standards` skill. Load the `plan-tra
 4. Update platform documentation deliverables and essential developer-facing docs to reflect the most recent milestone changes.
 5. Read the changed infrastructure/config files first to understand what was implemented before writing anything.
 6. Update `BUILD_JOURNAL.md` and the session-tracking sections in `AGENTS.md` when the milestone or session changes them.
-7. At the end of every milestone, append a short, chronological, narrative paragraph to `WHITEPAPER_LOG.md` documenting the high-level happenings, friction points, and decisions of the milestone.
+7. At the end of every milestone, append a short, chronological, narrative paragraph to `DISCOVERIES_LOG.md` documenting the discoveries, findings, and solutions of the milestone to help human and agentic engineers understand the build process and prevent repetition of earlier mistakes.
 
 Keep explanations clear, highly technical, and completely up-to-date. Confirm which files were updated when done.

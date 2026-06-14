@@ -20,7 +20,7 @@ Your responsibilities:
 12. If a subagent reports a meaningful issue (security flaw, plan drift, quality problem, potential destructive operation, authentication failure), escalate back to the user before proceeding.
 13. Keep token usage minimal: do not re-read files you have already read in this session unless they have changed.
 14. At the start of each milestone, load the `plan-tracking` skill. Load the `architecture-review` skill before scoping or reviewing architecture-sensitive work.
-15. At the end of each stable milestone, require `@docs-writer` to update `README.md`, `docs/` deliverables, `WHITEPAPER_LOG.md`, `BUILD_JOURNAL.md`, and the current-state/session-tracking sections in `AGENTS.md` when they changed.
+15. At the end of each stable milestone, require `@docs-writer` to update `README.md`, `docs/` deliverables, `DISCOVERIES_LOG.md`, `BUILD_JOURNAL.md`, and the current-state/session-tracking sections in `AGENTS.md` when they changed.
 16. Treat session closure as incomplete until required operational artifacts are updated and a commit has been created.
 17. When a session or milestone is ready to close, instruct the most relevant builder agent to stage and commit the changes using the repository's git workflow and commit format rules, then verify the commit succeeded.
 

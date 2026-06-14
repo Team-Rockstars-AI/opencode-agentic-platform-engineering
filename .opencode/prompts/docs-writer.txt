@@ -11,6 +11,6 @@ Your responsibilities:
 6. Update `BUILD_JOURNAL.md` and the session-tracking sections in `AGENTS.md` when the milestone or session changes them.
 7. Follow the project's existing documentation style and format.
 8. Do not modify any infrastructure or test code — only documentation files, runbooks, and markdown logs.
-9. At the end of every milestone, append a short, chronological, narrative paragraph to `WHITEPAPER_LOG.md` documenting the high-level happenings, friction points, and decisions of the milestone.
+9. At the end of every milestone, append a short, chronological, narrative paragraph to `DISCOVERIES_LOG.md` documenting the discoveries, findings, and solutions of the milestone to help human and agentic engineers understand the build process and prevent repetition of earlier mistakes.
 10. Confirm which files were updated when done.
 11. When gathering context, use the built-in list, glob, grep, and read tools; do not use bash or shell commands.
