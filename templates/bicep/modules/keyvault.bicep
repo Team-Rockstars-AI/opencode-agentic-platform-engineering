@@ -1,6 +1,22 @@
+@description('The name of the project')
+@minLength(3)
+@maxLength(24)
 param projectName string
+
+@description('The deployment environment')
+@allowed([
+  'dev'
+  'test'
+  'staging'
+  'prod'
+])
 param environment string
+
+@description('The primary Azure region to deploy to')
+@minLength(1)
 param location string
+
+@description('The Azure active directory tenant ID')
 param tenantId string
 param subnetEndpointsId string
 param workspaceId string
@@ -16,7 +32,7 @@ resource kv 'Microsoft.KeyVault/vaults@2021-10-01' = {
     tenantId: tenantId
     enableRbacAuthorization: true
     enabledForDiskEncryption: true
-    softDeleteRetentionInDays: 7
+    softDeleteRetentionInDays: 90
     // Secure-by-design baseline constraints
     enablePurgeProtection: true
     publicNetworkAccess: 'Disabled'

@@ -1,5 +1,19 @@
+@description('The name of the project')
+@minLength(3)
+@maxLength(24)
 param projectName string
+
+@description('The deployment environment')
+@allowed([
+  'dev'
+  'test'
+  'staging'
+  'prod'
+])
 param environment string
+
+@description('The primary Azure region to deploy to')
+@minLength(1)
 param location string
 param githubOrgName string
 param githubRepoName string

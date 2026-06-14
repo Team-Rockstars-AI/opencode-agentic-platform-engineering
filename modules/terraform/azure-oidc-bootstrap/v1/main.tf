@@ -41,7 +41,6 @@ resource "azurerm_role_definition" "pipeline_deployer" {
       "Microsoft.KeyVault/vaults/deploy/action",
       "Microsoft.Storage/storageAccounts/read",
       "Microsoft.Storage/storageAccounts/write",
-      "Microsoft.Storage/storageAccounts/listKeys/action",
       "Microsoft.App/managedEnvironments/read",
       "Microsoft.App/managedEnvironments/write",
       "Microsoft.App/managedEnvironments/join/action",

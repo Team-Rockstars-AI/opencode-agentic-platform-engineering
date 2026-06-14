@@ -34,6 +34,14 @@ jobs:
           output_format: cli
           soft_fail: false # Hard block on compliance violations
 
+      # Validate OpenCode Skills
+      - name: Validate OpenCode Skills
+        run: |
+          set -euo pipefail
+          if [ -f "scripts/validate-skills.py" ]; then
+            python3 scripts/validate-skills.py
+          fi
+
   validate:
     name: Validate and Plan
     needs: devsecops

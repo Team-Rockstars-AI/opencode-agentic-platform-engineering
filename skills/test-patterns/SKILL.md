@@ -36,4 +36,26 @@ run "verify_keyvault_properties" {
 Write validation tests for Bicep templates:
 - **Bicep Build Validation:** Compile Bicep templates (`bicep build`) to verify syntax and resource schemas.
 - **Bicep Linting:** Run Bicep linter to ensure compliance with best practices.
-- **What-If Validation:** Run `az deployment sub what-if` to verify the planned changes before deployment.
+- **PSScriptAnalyzer:** Linting PowerShell deployment scripts and Bicep deployment scripts.
+- **Pester Unit Testing:** Parsing compiled Bicep JSON output (via `bicep build --stdout`) to assert resource properties, types, and configurations without deploying resources.
+- **Pester Integration Testing:** Running `az deployment sub what-if` or `az deployment group what-if` and parsing the JSON output to assert planned resource operations.
+
+*Example:*
+```powershell
+Describe "Key Vault Unit Tests" {
+    BeforeAll {
+        $bicepJson = bicep build main.bicep --stdout | ConvertFrom-Json
+        $resources = $bicepJson.resources
+    }
+
+    It "Should enable purge protection on Key Vault" {
+        $kv = $resources | Where-Object { $_.type -eq 'Microsoft.KeyVault/vaults' }
+        $kv.properties.enablePurgeProtection | Should -Be $true
+    }
+
+    It "Should disable public network access on Key Vault" {
+        $kv = $resources | Where-Object { $_.type -eq 'Microsoft.KeyVault/vaults' }
+        $kv.properties.publicNetworkAccess | Should -Be 'Disabled'
+    }
+}
+```

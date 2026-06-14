@@ -1,7 +1,18 @@
 targetScope = 'subscription'
 
+@minLength(3)
+@maxLength(24)
 param projectName string
+
+@allowed([
+  'dev'
+  'test'
+  'staging'
+  'prod'
+])
 param environment string = 'dev'
+
+@minLength(1)
 param location string
 param githubOrgName string = ''
 param githubRepoName string = ''
@@ -60,7 +71,6 @@ resource pipelineDeployerRole 'Microsoft.Authorization/roleDefinitions@2022-04-0
           'Microsoft.KeyVault/vaults/deploy/action'
           'Microsoft.Storage/storageAccounts/read'
           'Microsoft.Storage/storageAccounts/write'
-          'Microsoft.Storage/storageAccounts/listKeys/action'
           'Microsoft.App/managedEnvironments/read'
           'Microsoft.App/managedEnvironments/write'
           'Microsoft.App/managedEnvironments/join/action'

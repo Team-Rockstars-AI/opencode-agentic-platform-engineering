@@ -13,7 +13,14 @@ param skuName string = 'standard'
 
 @minValue(7)
 @maxValue(90)
-param softDeleteRetentionInDays int = 7
+param softDeleteRetentionInDays int = 90
+
+@description('The public network access setting for the Key Vault: Enabled or Disabled')
+@allowed([
+  'Enabled'
+  'Disabled'
+])
+param publicNetworkAccess string = 'Disabled'
 
 resource kv 'Microsoft.KeyVault/vaults@2021-10-01' = {
   name: name
@@ -28,7 +35,7 @@ resource kv 'Microsoft.KeyVault/vaults@2021-10-01' = {
     enabledForDiskEncryption: true
     softDeleteRetentionInDays: softDeleteRetentionInDays
     enablePurgeProtection: true
-    publicNetworkAccess: 'Disabled'
+    publicNetworkAccess: publicNetworkAccess
     networkAcls: {
       bypass: 'AzureServices'
       defaultAction: 'Deny'

@@ -51,6 +51,42 @@ resource "azurerm_network_security_group" "workloads" {
   location            = var.location
   resource_group_name = var.resource_group_name
   tags                = var.tags
+
+  security_rule {
+    name                       = "AllowAppGatewayInbound80"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = var.subnet_appgw_prefix
+    destination_address_prefix = var.subnet_workloads_prefix
+  }
+
+  security_rule {
+    name                       = "AllowAppGatewayInbound443"
+    priority                   = 110
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = var.subnet_appgw_prefix
+    destination_address_prefix = var.subnet_workloads_prefix
+  }
+
+  security_rule {
+    name                       = "DenyAllInbound"
+    priority                   = 4000
+    direction                  = "Inbound"
+    access                     = "Deny"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
 }
 
 resource "azurerm_network_security_group" "appgw" {
@@ -58,6 +94,42 @@ resource "azurerm_network_security_group" "appgw" {
   location            = var.location
   resource_group_name = var.resource_group_name
   tags                = var.tags
+
+  security_rule {
+    name                       = "AllowInternetInbound80"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "Internet"
+    destination_address_prefix = var.subnet_appgw_prefix
+  }
+
+  security_rule {
+    name                       = "AllowInternetInbound443"
+    priority                   = 110
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "Internet"
+    destination_address_prefix = var.subnet_appgw_prefix
+  }
+
+  security_rule {
+    name                       = "DenyAllInbound"
+    priority                   = 4000
+    direction                  = "Inbound"
+    access                     = "Deny"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
 }
 
 resource "azurerm_network_security_group" "endpoints" {
@@ -77,6 +149,18 @@ resource "azurerm_network_security_group" "endpoints" {
     source_address_prefix      = var.subnet_workloads_prefix
     destination_address_prefix = var.subnet_endpoints_prefix
   }
+
+  security_rule {
+    name                       = "DenyAllInbound"
+    priority                   = 4000
+    direction                  = "Inbound"
+    access                     = "Deny"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
 }
 
 resource "azurerm_network_security_group" "runners" {
@@ -85,6 +169,18 @@ resource "azurerm_network_security_group" "runners" {
   location            = var.location
   resource_group_name = var.resource_group_name
   tags                = var.tags
+
+  security_rule {
+    name                       = "DenyAllInbound"
+    priority                   = 4000
+    direction                  = "Inbound"
+    access                     = "Deny"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
 }
 
 # Network Security Group Associations
@@ -182,9 +278,12 @@ resource "azurerm_application_gateway" "app_gateway" {
     subnet_id = azurerm_subnet.appgw.id
   }
 
-  frontend_port {
-    name = local.frontend_port_name
-    port = 80
+  dynamic "frontend_port" {
+    for_each = var.disable_http ? [] : [1]
+    content {
+      name = local.frontend_port_name
+      port = 80
+    }
   }
 
   dynamic "frontend_port" {
@@ -213,11 +312,14 @@ resource "azurerm_application_gateway" "app_gateway" {
     request_timeout       = 60
   }
 
-  http_listener {
-    name                           = local.listener_name
-    frontend_ip_configuration_name = local.frontend_ip_configuration_name
-    frontend_port_name             = local.frontend_port_name
-    protocol                       = "Http"
+  dynamic "http_listener" {
+    for_each = var.disable_http ? [] : [1]
+    content {
+      name                           = local.listener_name
+      frontend_ip_configuration_name = local.frontend_ip_configuration_name
+      frontend_port_name             = local.frontend_port_name
+      protocol                       = "Http"
+    }
   }
 
   dynamic "http_listener" {
@@ -239,13 +341,16 @@ resource "azurerm_application_gateway" "app_gateway" {
     }
   }
 
-  request_routing_rule {
-    name                       = local.request_routing_rule_name
-    rule_type                  = "Basic"
-    http_listener_name         = local.listener_name
-    backend_address_pool_name  = local.backend_address_pool_name
-    backend_http_settings_name = local.http_setting_name
-    priority                   = 100
+  dynamic "request_routing_rule" {
+    for_each = var.disable_http ? [] : [1]
+    content {
+      name                       = local.request_routing_rule_name
+      rule_type                  = "Basic"
+      http_listener_name         = local.listener_name
+      backend_address_pool_name  = local.backend_address_pool_name
+      backend_http_settings_name = local.http_setting_name
+      priority                   = 100
+    }
   }
 
   dynamic "request_routing_rule" {
@@ -265,5 +370,105 @@ resource "azurerm_application_gateway" "app_gateway" {
     firewall_mode    = "Prevention"
     rule_set_type    = "OWASP"
     rule_set_version = "3.2"
+  }
+}
+
+# Diagnostic Settings for Network Resources
+resource "azurerm_monitor_diagnostic_setting" "appgw" {
+  count                      = var.log_analytics_workspace_id != null ? 1 : 0
+  name                       = "ds-agw-${var.project_name}-${var.environment}"
+  target_resource_id         = azurerm_application_gateway.app_gateway.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  enabled_log {
+    category = "ApplicationGatewayAccessLog"
+  }
+
+  enabled_log {
+    category = "ApplicationGatewayPerformanceLog"
+  }
+
+  enabled_log {
+    category = "ApplicationGatewayFirewallLog"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "nsg_workloads" {
+  count                      = var.log_analytics_workspace_id != null ? 1 : 0
+  name                       = "ds-nsg-workloads-${var.project_name}-${var.environment}"
+  target_resource_id         = azurerm_network_security_group.workloads.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  enabled_log {
+    category = "NetworkSecurityGroupEvent"
+  }
+
+  enabled_log {
+    category = "NetworkSecurityGroupRuleCounter"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "nsg_appgw" {
+  count                      = var.log_analytics_workspace_id != null ? 1 : 0
+  name                       = "ds-nsg-appgw-${var.project_name}-${var.environment}"
+  target_resource_id         = azurerm_network_security_group.appgw.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  enabled_log {
+    category = "NetworkSecurityGroupEvent"
+  }
+
+  enabled_log {
+    category = "NetworkSecurityGroupRuleCounter"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "nsg_endpoints" {
+  count                      = var.log_analytics_workspace_id != null ? 1 : 0
+  name                       = "ds-nsg-endpoints-${var.project_name}-${var.environment}"
+  target_resource_id         = azurerm_network_security_group.endpoints.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  enabled_log {
+    category = "NetworkSecurityGroupEvent"
+  }
+
+  enabled_log {
+    category = "NetworkSecurityGroupRuleCounter"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "nsg_runners" {
+  count                      = var.is_enterprise && var.log_analytics_workspace_id != null ? 1 : 0
+  name                       = "ds-nsg-runners-${var.project_name}-${var.environment}"
+  target_resource_id         = azurerm_network_security_group.runners[0].id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  enabled_log {
+    category = "NetworkSecurityGroupEvent"
+  }
+
+  enabled_log {
+    category = "NetworkSecurityGroupRuleCounter"
+  }
+
+  metric {
+    category = "AllMetrics"
   }
 }

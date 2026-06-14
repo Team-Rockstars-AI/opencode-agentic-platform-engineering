@@ -1,13 +1,36 @@
+@minLength(3)
+@maxLength(24)
 param projectName string
+
+@allowed([
+  'dev'
+  'test'
+  'staging'
+  'prod'
+])
 param environment string = 'dev'
+
+@minLength(1)
+@maxLength(50)
 param location string
+
 param subnetRunnersId string
-param githubOrgName string = ''
-param githubRepoName string = ''
+
+@minLength(1)
+@maxLength(39)
+param githubOrgName string
+
+@minLength(1)
+@maxLength(100)
+param githubRepoName string
+
 @description('GitHub fine-grained PAT for runner registration. MUST be scoped to a single repository with admin:org (self-hosted runners) permission. MUST have a maximum 7-day expiration. Prefer GitHub App installation tokens.')
 @secure()
 param runnerToken string = 'placeholder-pat'
 param tags object = {}
+
+@description('The resource ID of the central Log Analytics workspace for diagnostics')
+param logAnalyticsWorkspaceId string = ''
 
 // Runner Identity
 resource runnerIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
@@ -103,6 +126,48 @@ resource runnerApp 'Microsoft.App/containerApps@2023-05-01' = {
     }
   }
   tags: tags
+}
+
+// Diagnostic settings for Container App Environment
+resource runnerEnvDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (!empty(logAnalyticsWorkspaceId)) {
+  name: 'ds-cae-${projectName}-${environment}'
+  scope: runnerEnv
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logs: [
+      {
+        categoryGroup: 'allLogs'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+  }
+}
+
+// Diagnostic settings for Container App
+resource runnerAppDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (!empty(logAnalyticsWorkspaceId)) {
+  name: 'ds-ca-${projectName}-${environment}'
+  scope: runnerApp
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logs: [
+      {
+        categoryGroup: 'allLogs'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+  }
 }
 
 output runnerIdentityPrincipalId string = runnerIdentity.properties.principalId

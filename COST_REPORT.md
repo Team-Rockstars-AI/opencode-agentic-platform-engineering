@@ -111,3 +111,40 @@ No additional token overhead was introduced. The security changes were authored 
 | Model inference per milestone | Standard module authoring | < $0.05 (estimated) |
 | Security posture | Moved from Contributor → custom role; KV isolated; NSGs in place; HTTPS parameterised | Significant qualitative improvement |
 | Pipeline resilience | `set -euo pipefail` everywhere | ±$0.00 |
+
+---
+
+## Milestone: Optimal Platform Hardening & Micro-segmentation
+
+**Date:** 2026-06-14
+
+### Infrastructure Cost Impact
+
+**No Azure spend change.** All five fixes were applied to existing modules without introducing new billable Azure resource categories:
+
+| Change | Resource Type | Cost Classification |
+|--------|---------------|---------------------|
+| App Gateway Resource ID Bug fix | Bicep variable logic change | Free (syntax/logic change) |
+| Removal of `listKeys/action` from deployer role | Role definition permission change | Free (RBAC management plane — no cost impact) |
+| Input validation blocks and parameter decorators | `validation {}` blocks (Terraform) + decorators (Bicep) | Free (compile-time/plan-time validation only) |
+| Diagnostic settings for NSGs | `Microsoft.Insights/diagnosticSettings` (4 NSGs) | **Free** (diagnostic setting resources have no hourly cost; only the Log Analytics data ingestion is billable, and NSG logs are typically low-volume) |
+| Key Vault soft-delete retention 7 → 90 days | Property change on existing Key Vault | Free (configuration change, no new resource) |
+
+**Key takeaway:** The diagnostic settings are the only change with a potential downstream cost implication — if consumers enable NSG flow log streaming to Log Analytics, data ingestion charges apply based on volume. The diagnostic setting resource itself is free, and NSG NetworkSecurityGroupEvent/NetworkSecurityGroupRuleCounter logs are typically low-volume relative to other telemetry sources.
+
+### Model Optimisation Cost Impact
+
+**No model changes in this milestone.** All work was executed by the existing builder agents (`@builder-infra-tf`, `@builder-infra-bicep`) using their current model assignments (`opencode/claude-sonnet-4-6`). No new skills were created, so there is no additional skill-loading token overhead.
+
+### Token Consumption Notes
+
+No additional token overhead was introduced. Changes were authored as direct modifications to existing Terraform and Bicep modules — no new skills, prompt files, or agent definitions were created. Token consumption is attributable to standard module authoring workflow.
+
+### Summary
+
+| Category | Change | Cost Delta |
+|----------|--------|------------|
+| Azure resource footprint | No new billable resources | ±$0.00/month |
+| Model inference per milestone | Standard module authoring | < $0.05 (estimated) |
+| Security posture | Zero-trust micro-segmentation via NSG deny-all rules; least-privilege role without `listKeys`; input validation guardrails; centralised diagnostics; 90-day KV soft-delete | Significant qualitative improvement |
+| Operational observability | NSG diagnostic logs streamed to Log Analytics | ±$0.00 (setting resource free; nominal ingestion cost if volume is low)

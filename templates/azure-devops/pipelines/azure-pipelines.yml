@@ -36,6 +36,14 @@ stages:
               docker run --rm -v $(System.DefaultWorkingDirectory):/code bridgecrew/checkov:latest -d /code
             displayName: 'Checkov SAST Compliance Scan'
 
+          # Validate OpenCode Skills
+          - script: |
+              set -euo pipefail
+              if [ -f "scripts/validate-skills.py" ]; then
+                python3 scripts/validate-skills.py
+              fi
+            displayName: 'Validate OpenCode Skills'
+
   - stage: Validate
     displayName: Validate and Plan
     dependsOn: DevSecOps

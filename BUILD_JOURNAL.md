@@ -176,3 +176,60 @@ This milestone applied five targeted security hardening fixes across the infrast
 - Consider extracting the OIDC custom role into a standalone module for reuse outside the bootstrap context
 - Evaluate whether the Key Vault module should expose `public_network_access_enabled` as a configurable variable (currently hardcoded to `false`)
 - Add HTTPS-only mode toggle to the Application Gateway module to allow disabling HTTP entirely
+
+---
+
+## Milestone: Optimal Platform Hardening & Micro-segmentation
+
+**Date:** 2026-06-14
+
+### Summary
+
+This milestone applied five targeted hardening fixes focused on zero-trust micro-segmentation, least-privilege IAM refinement, input validation completeness, centralised diagnostics, and data resilience. The changes close gaps identified during the prior "Security Remediation & Hardening" milestone NSG rule audit and extend the hardening posture to Bicep module input safety, deployer role permissions, and Key Vault data retention.
+
+### Changes Made
+
+1. **Bicep App Gateway Resource ID Reference Bug fix:**
+   - Fixed the `appGatewayId` variable construction in `modules/bicep/azure-network-baseline/v1/main.bicep` to compute the Application Gateway resource ID correctly using `subscription().id` and `resourceGroup().name` string interpolation, ensuring child resource references (`frontendIPConfigurations`, `frontendPorts`, `sslCertificates`, `httpListeners`, `backendAddressPools`, `backendHttpSettingsCollection`, `requestRoutingRules`) resolve reliably at deployment time.
+   - The fix eliminates a fragile hardcoded resource ID pattern and aligns with Bicep best practices for symbolic child resource reference construction within the same resource block.
+
+2. **Removal of `listKeys/action` from custom deployer role (Terraform & Bicep):**
+   - Removed `Microsoft.Storage/storageAccounts/listKeys/action` from the custom pipeline deployer role definition in both `modules/terraform/azure-oidc-bootstrap/v1/main.tf` and `modules/bicep/azure-oidc-bootstrap/v1/main.bicep`.
+   - Reasoning: The `listKeys/action` permission grants the ability to retrieve storage account access keys, which would allow a compromised pipeline credential to bypass RBAC controls and access storage data directly. The pipeline does not require this action — `Microsoft.Storage/storageAccounts/read` and `write` are sufficient for resource management operations.
+   - The role now contains exactly 27 scoped actions covering Resource Groups, Virtual Networks, Network Security Groups, Public IPs, NAT Gateways, Application Gateways, Private Endpoints, Key Vaults, Storage Accounts, Container Apps, App Services, Managed Identities, Diagnostic Settings, Log Analytics, and RBAC read — with no excessive permissions.
+
+3. **Addition of missing input validation blocks and parameter decorators (Terraform & Bicep):**
+   - **Terraform:** Added comprehensive `validation {}` blocks across `modules/terraform/azure-network-baseline/v1/variables.tf` and `modules/terraform/azure-keyvault/v1/variables.tf`, enforcing:
+     - `project_name`: Length 3–24, alphanumeric characters and hyphens only
+     - `environment`: Must be one of `dev`, `test`, `prod`
+     - `location`: Minimum 3 characters
+     - `resource_group_name`: Length 1–90 with specific character constraints
+     - `vnet_address_space` and all subnet prefix variables: Valid CIDR notation
+     - `tenant_id`: Valid UUID format
+     - `sku_name`: Must be `standard` or `premium`
+     - `soft_delete_retention_days`: Integer between 7 and 90
+   - **Bicep:** Added `@minLength()`, `@maxLength()`, `@allowed()`, `@minValue()`, `@maxValue()`, and `@description()` decorators across `modules/bicep/azure-network-baseline/v1/main.bicep`, `modules/bicep/azure-keyvault/v1/main.bicep`, and `modules/bicep/azure-oidc-bootstrap/v1/main.bicep`, providing equivalent compile-time validation at the Bicep layer.
+
+4. **Addition of diagnostic settings for network and runner resources (Terraform & Bicep):**
+   - Added `azurerm_monitor_diagnostic_setting` resources (Terraform) and `Microsoft.Insights/diagnosticSettings` resources (Bicep) for all four Network Security Groups — `workloads`, `appgw`, `endpoints`, and `runners` (enterprise only) — streaming `NetworkSecurityGroupEvent` and `NetworkSecurityGroupRuleCounter` logs plus `AllMetrics` to a central Log Analytics workspace.
+   - Both implementations are gated by a `log_analytics_workspace_id` variable: when null/empty, diagnostic resources are not deployed (count = 0 in Terraform, `if` condition in Bicep).
+   - The runners NSG diagnostic setting is further conditional on `is_enterprise` (Terraform) or `isEnterprise` (Bicep), ensuring runner resources only emit diagnostics in enterprise-tier deployments.
+
+5. **Increased Key Vault soft-delete retention to 90 days (Terraform & Bicep):**
+   - Raised the default `soft_delete_retention_days` from 7 to **90 days** in both `modules/terraform/azure-keyvault/v1/variables.tf` and `modules/bicep/azure-keyvault/v1/main.bicep`.
+   - Added explicit validation (Terraform: `validation{}` block enforcing range 7–90; Bicep: `@minValue(7)` and `@maxValue(90)` decorators) to ensure operators cannot set a retention period shorter than the Azure minimum (7 days) or longer than the maximum (90 days).
+   - Rationale: A 90-day soft-delete window provides maximum recovery flexibility for accidental secret, key, or certificate deletion while still automatically purging after the retention period expires. This aligns with enterprise data protection requirements and the defence-in-depth posture established in the prior milestone.
+
+### Friction Points
+
+- **Bicep vs. Terraform validation parity:** While both frameworks now have input validation, Bicep's decorator system is compile-time only and does not support custom error messages as rich as Terraform's `error_message` field in `validation {}` blocks. Operators may see less descriptive errors from Bicep deployments.
+- **Diagnostic settings are conditional on Log Analytics workspace pre-existence:** The `log_analytics_workspace_id` variable requires the Log Analytics workspace to be deployed before the network baseline module. There is no module dependency management to create the workspace automatically — consumers must supply the ID from a previously deployed or external workspace. This is documented in the variable description but may cause ordering issues in single-module deployments.
+- **`listKeys/action` removal may affect existing pipeline workflows:** Any pipeline workflow that implicitly relied on `listKeys/action` for storage account data access (e.g., Terraform state backend key rotation scripts) will now fail with an authorization error. Consumers must migrate such workflows to use RBAC-based storage access or Managed Identity-based authentication instead.
+- **NSG diagnostic log verbosity:** Enabling `NetworkSecurityGroupEvent` and `NetworkSecurityGroupRuleCounter` for all four NSGs may generate significant log volume in high-traffic environments. Consumers should monitor Log Analytics ingestion costs and consider adjusting log categories or sampling rates as needed.
+
+### Next Steps
+
+- Evaluate whether the `custom-pipeline-deployer` role should be split into per-resource-type roles (e.g., `network-deployer`, `app-deployer`) for finer-grained separation of duties
+- Consider adding a `disable_https` toggle to the Application Gateway module (mirror the existing `disable_http` pattern)
+- Add `@description()` decorators to all Bicep parameters that currently lack them (e.g., `location`, `tags` blocks)
+- Investigate Azure Policy-driven enforcement of diagnostic settings and NSG rules as a complement to module-level controls

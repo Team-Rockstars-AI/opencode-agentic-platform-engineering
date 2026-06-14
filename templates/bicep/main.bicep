@@ -1,11 +1,38 @@
 targetScope = 'subscription'
 
+@description('The name of the project')
+@minLength(3)
+@maxLength(24)
 param projectName string = '{{project_name}}'
+
+@description('The primary Azure region to deploy to')
+@minLength(1)
 param location string = '{{azure_location}}'
+
+@description('The deployment environment')
+@allowed([
+  'dev'
+  'test'
+  'staging'
+  'prod'
+])
 param environment string = 'dev'
+
+@description('The Azure active directory tenant ID')
 param tenantId string = '{{tenant_id}}'
+
+@description('The governance tier to deploy')
+@allowed([
+  'basic'
+  'enterprise'
+  '{{governance_tier}}'
+])
 param governanceTier string = '{{governance_tier}}'
+
+@description('The GitHub Organization or Username')
 param githubOrgName string = '{{github_org_name}}'
+
+@description('The GitHub Repository Name')
 param githubRepoName string = '{{github_repo_name}}'
 @secure()
 param runnerToken string = 'placeholder-pat'
@@ -32,6 +59,7 @@ module network '../../modules/bicep/azure-network-baseline/v1/main.bicep' = {
     location: location
     isEnterprise: (governanceTier == 'enterprise')
     tags: rg.tags
+    logAnalyticsWorkspaceId: logging.outputs.workspaceId
   }
 }
 
@@ -72,6 +100,7 @@ module runners '../../modules/bicep/azure-private-runner/v1/main.bicep' = if (go
     githubRepoName: githubRepoName
     runnerToken: runnerToken
     tags: rg.tags
+    logAnalyticsWorkspaceId: logging.outputs.workspaceId
   }
 }
 

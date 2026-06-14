@@ -82,3 +82,33 @@ resource "azurerm_container_app" "runner_app" {
     value = var.runner_token
   }
 }
+
+resource "azurerm_monitor_diagnostic_setting" "runner_env" {
+  count                      = var.log_analytics_workspace_id != null ? 1 : 0
+  name                       = "ds-cae-${var.project_name}-${var.environment}"
+  target_resource_id         = azurerm_container_app_environment.runner_env.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "runner_app" {
+  count                      = var.log_analytics_workspace_id != null ? 1 : 0
+  name                       = "ds-ca-${var.project_name}-${var.environment}"
+  target_resource_id         = azurerm_container_app.runner_app.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}

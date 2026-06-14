@@ -1,16 +1,48 @@
+@minLength(3)
+@maxLength(24)
 param projectName string
+
+@allowed([
+  'dev'
+  'test'
+  'staging'
+  'prod'
+])
 param environment string = 'dev'
+
+@minLength(1)
 param location string
 param isEnterprise bool = false
+
+@minLength(9)
+@maxLength(18)
 param vnetAddressSpace string = '10.0.0.0/16'
+
+@minLength(9)
+@maxLength(18)
 param subnetWorkloadsPrefix string = '10.0.1.0/24'
+
+@minLength(9)
+@maxLength(18)
 param subnetAppgwPrefix string = '10.0.2.0/24'
+
+@minLength(9)
+@maxLength(18)
 param subnetEndpointsPrefix string = '10.0.3.0/24'
+
+@minLength(9)
+@maxLength(18)
 param subnetRunnersPrefix string = '10.0.4.0/24'
 param tags object = {}
 
 @description('The Key Vault Secret ID of the SSL certificate for HTTPS')
 param sslCertificateKeyVaultSecretId string = ''
+
+@description('Disable the port 80 HTTP listener entirely on the Application Gateway')
+param disableHttp bool = false
+
+@description('The resource ID of the central Log Analytics workspace for diagnostics')
+param logAnalyticsWorkspaceId string = ''
 
 // Public IP for outbound NAT Gateway
 resource natPip 'Microsoft.Network/publicIPAddresses@2021-08-01' = {
@@ -48,7 +80,47 @@ resource workloadsNsg 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {
   name: 'nsg-workloads-${projectName}-${environment}'
   location: location
   properties: {
-    securityRules: []
+    securityRules: [
+      {
+        name: 'AllowAppGatewayInbound80'
+        properties: {
+          priority: 100
+          direction: 'Inbound'
+          access: 'Allow'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '80'
+          sourceAddressPrefix: subnetAppgwPrefix
+          destinationAddressPrefix: subnetWorkloadsPrefix
+        }
+      }
+      {
+        name: 'AllowAppGatewayInbound443'
+        properties: {
+          priority: 110
+          direction: 'Inbound'
+          access: 'Allow'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: subnetAppgwPrefix
+          destinationAddressPrefix: subnetWorkloadsPrefix
+        }
+      }
+      {
+        name: 'DenyAllInbound'
+        properties: {
+          priority: 4000
+          direction: 'Inbound'
+          access: 'Deny'
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '*'
+          sourceAddressPrefix: '*'
+          destinationAddressPrefix: '*'
+        }
+      }
+    ]
   }
   tags: tags
 }
@@ -57,7 +129,47 @@ resource appgwNsg 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {
   name: 'nsg-appgw-${projectName}-${environment}'
   location: location
   properties: {
-    securityRules: []
+    securityRules: [
+      {
+        name: 'AllowInternetInbound80'
+        properties: {
+          priority: 100
+          direction: 'Inbound'
+          access: 'Allow'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '80'
+          sourceAddressPrefix: 'Internet'
+          destinationAddressPrefix: subnetAppgwPrefix
+        }
+      }
+      {
+        name: 'AllowInternetInbound443'
+        properties: {
+          priority: 110
+          direction: 'Inbound'
+          access: 'Allow'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: 'Internet'
+          destinationAddressPrefix: subnetAppgwPrefix
+        }
+      }
+      {
+        name: 'DenyAllInbound'
+        properties: {
+          priority: 4000
+          direction: 'Inbound'
+          access: 'Deny'
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '*'
+          sourceAddressPrefix: '*'
+          destinationAddressPrefix: '*'
+        }
+      }
+    ]
   }
   tags: tags
 }
@@ -80,6 +192,19 @@ resource endpointsNsg 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {
           destinationAddressPrefix: subnetEndpointsPrefix
         }
       }
+      {
+        name: 'DenyAllInbound'
+        properties: {
+          priority: 4000
+          direction: 'Inbound'
+          access: 'Deny'
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '*'
+          sourceAddressPrefix: '*'
+          destinationAddressPrefix: '*'
+        }
+      }
     ]
   }
   tags: tags
@@ -89,7 +214,21 @@ resource runnersNsg 'Microsoft.Network/networkSecurityGroups@2021-08-01' = if (i
   name: 'nsg-runners-${projectName}-${environment}'
   location: location
   properties: {
-    securityRules: []
+    securityRules: [
+      {
+        name: 'DenyAllInbound'
+        properties: {
+          priority: 4000
+          direction: 'Inbound'
+          access: 'Deny'
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '*'
+          sourceAddressPrefix: '*'
+          destinationAddressPrefix: '*'
+        }
+      }
+    ]
   }
   tags: tags
 }
@@ -179,6 +318,8 @@ resource appgwPip 'Microsoft.Network/publicIPAddresses@2021-08-01' = {
   tags: tags
 }
 
+var appGatewayId = '${subscription().id}/resourceGroups/${resourceGroup().name}/providers/Microsoft.Network/applicationGateways/agw-${projectName}-${environment}'
+
 // Application Gateway with WAF v2
 resource appGateway 'Microsoft.Network/applicationGateways@2021-08-01' = {
   name: 'agw-${projectName}-${environment}'
@@ -209,14 +350,14 @@ resource appGateway 'Microsoft.Network/applicationGateways@2021-08-01' = {
         }
       }
     ]
-    frontendPorts: concat([
+    frontendPorts: concat(!disableHttp ? [
       {
         name: 'port_80'
         properties: {
           port: 80
         }
       }
-    ], !empty(sslCertificateKeyVaultSecretId) ? [
+    ] : [], !empty(sslCertificateKeyVaultSecretId) ? [
       {
         name: 'port_443'
         properties: {
@@ -248,66 +389,66 @@ resource appGateway 'Microsoft.Network/applicationGateways@2021-08-01' = {
         }
       }
     ]
-    httpListeners: concat([
+    httpListeners: concat(!disableHttp ? [
       {
         name: 'appgw-listener'
         properties: {
           frontendIPConfiguration: {
-            id: '${vnet.id}/frontendIPConfigurations/appgw-frontend-ip'
+            id: '${appGatewayId}/frontendIPConfigurations/appgw-frontend-ip'
           }
           frontendPort: {
-            id: '${vnet.id}/frontendPorts/port_80'
+            id: '${appGatewayId}/frontendPorts/port_80'
           }
           protocol: 'Http'
         }
       }
-    ], !empty(sslCertificateKeyVaultSecretId) ? [
+    ] : [], !empty(sslCertificateKeyVaultSecretId) ? [
       {
         name: 'appgw-listener-https'
         properties: {
           frontendIPConfiguration: {
-            id: '${vnet.id}/frontendIPConfigurations/appgw-frontend-ip'
+            id: '${appGatewayId}/frontendIPConfigurations/appgw-frontend-ip'
           }
           frontendPort: {
-            id: '${vnet.id}/frontendPorts/port_443'
+            id: '${appGatewayId}/frontendPorts/port_443'
           }
           protocol: 'Https'
           sslCertificate: {
-            id: '${vnet.id}/sslCertificates/${projectName}-ssl'
+            id: '${appGatewayId}/sslCertificates/${projectName}-ssl'
           }
         }
       }
     ] : [])
-    requestRoutingRules: concat([
+    requestRoutingRules: concat(!disableHttp ? [
       {
         name: 'appgw-routing-rule'
         properties: {
           ruleType: 'Basic'
           httpListener: {
-            id: '${vnet.id}/httpListeners/appgw-listener'
+            id: '${appGatewayId}/httpListeners/appgw-listener'
           }
           backendAddressPool: {
-            id: '${vnet.id}/backendAddressPools/appgw-backend-pool'
+            id: '${appGatewayId}/backendAddressPools/appgw-backend-pool'
           }
           backendHttpSettings: {
-            id: '${vnet.id}/backendHttpSettingsCollection/appgw-http-settings'
+            id: '${appGatewayId}/backendHttpSettingsCollection/appgw-http-settings'
           }
           priority: 100
         }
       }
-    ], !empty(sslCertificateKeyVaultSecretId) ? [
+    ] : [], !empty(sslCertificateKeyVaultSecretId) ? [
       {
         name: 'appgw-routing-rule-https'
         properties: {
           ruleType: 'Basic'
           httpListener: {
-            id: '${vnet.id}/httpListeners/appgw-listener-https'
+            id: '${appGatewayId}/httpListeners/appgw-listener-https'
           }
           backendAddressPool: {
-            id: '${vnet.id}/backendAddressPools/appgw-backend-pool'
+            id: '${appGatewayId}/backendAddressPools/appgw-backend-pool'
           }
           backendHttpSettings: {
-            id: '${vnet.id}/backendHttpSettingsCollection/appgw-http-settings'
+            id: '${appGatewayId}/backendHttpSettingsCollection/appgw-http-settings'
           }
           priority: 110
         }
@@ -321,6 +462,135 @@ resource appGateway 'Microsoft.Network/applicationGateways@2021-08-01' = {
     }
   }
   tags: tags
+}
+
+// Diagnostic settings for Application Gateway
+resource appgwDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (!empty(logAnalyticsWorkspaceId)) {
+  name: 'ds-agw-${projectName}-${environment}'
+  scope: appGateway
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logs: [
+      {
+        category: 'ApplicationGatewayAccessLog'
+        enabled: true
+      }
+      {
+        category: 'ApplicationGatewayPerformanceLog'
+        enabled: true
+      }
+      {
+        category: 'ApplicationGatewayFirewallLog'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+  }
+}
+
+// Diagnostic settings for Workloads Network Security Group
+resource workloadsNsgDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (!empty(logAnalyticsWorkspaceId)) {
+  name: 'ds-nsg-workloads-${projectName}-${environment}'
+  scope: workloadsNsg
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logs: [
+      {
+        category: 'NetworkSecurityGroupEvent'
+        enabled: true
+      }
+      {
+        category: 'NetworkSecurityGroupRuleCounter'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+  }
+}
+
+// Diagnostic settings for App Gateway Network Security Group
+resource appgwNsgDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (!empty(logAnalyticsWorkspaceId)) {
+  name: 'ds-nsg-appgw-${projectName}-${environment}'
+  scope: appgwNsg
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logs: [
+      {
+        category: 'NetworkSecurityGroupEvent'
+        enabled: true
+      }
+      {
+        category: 'NetworkSecurityGroupRuleCounter'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+  }
+}
+
+// Diagnostic settings for Endpoints Network Security Group
+resource endpointsNsgDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (!empty(logAnalyticsWorkspaceId)) {
+  name: 'ds-nsg-endpoints-${projectName}-${environment}'
+  scope: endpointsNsg
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logs: [
+      {
+        category: 'NetworkSecurityGroupEvent'
+        enabled: true
+      }
+      {
+        category: 'NetworkSecurityGroupRuleCounter'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+  }
+}
+
+// Diagnostic settings for Runners Network Security Group (conditional on isEnterprise)
+resource runnersNsgDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (isEnterprise && !empty(logAnalyticsWorkspaceId)) {
+  name: 'ds-nsg-runners-${projectName}-${environment}'
+  scope: runnersNsg
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logs: [
+      {
+        category: 'NetworkSecurityGroupEvent'
+        enabled: true
+      }
+      {
+        category: 'NetworkSecurityGroupRuleCounter'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+  }
 }
 
 output vnetId string = vnet.id
