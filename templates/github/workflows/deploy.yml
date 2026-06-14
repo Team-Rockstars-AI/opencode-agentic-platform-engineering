@@ -49,6 +49,7 @@ jobs:
 
       - name: Install Bicep CLI
         run: |
+          set -euo pipefail
           if [ -f "bicep/main.bicep" ]; then
             az bicep install
           fi
@@ -56,6 +57,7 @@ jobs:
       # Format and syntax check
       - name: Terraform Format & Validate
         run: |
+          set -euo pipefail
           if [ -d "terraform" ]; then
             cd terraform
             terraform fmt -check
@@ -65,6 +67,7 @@ jobs:
 
       - name: Bicep Validate
         run: |
+          set -euo pipefail
           if [ -f "bicep/main.bicep" ]; then
             az bicep build --file bicep/main.bicep
           fi
@@ -81,6 +84,7 @@ jobs:
       - name: Generate Terraform Plan
         id: tf-plan
         run: |
+          set -euo pipefail
           if [ -d "terraform" ]; then
             cd terraform
             terraform init
@@ -91,6 +95,7 @@ jobs:
       - name: Generate Bicep What-If
         id: bicep-plan
         run: |
+          set -euo pipefail
           if [ -f "bicep/main.bicep" ]; then
             az deployment sub what-if \
               --location "{{azure_location}}" \
@@ -102,16 +107,17 @@ jobs:
       # Blast Radius Safety Gate (plan-validator emulation)
       - name: Blast Radius Plan Validator Gate
         run: |
+          set -euo pipefail
           if [ -f "terraform/plan_output.txt" ] || [ -f "plan_output.txt" ]; then
             PLAN_FILE=$(find . -name "plan_output.txt" | head -n 1)
             echo "Scanning $PLAN_FILE for critical stateful resource destructions..."
             
             # Check for destruction or replacement actions on critical suffixes
             if grep -E "(-/\+|destroy|replace|delete)" "$PLAN_FILE" | grep -Ei "(vault|database|sql|cosmos|storage|vnet|subnet)"; then
-              echo "================────────────────────────────────=========="
+              echo "================================────────────────=========="
               echo "💥 BLAST RADIUS WARNING: CRITICAL STATEFUL RESOURCE BEING DESTROYED OR REPLACED!"
               echo "The plan-validator agent has blocked this deployment to prevent data loss."
-              echo "================────────────────────────────────=========="
+              echo "================================────────────────=========="
               exit 1
             else
               echo "✅ Safety check passed. No critical resource destructions detected."
@@ -137,6 +143,7 @@ jobs:
       # Apply changes
       - name: Terraform Apply
         run: |
+          set -euo pipefail
           if [ -d "terraform" ]; then
             cd terraform
             terraform init
@@ -145,6 +152,7 @@ jobs:
 
       - name: Bicep Deploy
         run: |
+          set -euo pipefail
           if [ -f "bicep/main.bicep" ]; then
             az deployment sub create \
               --name "deploy-${{ github.run_id }}" \

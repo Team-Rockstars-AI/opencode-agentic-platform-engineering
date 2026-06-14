@@ -9,6 +9,9 @@ param subnetEndpointsPrefix string = '10.0.3.0/24'
 param subnetRunnersPrefix string = '10.0.4.0/24'
 param tags object = {}
 
+@description('The Key Vault Secret ID of the SSL certificate for HTTPS')
+param sslCertificateKeyVaultSecretId string = ''
+
 // Public IP for outbound NAT Gateway
 resource natPip 'Microsoft.Network/publicIPAddresses@2021-08-01' = {
   name: 'pip-nat-${projectName}-${environment}'
@@ -40,7 +43,58 @@ resource natGateway 'Microsoft.Network/natGateways@2021-08-01' = {
   tags: tags
 }
 
-// Virtual Network with subnets associated with NAT Gateway
+// Network Security Groups
+resource workloadsNsg 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {
+  name: 'nsg-workloads-${projectName}-${environment}'
+  location: location
+  properties: {
+    securityRules: []
+  }
+  tags: tags
+}
+
+resource appgwNsg 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {
+  name: 'nsg-appgw-${projectName}-${environment}'
+  location: location
+  properties: {
+    securityRules: []
+  }
+  tags: tags
+}
+
+resource endpointsNsg 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {
+  name: 'nsg-endpoints-${projectName}-${environment}'
+  location: location
+  properties: {
+    securityRules: [
+      {
+        name: 'AllowWorkloadsToEndpoints'
+        properties: {
+          priority: 100
+          direction: 'Inbound'
+          access: 'Allow'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: subnetWorkloadsPrefix
+          destinationAddressPrefix: subnetEndpointsPrefix
+        }
+      }
+    ]
+  }
+  tags: tags
+}
+
+resource runnersNsg 'Microsoft.Network/networkSecurityGroups@2021-08-01' = if (isEnterprise) {
+  name: 'nsg-runners-${projectName}-${environment}'
+  location: location
+  properties: {
+    securityRules: []
+  }
+  tags: tags
+}
+
+// Virtual Network with subnets associated with NAT Gateway and Network Security Groups
 resource vnet 'Microsoft.Network/virtualNetworks@2021-08-01' = {
   name: 'vnet-${projectName}-${environment}-${location}'
   location: location
@@ -58,18 +112,27 @@ resource vnet 'Microsoft.Network/virtualNetworks@2021-08-01' = {
           natGateway: {
             id: natGateway.id
           }
+          networkSecurityGroup: {
+            id: workloadsNsg.id
+          }
         }
       }
       {
         name: 'snet-appgw'
         properties: {
           addressPrefix: subnetAppgwPrefix
+          networkSecurityGroup: {
+            id: appgwNsg.id
+          }
         }
       }
       {
         name: 'snet-endpoints'
         properties: {
           addressPrefix: subnetEndpointsPrefix
+          networkSecurityGroup: {
+            id: endpointsNsg.id
+          }
         }
       }
       // Only include runner subnet configuration if enterprise is true.
@@ -80,7 +143,7 @@ resource vnet 'Microsoft.Network/virtualNetworks@2021-08-01' = {
   tags: tags
 }
 
-// Separate deployment for runners subnet if enterprise to enable delegating properly
+// Separate deployment for runners subnet if enterprise to enable delegating properly and associate NSG
 resource runnersSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-08-01' = if (isEnterprise) {
   name: 'snet-runners'
   parent: vnet
@@ -88,6 +151,9 @@ resource runnersSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-08-01' = 
     addressPrefix: subnetRunnersPrefix
     natGateway: {
       id: natGateway.id
+    }
+    networkSecurityGroup: {
+      id: runnersNsg.id
     }
     delegations: [
       {
@@ -143,14 +209,29 @@ resource appGateway 'Microsoft.Network/applicationGateways@2021-08-01' = {
         }
       }
     ]
-    frontendPorts: [
+    frontendPorts: concat([
       {
         name: 'port_80'
         properties: {
           port: 80
         }
       }
-    ]
+    ], !empty(sslCertificateKeyVaultSecretId) ? [
+      {
+        name: 'port_443'
+        properties: {
+          port: 443
+        }
+      }
+    ] : [])
+    sslCertificates: !empty(sslCertificateKeyVaultSecretId) ? [
+      {
+        name: '${projectName}-ssl'
+        properties: {
+          keyVaultSecretId: sslCertificateKeyVaultSecretId
+        }
+      }
+    ] : []
     backendAddressPools: [
       {
         name: 'appgw-backend-pool'
@@ -167,7 +248,7 @@ resource appGateway 'Microsoft.Network/applicationGateways@2021-08-01' = {
         }
       }
     ]
-    httpListeners: [
+    httpListeners: concat([
       {
         name: 'appgw-listener'
         properties: {
@@ -180,8 +261,24 @@ resource appGateway 'Microsoft.Network/applicationGateways@2021-08-01' = {
           protocol: 'Http'
         }
       }
-    ]
-    requestRoutingRules: [
+    ], !empty(sslCertificateKeyVaultSecretId) ? [
+      {
+        name: 'appgw-listener-https'
+        properties: {
+          frontendIPConfiguration: {
+            id: '${vnet.id}/frontendIPConfigurations/appgw-frontend-ip'
+          }
+          frontendPort: {
+            id: '${vnet.id}/frontendPorts/port_443'
+          }
+          protocol: 'Https'
+          sslCertificate: {
+            id: '${vnet.id}/sslCertificates/${projectName}-ssl'
+          }
+        }
+      }
+    ] : [])
+    requestRoutingRules: concat([
       {
         name: 'appgw-routing-rule'
         properties: {
@@ -198,7 +295,24 @@ resource appGateway 'Microsoft.Network/applicationGateways@2021-08-01' = {
           priority: 100
         }
       }
-    ]
+    ], !empty(sslCertificateKeyVaultSecretId) ? [
+      {
+        name: 'appgw-routing-rule-https'
+        properties: {
+          ruleType: 'Basic'
+          httpListener: {
+            id: '${vnet.id}/httpListeners/appgw-listener-https'
+          }
+          backendAddressPool: {
+            id: '${vnet.id}/backendAddressPools/appgw-backend-pool'
+          }
+          backendHttpSettings: {
+            id: '${vnet.id}/backendHttpSettingsCollection/appgw-http-settings'
+          }
+          priority: 110
+        }
+      }
+    ] : [])
     webApplicationFirewallConfiguration: {
       enabled: true
       firewallMode: 'Prevention'

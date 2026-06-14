@@ -45,6 +45,70 @@ resource "azurerm_subnet" "runners" {
   }
 }
 
+# Network Security Groups
+resource "azurerm_network_security_group" "workloads" {
+  name                = "nsg-workloads-${var.project_name}-${var.environment}"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  tags                = var.tags
+}
+
+resource "azurerm_network_security_group" "appgw" {
+  name                = "nsg-appgw-${var.project_name}-${var.environment}"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  tags                = var.tags
+}
+
+resource "azurerm_network_security_group" "endpoints" {
+  name                = "nsg-endpoints-${var.project_name}-${var.environment}"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  tags                = var.tags
+
+  security_rule {
+    name                       = "AllowWorkloadsToEndpoints"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = var.subnet_workloads_prefix
+    destination_address_prefix = var.subnet_endpoints_prefix
+  }
+}
+
+resource "azurerm_network_security_group" "runners" {
+  count               = var.is_enterprise ? 1 : 0
+  name                = "nsg-runners-${var.project_name}-${var.environment}"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  tags                = var.tags
+}
+
+# Network Security Group Associations
+resource "azurerm_subnet_network_security_group_association" "workloads" {
+  subnet_id                 = azurerm_subnet.workloads.id
+  network_security_group_id = azurerm_network_security_group.workloads.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "appgw" {
+  subnet_id                 = azurerm_subnet.appgw.id
+  network_security_group_id = azurerm_network_security_group.appgw.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "endpoints" {
+  subnet_id                 = azurerm_subnet.endpoints.id
+  network_security_group_id = azurerm_network_security_group.endpoints.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "runners" {
+  count                     = var.is_enterprise ? 1 : 0
+  subnet_id                 = azurerm_subnet.runners[0].id
+  network_security_group_id = azurerm_network_security_group.runners[0].id
+}
+
 # NAT Gateway for Outbound Egress
 resource "azurerm_public_ip" "nat_pip" {
   name                = "pip-nat-${var.project_name}-${var.environment}"
@@ -123,6 +187,14 @@ resource "azurerm_application_gateway" "app_gateway" {
     port = 80
   }
 
+  dynamic "frontend_port" {
+    for_each = var.ssl_certificate_key_vault_secret_id != null ? [1] : []
+    content {
+      name = "${local.frontend_port_name}-https"
+      port = 443
+    }
+  }
+
   frontend_ip_configuration {
     name                 = local.frontend_ip_configuration_name
     public_ip_address_id = azurerm_public_ip.appgw_pip.id
@@ -148,6 +220,25 @@ resource "azurerm_application_gateway" "app_gateway" {
     protocol                       = "Http"
   }
 
+  dynamic "http_listener" {
+    for_each = var.ssl_certificate_key_vault_secret_id != null ? [1] : []
+    content {
+      name                           = "${local.listener_name}-https"
+      frontend_ip_configuration_name = local.frontend_ip_configuration_name
+      frontend_port_name             = "${local.frontend_port_name}-https"
+      protocol                       = "Https"
+      ssl_certificate_name           = "${var.project_name}-ssl"
+    }
+  }
+
+  dynamic "ssl_certificate" {
+    for_each = var.ssl_certificate_key_vault_secret_id != null ? [1] : []
+    content {
+      name                = "${var.project_name}-ssl"
+      key_vault_secret_id = var.ssl_certificate_key_vault_secret_id
+    }
+  }
+
   request_routing_rule {
     name                       = local.request_routing_rule_name
     rule_type                  = "Basic"
@@ -155,6 +246,18 @@ resource "azurerm_application_gateway" "app_gateway" {
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
     priority                   = 100
+  }
+
+  dynamic "request_routing_rule" {
+    for_each = var.ssl_certificate_key_vault_secret_id != null ? [1] : []
+    content {
+      name                       = "${local.request_routing_rule_name}-https"
+      rule_type                  = "Basic"
+      http_listener_name         = "${local.listener_name}-https"
+      backend_address_pool_name  = local.backend_address_pool_name
+      backend_http_settings_name = local.http_setting_name
+      priority                   = 110
+    }
   }
 
   waf_configuration {

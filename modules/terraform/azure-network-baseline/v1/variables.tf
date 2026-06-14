@@ -60,3 +60,9 @@ variable "tags" {
   description = "Resource tags mapping"
   default     = {}
 }
+
+variable "ssl_certificate_key_vault_secret_id" {
+  type        = string
+  description = "The Key Vault Secret ID of the SSL certificate for HTTPS"
+  default     = null
+}

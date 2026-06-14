@@ -4,6 +4,7 @@ param location string
 param subnetRunnersId string
 param githubOrgName string = ''
 param githubRepoName string = ''
+@description('GitHub fine-grained PAT for runner registration. MUST be scoped to a single repository with admin:org (self-hosted runners) permission. MUST have a maximum 7-day expiration. Prefer GitHub App installation tokens.')
 @secure()
 param runnerToken string = 'placeholder-pat'
 param tags object = {}

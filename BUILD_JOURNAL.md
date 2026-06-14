@@ -121,3 +121,58 @@ This milestone completed the reusable skills framework by authoring the six rema
 - Implement CI/CD integration of `validate-skills.py` as a pre-merge gate
 - Consider splitting `code-standards` into granular sub-skills (WAF, CAF naming, tagging)
 - Evaluate whether `test-patterns` should include Pester/PSScriptAnalyzer guidance for Bicep module testing
+
+---
+
+## Milestone: Security Remediation & Hardening
+
+**Date:** 2026-06-14
+
+### Summary
+
+This milestone applied five targeted security hardening fixes across the infrastructure modules and pipeline templates. The changes address IAM over-privilege (Contributor role replacement), network isolation gaps (Key Vault exposure, missing subnet NSGs), HTTPS encryption configuration, and pipeline resilience (error propagation hardening).
+
+### Changes Made
+
+1. **Custom least-privilege roles in OIDC bootstrap (Terraform & Bicep):**
+   - Replaced the overly permissive `Contributor` role assignment with a fine-grained `azurerm_role_definition` / `Microsoft.Authorization/roleDefinitions` (`custom-pipeline-deployer-*`).
+   - The custom role grants precisely scoped actions for: Resource Groups, Virtual Networks, Subnets, Network Security Groups, Public IPs, NAT Gateways, Application Gateways, Private Endpoints, Key Vaults, Storage Accounts, Container Apps, App Services, Managed Identities, Diagnostic Settings, Log Analytics, and RBAC read.
+   - Covers both Terraform (`modules/terraform/azure-oidc-bootstrap/v1/main.tf`) and Bicep (`modules/bicep/azure-oidc-bootstrap/v1/main.bicep`) implementations.
+
+2. **Key Vault network isolation and purge protection (Terraform & Bicep):**
+   - Enabled `purge_protection_enabled = true` (Terraform) / `enablePurgeProtection: true` (Bicep) to prevent accidental or malicious vault deletion.
+   - Set `public_network_access_enabled = false` (Terraform) / `publicNetworkAccess: 'Disabled'` (Bicep) to disable public data plane access.
+   - Configured `network_acls` with `bypass = "AzureServices"` and `default_action = "Deny"` to allow trusted Azure services while blocking all other traffic.
+   - Applied to both `modules/terraform/azure-keyvault/v1/main.tf` and `modules/bicep/azure-keyvault/v1/main.bicep`.
+
+3. **Network Security Groups in network baseline (Terraform & Bicep):**
+   - Added dedicated NSG resources per subnet: `nsg-workloads`, `nsg-appgw`, `nsg-endpoints`, and `nsg-runners` (enterprise only).
+   - Implemented subnet-NSG associations for full micro-segmentation.
+   - The endpoints NSG includes a security rule allowing inbound HTTPS (port 443) from the workloads subnet only — enforcing least-privilege network access.
+   - Applied to both `modules/terraform/azure-network-baseline/v1/main.tf` and `modules/bicep/azure-network-baseline/v1/main.bicep`.
+
+4. **Pipeline error propagation hardening (GitHub Actions & Azure DevOps):**
+   - Ensured every script block in pipeline templates uses `set -euo pipefail` (already present in most blocks; verified and standardised across all steps).
+   - GitHub: `templates/github/workflows/deploy.yml` — all `run:` blocks now consistently use `set -euo pipefail`.
+   - Azure DevOps: `templates/azure-devops/pipelines/azure-pipelines.yml` — all inline script blocks now consistently use `set -euo pipefail`.
+
+5. **Application Gateway HTTPS support (Terraform & Bicep):**
+   - Added `ssl_certificate_key_vault_secret_id` input variable to conditionally enable HTTPS listeners.
+   - Dynamically creates HTTPS frontend port (443), HTTPS listener, SSL certificate binding (from Key Vault), and HTTPS request routing rule only when the variable is provided.
+   - The HTTP listener (port 80) remains as a fallback; both routing rules share the same backend pool and HTTP settings.
+   - WAF v2 remains in Prevention mode with OWASP 3.2 rule set.
+   - Applied to both `modules/terraform/azure-network-baseline/v1/` (via `variables.tf` and `main.tf`) and `modules/bicep/azure-network-baseline/v1/main.bicep`.
+
+### Friction Points
+
+- **OIDC custom role scope alignment:** The Terraform implementation creates the custom role definition scoped to a subscription ID variable (`subscription_scope_id`), while the Bicep implementation scopes it to `subscription().id`. This works for single-subscription deployments but may require refactoring for multi-subscription management groups.
+- **NSG rule granularity gap:** The endpoints NSG currently only permits traffic from the workloads subnet on port 443. No egress rules, no deny-all catch-all rule, and no rules for the workloads, appgw, or runners NSGs are defined yet. Consumers must supply their own rules for their specific application requirements.
+- **HTTPS requires external Key Vault secret:** The Application Gateway HTTPS parameterisation depends on a pre-existing Key Vault secret containing the SSL certificate. The module does not create or manage this certificate — consumers must supply it. This is documented in the variable description but could cause confusion during first-time setup.
+- **Pipeline template divergence:** The GitHub Actions and Azure DevOps templates both now use `set -euo pipefail` consistently, but they have structural differences in how they handle placeholder substitution (`{{mustache}}` vs `$(AzurePipelinesVar)`). These are inherent to the platform syntax and accepted as-is.
+
+### Next Steps
+
+- Add explicit deny-all network security rules to all NSGs as a defence-in-depth measure
+- Consider extracting the OIDC custom role into a standalone module for reuse outside the bootstrap context
+- Evaluate whether the Key Vault module should expose `public_network_access_enabled` as a configurable variable (currently hardcoded to `false`)
+- Add HTTPS-only mode toggle to the Application Gateway module to allow disabling HTTP entirely

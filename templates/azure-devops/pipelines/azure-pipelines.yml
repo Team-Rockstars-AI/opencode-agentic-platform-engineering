@@ -26,11 +26,13 @@ stages:
 
           # Secret Scanning (Gitleaks)
           - script: |
+              set -euo pipefail
               docker run --rm -v $(System.DefaultWorkingDirectory):/code zricethezav/gitleaks:latest detect --source=/code -v
             displayName: 'Gitleaks Credentials Scan'
 
           # Checkov Static Security Analysis
           - script: |
+              set -euo pipefail
               docker run --rm -v $(System.DefaultWorkingDirectory):/code bridgecrew/checkov:latest -d /code
             displayName: 'Checkov SAST Compliance Scan'
 
@@ -51,6 +53,7 @@ stages:
               scriptType: 'bash'
               scriptLocation: 'inlineScript'
               inlineScript: |
+                set -euo pipefail
                 if [ -d "terraform" ]; then
                   cd terraform
                   terraform init -backend=false
@@ -70,6 +73,7 @@ stages:
               scriptType: 'bash'
               scriptLocation: 'inlineScript'
               inlineScript: |
+                set -euo pipefail
                 if [ -f "bicep/main.bicep" ]; then
                   az bicep install
                   az bicep build --file bicep/main.bicep
@@ -84,6 +88,7 @@ stages:
 
           # Blast Radius Safety Gate (plan-validator emulation)
           - script: |
+              set -euo pipefail
               if [ -f "terraform/plan_output.txt" ] || [ -f "plan_output.txt" ]; then
                 PLAN_FILE=$(find . -name "plan_output.txt" | head -n 1)
                 echo "Scanning $PLAN_FILE for critical stateful resource destructions..."
@@ -119,6 +124,7 @@ stages:
               scriptType: 'bash'
               scriptLocation: 'inlineScript'
               inlineScript: |
+                set -euo pipefail
                 if [ -d "terraform" ]; then
                   cd terraform
                   terraform init
@@ -133,6 +139,7 @@ stages:
               scriptType: 'bash'
               scriptLocation: 'inlineScript'
               inlineScript: |
+                set -euo pipefail
                 if [ -f "bicep/main.bicep" ]; then
                   az deployment sub create \
                     --name "deploy-$(Build.BuildId)" \

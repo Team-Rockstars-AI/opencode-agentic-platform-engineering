@@ -8,6 +8,12 @@ resource "azurerm_key_vault" "kv" {
   purge_protection_enabled    = var.purge_protection_enabled
   enable_rbac_authorization   = true
   enabled_for_disk_encryption = true
+  public_network_access_enabled = false
+
+  network_acls {
+    bypass         = "AzureServices"
+    default_action = "Deny"
+  }
 
   tags = {
     Module = "terraform-azure-keyvault"

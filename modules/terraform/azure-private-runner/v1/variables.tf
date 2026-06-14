@@ -38,7 +38,7 @@ variable "github_repo_name" {
 
 variable "runner_token" {
   type        = string
-  description = "Personal access token (PAT) for registration"
+  description = "GitHub fine-grained PAT for runner registration. MUST be scoped to a single repository with admin:org (self-hosted runners) permission. MUST have a maximum 7-day expiration. Prefer GitHub App installation tokens."
   sensitive   = true
   default     = "placeholder-pat"
 }
