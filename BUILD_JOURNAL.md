@@ -233,3 +233,59 @@ This milestone applied five targeted hardening fixes focused on zero-trust micro
 - Consider adding a `disable_https` toggle to the Application Gateway module (mirror the existing `disable_http` pattern)
 - Add `@description()` decorators to all Bicep parameters that currently lack them (e.g., `location`, `tags` blocks)
 - Investigate Azure Policy-driven enforcement of diagnostic settings and NSG rules as a complement to module-level controls
+
+---
+
+## Milestone: High-Value Provisioning System Enhancements
+
+**Date:** 2026-06-14
+
+### Summary
+
+This milestone delivered three high-value provisioning system enhancements that improve the repository scaffolding experience, enforce local compliance during development, and provide pre-built architectural governance documentation. The additions target the template layer — the output that consumers receive after running the scaffold workflow.
+
+### Changes Made
+
+1. **Created `scripts/scaffold.py` — automated scaffolding script:**
+   - A self-contained Python script (zero external dependencies, standard library only) that orchestrates the entire repository generation process.
+   - Supports both **interactive mode** (prompts the user for IaC framework, DevOps platform, governance tier, project name, Azure configuration) and **non-interactive/CLI mode** (all options passed via command-line flags for CI/CD or scripted automation).
+   - Handles all scaffold operations: directory creation, template file copying, module inclusion from `modules/`, OpenCode config deployment (prompts, skills, `opencode.json`), `AGENTS.md` copy, documentation template copy, `.gitignore` generation, placeholder substitution (`{{project_name}}`, `{{azure_location}}`, `{{subscription_id}}`, etc.).
+   - Automatically resolves and moves `.pre-commit-config.yaml` from the IaC template directory to the target root.
+   - Performs post-copy cleanup (removes `.opencode-scaffold.json` scaffolding metadata files) and executes `git init` with an initial Conventional Commits commit (`feat: initial platform-engineering template`).
+   - Sets executable permissions on copied scripts (`validate-skills.py`).
+
+2. **Created `.pre-commit-config.yaml` in IaC templates (Terraform & Bicep):**
+   - **Terraform variant** (`templates/terraform/.pre-commit-config.yaml`): Configures five pre-commit hooks:
+     - `check-yaml`, `end-of-file-fixer`, `trailing-whitespace`, `check-added-large-files` (from `pre-commit-hooks` v4.6.0)
+     - `gitleaks` (v8.18.2) for secret scanning
+     - `checkov` (v3.2.216) with `--framework terraform` for SAST compliance scanning
+     - `terraform_fmt`, `terraform_validate`, `terraform_tflint` (from `pre-commit-terraform` v1.92.0)
+   - **Bicep variant** (`templates/bicep/.pre-commit-config.yaml`): Configures five pre-commit hooks:
+     - Same generic hooks as Terraform variant (`check-yaml`, `end-of-file-fixer`, `trailing-whitespace`, `check-added-large-files`)
+     - `gitleaks` (v8.18.2) for secret scanning
+     - `checkov` (v3.2.216) with `--framework bicep` and `.bicep` file filter for SAST compliance scanning
+   - Both configurations use `fail_fast: false` so all hooks run and report all violations in a single pass.
+   - The `scaffold.py` script automatically moves the relevant config to the target repository root during scaffolding, removing the unused variant.
+
+3. **Created pre-populated Architecture Decision Records (ADRs) under `templates/docs/adr/`:**
+   - **ADR 0001: Record Architecture Decisions** — Establishes the ADR practice itself: sequential numbering (`NNNN-title.md`), standard template (Status, Context, Decision, Consequences, References), and storage under `docs/adr/`. References Michael Nygard's ADR methodology.
+   - **ADR 0002: OIDC Federated Credentials for Pipeline Authentication** — Mandates OIDC with Azure Federated Credentials for all pipeline authentication, eliminating long-lived client secrets. Documents the JWT exchange flow, federated trust scoping (org/repo/branch), and zero-secrets configuration pattern.
+   - **ADR 0003: Private Endpoints and Network Isolation for Stateful Resources** — Enforces Azure Private Endpoints for all stateful resources (Key Vaults, Storage Accounts, Databases) with public access disabled. Documents Private DNS Zone integration and trusted service bypass patterns.
+   - **ADR 0004: Subnet-Level Micro-Segmentation via Network Security Groups** — Codifies dedicated NSGs per subnet with explicit default-deny posture. Prohibits public exposure of management ports (22/3389) and establishes application-tier communication rules.
+   - **ADR 0005: Self-Hosted Runners with KEDA Scaling for Enterprise Deployments** — For enterprise-tier deployments, specifies AKS-hosted ephemeral self-hosted runners with KEDA-based autoscaling (scale-to-zero when idle). Documents Managed Identity integration for credential-free runner authentication.
+   - All ADRs follow the standard template, reference related ADRs via relative paths, and link to external Microsoft/Azure documentation for further reading.
+
+### Friction Points
+
+- **Pre-commit hook version pinning:** Both config files pin specific tool versions (`v4.6.0`, `v8.18.2`, `v3.2.216`, `v1.92.0`). These will need regular updates to stay current with upstream releases. There is no automated Dependabot/Renovate configuration for pre-commit hooks yet.
+- **Bicep vs. Terraform pre-commit parity:** The Bicep variant lacks the `terraform_*` hooks (expected), but also lacks a `bicep build` / `bicep lint` hook. Bicep consumers must remember to run validation manually or configure their own hook.
+- **ADR sequence gap:** ADR 0001 references the ADR methodology itself, ADRs 0002–0005 cover the four core architectural pillars. There is no ADR 0006+ placeholder for future consumers to extend. The next consumer-authored ADR should start at 0006 without confusion.
+- **Scaffold.py is framework-aware but not idempotent:** Running `scaffold.py` against an existing target directory will overwrite files without warning. There is no `--dry-run` or `--force` safety check. A safety confirmation prompt exists in interactive mode but not in non-interactive mode.
+
+### Next Steps
+
+- Add `bicep build` validation hook to the Bicep pre-commit configuration
+- Implement `--dry-run` mode in `scaffold.py` to preview changes before writing
+- Add Dependabot/Renovate configuration to auto-update pre-commit hook revisions
+- Draft ADR 0006 placeholder to guide consumers on extending the ADR log
+- Integrate `scaffold.py` as the backend for the `/scaffold` slash command workflow

@@ -1,0 +1,36 @@
+# Pre-commit hooks for Terraform workflows and secure infrastructure
+# See https://pre-commit.com for more information
+
+default_stages: [pre-commit]
+fail_fast: false
+
+repos:
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-added-large-files
+
+  # Gitleaks for secret scanning
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.2
+    hooks:
+      - id: gitleaks
+
+  # Checkov for SAST compliance scanning
+  - repo: https://github.com/bridgecrewio/checkov
+    rev: v3.2.216
+    hooks:
+      - id: checkov
+        args: [--framework, terraform]
+
+  # Terraform-specific hooks
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.92.0
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_validate
+      - id: terraform_tflint

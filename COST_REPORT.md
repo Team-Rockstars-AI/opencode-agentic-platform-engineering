@@ -148,3 +148,39 @@ No additional token overhead was introduced. Changes were authored as direct mod
 | Model inference per milestone | Standard module authoring | < $0.05 (estimated) |
 | Security posture | Zero-trust micro-segmentation via NSG deny-all rules; least-privilege role without `listKeys`; input validation guardrails; centralised diagnostics; 90-day KV soft-delete | Significant qualitative improvement |
 | Operational observability | NSG diagnostic logs streamed to Log Analytics | ±$0.00 (setting resource free; nominal ingestion cost if volume is low)
+
+---
+
+## Milestone: High-Value Provisioning System Enhancements
+
+**Date:** 2026-06-14
+
+### Infrastructure Cost Impact
+
+**No Azure spend change.** All three additions are local scripts, configurations, and documentation files — they do not provision any Azure resources:
+
+| Change | Resource Type | Cost Classification |
+|--------|---------------|---------------------|
+| `scripts/scaffold.py` | Python script (local execution) | Free — zero external dependencies, no infrastructure provisioning |
+| `.pre-commit-config.yaml` (Terraform & Bicep) | YAML configuration files | Free — local pre-commit hook definitions, no Azure interaction |
+| `templates/docs/adr/` (5 ADRs) | Markdown documentation | Free — static documentation files in the repository |
+
+**Key takeaway:** These enhancements improve the developer experience and governance posture of the scaffolded repositories without introducing any new Azure billable resources, services, or data transfers.
+
+### Model Optimisation Cost Impact
+
+**No model changes in this milestone.** All work was authored by existing agents using their current model assignments (`@builder-infra-tf`, `@builder-infra-bicep`, `@builder-pipelines` on `opencode/claude-sonnet-4-6`; `@docs-writer` on `opencode/deepseek-v4-flash-free`). No new skills were created and no model configuration was altered.
+
+### Token Consumption Notes
+
+Token consumption for this milestone is attributable to standard script authoring, YAML configuration, and prose documentation workflows. The `scaffold.py` script (415 lines) represents the largest single artifact; the pre-commit configurations and ADRs are comparatively small. Total model inference cost is negligible (< $0.05 estimated).
+
+### Summary
+
+| Category | Change | Cost Delta |
+|----------|--------|------------|
+| Azure resource footprint | No new billable resources | ±$0.00/month |
+| Model inference per milestone | Scaffold script + pre-commit configs + 5 ADRs | < $0.05 (estimated) |
+| Provisioning reliability | Automated scaffolding replaces manual copy-paste | Significant qualitative improvement |
+| Local compliance | Pre-commit hooks enforce gitleaks, checkov, terraform_fmt pre-merge | ±$0.00 (local execution) |
+| Architecture governance | 5 pre-populated ADRs provide decision traceability | ±$0.00 (static docs)
