@@ -1,0 +1,142 @@
+trigger:
+  - main
+
+pr:
+  - main
+
+pool:
+  vmImage: {{ado_runner_pool}}
+
+variables:
+  - name: azureServiceConnection
+    value: 'sc-{{project_name}}-deploy'
+  - name: azureLocation
+    value: '{{azure_location}}'
+
+stages:
+  - stage: DevSecOps
+    displayName: Code Hygiene & Security Scan
+    jobs:
+      - job: Scan_Job
+        displayName: Gitleaks & Checkov Scans
+        pool:
+          vmImage: 'ubuntu-latest' # Standard public scanner
+        steps:
+          - checkout: self
+
+          # Secret Scanning (Gitleaks)
+          - script: |
+              docker run --rm -v $(System.DefaultWorkingDirectory):/code zricethezav/gitleaks:latest detect --source=/code -v
+            displayName: 'Gitleaks Credentials Scan'
+
+          # Checkov Static Security Analysis
+          - script: |
+              docker run --rm -v $(System.DefaultWorkingDirectory):/code bridgecrew/checkov:latest -d /code
+            displayName: 'Checkov SAST Compliance Scan'
+
+  - stage: Validate
+    displayName: Validate and Plan
+    dependsOn: DevSecOps
+    jobs:
+      - job: Plan_Job
+        displayName: Dry-Run Deployment Plan
+        steps:
+          - checkout: self
+
+          # Terraform Plan
+          - task: AzureCLI@2
+            displayName: 'Terraform Validation & Planning'
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                if [ -d "terraform" ]; then
+                  cd terraform
+                  terraform init -backend=false
+                  terraform validate
+                  
+                  # Generate full dry-run plan output
+                  terraform init
+                  terraform plan -no-color -out=tfplan > plan_output.txt
+                  cat plan_output.txt
+                fi
+
+          # Bicep What-If
+          - task: AzureCLI@2
+            displayName: 'Bicep What-If Planning'
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                if [ -f "bicep/main.bicep" ]; then
+                  az bicep install
+                  az bicep build --file bicep/main.bicep
+                  
+                  # Generate full what-if plan output
+                  az deployment sub what-if \
+                    --location $(azureLocation) \
+                    --template-file bicep/main.bicep \
+                    --parameters bicep/main.parameters.json > plan_output.txt
+                  cat plan_output.txt
+                fi
+
+          # Blast Radius Safety Gate (plan-validator emulation)
+          - script: |
+              if [ -f "terraform/plan_output.txt" ] || [ -f "plan_output.txt" ]; then
+                PLAN_FILE=$(find . -name "plan_output.txt" | head -n 1)
+                echo "Scanning $PLAN_FILE for critical stateful resource destructions..."
+                
+                # Check for destruction or replacement actions on critical suffixes
+                if grep -E "(-/\+|destroy|replace|delete)" "$PLAN_FILE" | grep -Ei "(vault|database|sql|cosmos|storage|vnet|subnet)"; then
+                  echo "================================────────────────=========="
+                  echo "💥 BLAST RADIUS WARNING: CRITICAL STATEFUL RESOURCE BEING DESTROYED OR REPLACED!"
+                  echo "The plan-validator agent has blocked this deployment to prevent data loss."
+                  echo "================────────────────────────────────=========="
+                  exit 1
+                else
+                  echo "✅ Safety check passed. No critical resource destructions detected."
+                fi
+              fi
+            displayName: 'Blast Radius Plan Validator Gate'
+
+  - stage: Deploy
+    displayName: Deploy to Azure
+    dependsOn: Validate
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - job: Deploy_Job
+        displayName: Deploy Job
+        steps:
+          - checkout: self
+
+          # Terraform Deploy
+          - task: AzureCLI@2
+            displayName: 'Terraform Deploy'
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                if [ -d "terraform" ]; then
+                  cd terraform
+                  terraform init
+                  terraform apply -auto-approve
+                fi
+
+          # Bicep Deploy
+          - task: AzureCLI@2
+            displayName: 'Bicep Deploy'
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                if [ -f "bicep/main.bicep" ]; then
+                  az deployment sub create \
+                    --name "deploy-$(Build.BuildId)" \
+                    --location $(azureLocation) \
+                    --template-file bicep/main.bicep \
+                    --parameters bicep/main.parameters.json
+                fi

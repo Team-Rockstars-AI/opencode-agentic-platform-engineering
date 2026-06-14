@@ -1,0 +1,154 @@
+name: Azure IaC DevSecOps Deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  devsecops:
+    name: Code Hygiene & Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Secret Detection (Gitleaks)
+      - name: Gitleaks Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Static Security Analysis (Checkov)
+      - name: Checkov SAST Scan
+        uses: bridgecrewio/checkov-action@master
+        with:
+          framework: all
+          output_format: cli
+          soft_fail: false # Hard block on compliance violations
+
+  validate:
+    name: Validate and Plan
+    needs: devsecops
+    runs-on: {{github_runner_pool}}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Install Bicep CLI
+        run: |
+          if [ -f "bicep/main.bicep" ]; then
+            az bicep install
+          fi
+
+      # Format and syntax check
+      - name: Terraform Format & Validate
+        run: |
+          if [ -d "terraform" ]; then
+            cd terraform
+            terraform fmt -check
+            terraform init -backend=false
+            terraform validate
+          fi
+
+      - name: Bicep Validate
+        run: |
+          if [ -f "bicep/main.bicep" ]; then
+            az bicep build --file bicep/main.bicep
+          fi
+
+      # Azure OIDC Login
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Dry-run Execution Planning
+      - name: Generate Terraform Plan
+        id: tf-plan
+        run: |
+          if [ -d "terraform" ]; then
+            cd terraform
+            terraform init
+            terraform plan -no-color -out=tfplan > plan_output.txt
+            cat plan_output.txt
+          fi
+
+      - name: Generate Bicep What-If
+        id: bicep-plan
+        run: |
+          if [ -f "bicep/main.bicep" ]; then
+            az deployment sub what-if \
+              --location "{{azure_location}}" \
+              --template-file bicep/main.bicep \
+              --parameters bicep/main.parameters.json > plan_output.txt
+            cat plan_output.txt
+          fi
+
+      # Blast Radius Safety Gate (plan-validator emulation)
+      - name: Blast Radius Plan Validator Gate
+        run: |
+          if [ -f "terraform/plan_output.txt" ] || [ -f "plan_output.txt" ]; then
+            PLAN_FILE=$(find . -name "plan_output.txt" | head -n 1)
+            echo "Scanning $PLAN_FILE for critical stateful resource destructions..."
+            
+            # Check for destruction or replacement actions on critical suffixes
+            if grep -E "(-/\+|destroy|replace|delete)" "$PLAN_FILE" | grep -Ei "(vault|database|sql|cosmos|storage|vnet|subnet)"; then
+              echo "================────────────────────────────────=========="
+              echo "💥 BLAST RADIUS WARNING: CRITICAL STATEFUL RESOURCE BEING DESTROYED OR REPLACED!"
+              echo "The plan-validator agent has blocked this deployment to prevent data loss."
+              echo "================────────────────────────────────=========="
+              exit 1
+            else
+              echo "✅ Safety check passed. No critical resource destructions detected."
+            fi
+          fi
+
+  deploy:
+    name: Deploy to Azure
+    needs: validate
+    runs-on: {{github_runner_pool}}
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Apply changes
+      - name: Terraform Apply
+        run: |
+          if [ -d "terraform" ]; then
+            cd terraform
+            terraform init
+            terraform apply -auto-approve
+          fi
+
+      - name: Bicep Deploy
+        run: |
+          if [ -f "bicep/main.bicep" ]; then
+            az deployment sub create \
+              --name "deploy-${{ github.run_id }}" \
+              --location "{{azure_location}}" \
+              --template-file bicep/main.bicep \
+              --parameters bicep/main.parameters.json
+          fi

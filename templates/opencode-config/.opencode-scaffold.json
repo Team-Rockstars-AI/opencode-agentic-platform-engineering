@@ -1,0 +1,10 @@
+{
+  "placeholders": {
+    "project_name": {
+      "prompt": "Enter the project name:",
+      "default": "platform-core"
+    }
+  },
+  "processor": "scaffold",
+  "depends_on": []
+}

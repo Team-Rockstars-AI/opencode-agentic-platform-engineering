@@ -1,0 +1,22 @@
+{
+  "placeholders": {
+    "project_name": {
+      "prompt": "Enter the project name (e.g., core-infra):",
+      "default": "platform-core"
+    },
+    "azure_location": {
+      "prompt": "Enter the primary Azure region (e.g., eastus2, westeurope):",
+      "default": "eastus2"
+    },
+    "subscription_id": {
+      "prompt": "Enter your Azure Subscription ID:",
+      "default": ""
+    },
+    "tenant_id": {
+      "prompt": "Enter your Azure Tenant ID:",
+      "default": ""
+    }
+  },
+  "processor": "scaffold",
+  "depends_on": []
+}

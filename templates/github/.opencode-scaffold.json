@@ -1,0 +1,18 @@
+{
+  "placeholders": {
+    "project_name": {
+      "prompt": "Enter the project name:",
+      "default": "platform-core"
+    },
+    "azure_location": {
+      "prompt": "Enter the Azure region:",
+      "default": "eastus2"
+    },
+    "github_runner_pool": {
+      "prompt": "Enter GitHub runner pool (e.g., ubuntu-latest or [self-hosted, private-runner]):",
+      "default": "ubuntu-latest"
+    }
+  },
+  "processor": "scaffold",
+  "depends_on": []
+}

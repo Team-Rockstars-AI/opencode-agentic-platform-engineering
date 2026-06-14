@@ -1,0 +1,18 @@
+{
+  "placeholders": {
+    "project_name": {
+      "prompt": "Enter the project name:",
+      "default": "platform-core"
+    },
+    "azure_location": {
+      "prompt": "Enter the Azure region:",
+      "default": "eastus2"
+    },
+    "ado_runner_pool": {
+      "prompt": "Enter Azure DevOps runner pool (e.g., ubuntu-latest or private-agent-pool):",
+      "default": "ubuntu-latest"
+    }
+  },
+  "processor": "scaffold",
+  "depends_on": []
+}
