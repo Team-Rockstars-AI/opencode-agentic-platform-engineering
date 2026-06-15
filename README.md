@@ -136,9 +136,17 @@ python3 scripts/validate-skills.py
 
 ## 📖 Deployed Documentation
 
-To help you operate and maintain this platform, we have authored comprehensive, human-facing operator manuals:
+To help you operate, maintain, and govern this platform, we have authored a comprehensive suite of human-facing documentation guides:
 
+### Operator Manuals
 *   **[Provisioning Platform Operator Manual (THIS Platform)](docs/operator-manual-provisioning-platform.md)** — A detailed guide on how to install, set up, and operate this generator repository to scaffold new workspaces.
 *   **[Provisioned Platform Operator Manual (The Generated Workspace)](docs/operator-manual-provisioned-platform.md)** — A detailed guide on how to operate, maintain, and expand your newly generated repository using the integrated OpenCode multi-agent team and secure-by-design workflows.
+
+### Architecture & Governance Guides
+*   **[Architecture Blueprint & Network Topology](docs/architecture-blueprint.md)** — A detailed blueprint of the secure-by-design Hub-Spoke network topology, Private Link integration, and micro-segmentation.
+*   **[Regulatory Compliance Mapping Guide](docs/compliance-mapping-guide.md)** — Maps the technical controls of the landing zone directly to European and Dutch regulatory articles (DORA, GDPR, BIO, NEN 7510).
+*   **[Disaster Recovery & State Reconstruction Runbook](docs/disaster-recovery-runbook.md)** — Step-by-step instructions for recovering from state locks, state corruption, or accidental resource deletions.
+*   **[Workload Developer Onboarding Guide](docs/onboarding-guide-workloads.md)** — Guides application development teams on how to securely request subnets, configure Private Endpoints, and set up OIDC-federated pipelines.
+*   **[Cost Governance & Sizing Guide](docs/cost-governance-guide.md)** — Outlines the cost-saving strategies, sizing guidelines, and optimization rules enforced by the platform.
 
 Once scaffolded, you can also refer to the **`AGENTS.md`** file created at the root of your new target directory. It outlines the specific developer workflows and exact operational standards required to manage your live workloads.
