@@ -21,25 +21,30 @@ The platform enforces a secure, micro-segmented **Hub-Spoke network topology** d
 ┌─────────────────────────────────────────────────────────────────────────┐
 │ Virtual Network (Hub)                                                   │
 │                                                                         │
-│  ┌────────────────────────┐           ┌──────────────────────────────┐  │
-│  │ Subnet: appgw          │           │ Subnet: endpoints            │  │
-│  │ (App Gateway Frontend) │           │ (Private Endpoints)          │  │
-│  └───────────┬────────────┘           └──────────────▲───────────────┘  │
-│              │                                       │                  │
-│              │ (Inbound HTTP/HTTPS)                  │ (Private Link)   │
-│              ▼                                       │                  │
-│  ┌────────────────────────┐           ┌──────────────┴───────────────┐  │
-│  │ Subnet: workloads      ├──────────►│ Stateful Resources           │  │
-│  │ (Container Apps/VMs)   │           │ (Key Vault, Storage, etc.)   │  │
-│  └───────────┬────────────┘           └──────────────────────────────┘  │
+│  ┌────────────────────────┐                                             │
+│  │ Subnet: appgw          │                                             │
+│  │ (App Gateway Frontend) │                                             │
+│  └───────────┬────────────┘                                             │
 │              │                                                          │
-│              │ (Outbound Traffic)                                       │
+│              │ (Inbound HTTP/HTTPS)                                     │
 │              ▼                                                          │
 │  ┌────────────────────────┐                                             │
-│  │ Subnet: runners        │                                             │
-│  │ (Self-Hosted Runners)  │                                             │
-│  └───────────┬────────────┘                                             │
-└──────────────┼──────────────────────────────────────────────────────────┘
+│  │ Subnet: workloads      ├──────────┐                                  │
+│  │ (Container Apps/VMs)   │          │                                  │
+│  └───────────┬────────────┘          │ (Private Traffic)                │
+│              │                       ▼                                  │
+│              │ (Outbound Traffic) ┌──────────────────────────────┐      │
+│              ▼                    │ Subnet: endpoints            │      │
+│  ┌────────────────────────┐       │ (Private Endpoints)          │      │
+│  │ Subnet: runners        ├──────►└──────────────┬───────────────┘      │
+│  │ (Self-Hosted Runners)  │                      │                      │
+│  └───────────┬────────────┘                      │ (Private Link)       │
+└──────────────┼───────────────────────────────────┼──────────────────────┘
+               │                                   ▼
+               │                            ┌──────────────────────────────┐
+               │                            │ Stateful Resources           │
+               │                            │ (Key Vault, Storage, etc.)   │
+               │                            └──────────────────────────────┘
                │ (Outbound SNAT)
                ▼
 ┌───────────────────────────┐
