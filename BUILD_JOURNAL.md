@@ -359,3 +359,35 @@ This milestone implemented Epic 1 (Static Cost & Resource Optimization Engine), 
 
 - **Epic 2: Drift Detection Engine (`/drift`)** to identify out-of-band changes between live Azure resources and the declared IaC state.
 - **Epic 3: Compliance Gating Engine (`/compliance`)** to enforce organization-specific Azure Policy and security baselines pre-deployment.
+
+---
+
+## Milestone: EU-Sovereignty Agentic Configuration Layer
+
+**Date:** 2026-06-15
+
+### Summary
+
+This milestone executed a systematic refactor of the agentic configuration layer to achieve EU-sovereignty. We scanned and refactored the agentic configuration manifest (`manifest.yaml`) and implemented a robust Python configuration layer (`agent_config.py`) that enforces a strict `SECURITY_POLICY` requiring all Code-Generation and Task-Execution sub-agents to utilize EU-sourced models (Mistral API or local Ollama endpoints running codestral-24b or ministral-8b) by default. We also added a validation hook that logs the origin jurisdiction of every model used in the orchestration loop and triggers a critical alert/exception if a non-EU, non-authorized model is selected for a 'RESTRICTED' task.
+
+### Changes Made
+
+1. **Created `manifest.yaml` (EU-Sovereign Manifest):**
+   - Defined active agents, roles, and model endpoints.
+   - Replaced all non-EU model endpoints (US/China) with EU-sovereign alternatives (Mistral API or local Ollama endpoints running codestral-24b or ministral-8b).
+   - Maintained Claude 4 as the authorized high-reasoning fallback for the orchestrator.
+
+2. **Created `agent_config.py` (Sovereignty Policy Enforcement):**
+   - Defined a strict `SECURITY_POLICY` constant that forces all 'Code-Generation' and 'Task-Execution' sub-agents to utilize EU-sourced models by default.
+   - Implemented a validation hook that logs the origin jurisdiction of every model used in the orchestration loop.
+   - Configured the validation hook to trigger a critical alert/exception if a non-EU, non-authorized model is selected for a 'RESTRICTED' task.
+   - Added a self-test suite to verify policy enforcement, fallback handling, and restricted task validation.
+
+### Friction Points
+
+- **High-Reasoning Fallback Trade-off:** While EU-sovereignty is strictly enforced for Code-Generation and Task-Execution sub-agents, the orchestrator still relies on Claude 4 (US-based) as a high-reasoning fallback. This was accepted as a necessary trade-off for complex planning tasks, but is explicitly logged and monitored.
+
+### Next Steps
+
+- Integrate the `agent_config.py` validation hook directly into the main OpenCode orchestration loop.
+- Explore hosting a local high-reasoning model (e.g., Mixtral-8x22B) to completely eliminate the US-based fallback dependency.

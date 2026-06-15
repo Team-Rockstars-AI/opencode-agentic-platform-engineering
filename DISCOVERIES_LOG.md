@@ -118,3 +118,20 @@ This log serves as a persistent, in-project memory of discoveries, findings, and
     - **Azure DevOps:** Removed the global `azureServiceConnection` variable and defined it at the stage level, using `'sc-{{project_name}}-dev-deploy'` for validation and `'sc-{{project_name}}-prod-deploy'` for deployment.
 *   **Strongly-Typed Bicep Parameters:** Added parameterized `runnerCpu` and `runnerMemory` variables with strict `@allowed` decorators, replacing the `any()` bypass with strongly-typed parameters.
 *   **GitHub App-Based Runner Registration Documentation:** Expanded the variable descriptions across all modules and templates to explicitly document the GitHub App-based runner registration approach as the preferred, secure, and auto-rotating path.
+
+---
+
+## Milestone: EU-Sovereignty Agentic Configuration Layer (June 2026)
+
+### 🔍 Discoveries
+*   **Geopolitical Compliance Risks:** Relying on non-EU model endpoints (specifically those in China or the US) for sensitive platform engineering tasks introduces geopolitical compliance risks and potential violations of EU data sovereignty regulations (such as GDPR, DORA, and BIO).
+*   **Sovereign Model Alternatives:** High-quality EU-sourced models (such as Mistral API via Le Chat/Mistral Enterprise or local Ollama endpoints running codestral-24b or ministral-8b) provide excellent sovereign alternatives for code generation and task execution.
+
+### ⚠️ Findings
+*   **Non-EU Model Dependencies:** Active agent configurations and manifests contained references to non-EU model endpoints (such as DeepSeek based in China, or Gemini/Claude based in the US).
+*   **Lack of Jurisdiction Enforcement:** No mechanism existed to enforce model jurisdiction policies or alert operators when a non-EU model was selected for restricted tasks.
+
+### 💡 Solutions
+*   **EU-Sovereign Manifest (`manifest.yaml`):** Created a centralized agentic configuration manifest that maps all active sub-agents to EU-sovereign model endpoints (Mistral API and local Ollama endpoints) while maintaining Claude 4 as an authorized high-reasoning fallback for the orchestrator.
+*   **Sovereignty Policy Enforcement (`agent_config.py`):** Implemented a robust Python configuration layer with a strict `SECURITY_POLICY` constant that automatically overrides non-EU models for Code-Generation and Task-Execution roles with EU-sovereign defaults.
+*   **Jurisdiction Validation Hook:** Added a validation hook that logs the origin jurisdiction of every model used in the orchestration loop and triggers a critical alert/exception if a non-EU, non-authorized model is selected for a 'RESTRICTED' task.
