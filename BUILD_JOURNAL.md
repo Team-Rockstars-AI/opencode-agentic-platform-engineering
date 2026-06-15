@@ -321,3 +321,41 @@ This milestone remediated three security findings identified during the `@securi
 
 - Implement automated rotation scripts or GitHub App integration examples for self-hosted runner registration.
 - Add `bicep build` validation hook to the Bicep pre-commit configuration.
+
+---
+
+## Milestone: Static Cost & Resource Optimization Engine
+
+**Date:** 2026-06-15
+
+### Summary
+
+This milestone implemented Epic 1 (Static Cost & Resource Optimization Engine), introducing cost-governance and resource sizing analysis directly into the platform engineering repository. This was achieved by authoring the `optimise` skill and its template equivalent, parameterizing the Terraform private runner module for conservative resource sizing, and registering the `/optimise` command in both the local and template configurations of `opencode.json`. The engine scans IaC templates, subnets, and container apps for oversized SKUs, cost leaks, and sizing inefficiencies while enforcing strict security baselines.
+
+### Changes Made
+
+1. **Created `skills/optimise/SKILL.md`** (and template equivalent):
+   - Defined 8 static cost and resource optimization rules (Key Vault SKU gating, soft-delete retention trim, Application Gateway capacity limits, selective WAF tier toggles, private runner scale-to-zero, max replicas scaling caps, right-sized CPU/Memory variables, and logging retention controls).
+   - Embedded non-negotiable security guardrails (e.g., keeping purge protection enabled, retaining WAF on public endpoints, and protecting critical log streams like NSG flow logs and Key Vault audits).
+   - Specified a structured findings report format indicating exact files, lines, remediations, and estimated monthly savings.
+
+2. **Parameterised Terraform Private Runner Module (`modules/terraform/azure-private-runner/v1/`):**
+   - Added parameterized `runner_cpu` and `runner_memory` variables with strict description blocks and default values to `variables.tf` and `main.tf` to allow right-sizing of self-hosted runners.
+   - Propagated these right-sizing variables to `templates/terraform/main.tf` and `templates/terraform/variables.tf`.
+
+3. **Integrated `/optimise` slash command (`opencode.json`):**
+   - Registered the `optimise` command in `opencode.json` and its template equivalent (`templates/opencode-config/opencode.json`), directing the agent to run a static cost optimization check, collaborate with the `@code-reviewer` and `@security-auditor` to ensure safety, and summon `@docs-writer` to generate the report.
+   - Created `templates/docs/reports/cost-optimisation-template.md` as the standardized report template format.
+
+4. **Updated Documentation (`AGENTS.md` & `templates/AGENTS.md`):**
+   - Added the `optimise` skill and `/optimise` workflow to the central agents and workflows reference tables in both local and template AGENTS markdown files.
+
+### Friction Points
+
+- **Security vs. Cost Compromise:** A major risk in cost optimization is recommending downgrades that introduce security vulnerabilities (e.g., disabling Key Vault purge protection, shutting off the Application Gateway WAF to save on WAF_v2 licensing, or disabling security log streams). This was resolved by codifying strict security guardrails inside the `optimise` skill checklist—mandating that critical security features remain enabled regardless of environment-tier.
+- **Parametrization & Typing Synchronization:** Synchronizing right-sizing parameters between Bicep (`runnerCpu`/`runnerMemory` with `@allowed` decorators) and Terraform (`runner_cpu`/`runner_memory` variables) required careful alignment to maintain strict input validation and compile-time type safety across both IaC dialects, preventing loose/untyped parameter definitions.
+
+### Next Steps
+
+- **Epic 2: Drift Detection Engine (`/drift`)** to identify out-of-band changes between live Azure resources and the declared IaC state.
+- **Epic 3: Compliance Gating Engine (`/compliance`)** to enforce organization-specific Azure Policy and security baselines pre-deployment.
