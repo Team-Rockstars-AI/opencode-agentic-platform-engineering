@@ -29,7 +29,7 @@
     "builder-infra-tf": {
       "description": "Implements Azure Terraform infrastructure as code (IaC) modules and configurations.",
       "mode": "subagent",
-      "model": "opencode/claude-sonnet-4.6",
+      "model": "opencode/deepseek-v4-pro",
       "temperature": 0,
       "steps": 50,
       "prompt": "{file:./.opencode/prompts/builder-infra-tf.txt}",
@@ -43,7 +43,7 @@
     "builder-infra-bicep": {
       "description": "Implements Azure Bicep infrastructure as code (IaC) templates and parameter files.",
       "mode": "subagent",
-      "model": "opencode/claude-sonnet-4.6",
+      "model": "opencode/deepseek-v4-pro",
       "temperature": 0,
       "steps": 50,
       "prompt": "{file:./.opencode/prompts/builder-infra-bicep.txt}",
@@ -57,7 +57,7 @@
     "builder-pipelines": {
       "description": "Implements secure CI/CD pipelines (GitHub Actions and Azure DevOps Pipelines) with OIDC federation.",
       "mode": "subagent",
-      "model": "opencode/claude-sonnet-4.6",
+      "model": "opencode/deepseek-v4-pro",
       "temperature": 0,
       "steps": 50,
       "prompt": "{file:./.opencode/prompts/builder-pipelines.txt}",
