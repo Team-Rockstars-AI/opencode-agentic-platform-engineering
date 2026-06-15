@@ -98,6 +98,7 @@ In addition to the agent team, the platform includes reusable **Skills** — cod
 | **`doc-standards`** | Documentation standards for module READMEs, ADR format, runbooks, and onboarding guides targeting operations teams and developers. Used by `@docs-writer`. |
 | **`expand`** | Powers `/expand` — guides the rollout of new resource modules under governance guardrails. |
 | **`git-workflow`** | Branch naming conventions (`feature/<id>-<desc>`), pre-commit hygiene (formatter, `git add -p`), commit blacklist rules (no secrets, no debug artifacts, no commented-out code), and handoff summary format for the `@test-writer`. Enforced by all builder agents before staging or committing. |
+| **`model-optimiser`** | Selects and configures optimized models for each agent based on jurisdiction, cost/quality focus, and local hardware capabilities. Used by `@orchestrator` during model optimization. |
 | **`plan-tracking`** | Execution plan JSON conversion, resource action tracking (create/update/delete/replace), milestone status updates, and session state maintenance. Used by `@plan-validator` and `@docs-writer`. |
 | **`scaffold`** | Powers the `/scaffold` workflow — copies template sets, resolves placeholders, initialises git. |
 | **`security-checklist`** | Structured security review checklist with PASS/FAIL/NA criteria, covering OIDC enforcement, network isolation, soft-delete, least-privilege IAM, diagnostic logging, and strict typing. Used by the `@security-auditor` agent during every audit pass. |
@@ -111,6 +112,8 @@ In addition to scaffolding, this repository contains active local OpenCode confi
 *   **`/debug`**: Instructs our verifier and builders to identify and resolve any linter warnings or syntax compile errors in our module codebase.
 *   **`/expand`**: Assists in adding new resource modules or expanding existing Bicep and Terraform landing zone skeletons.
 *   **`/optimise`**: Scans our local landing zone modules, templates, and configurations for cost-saving opportunities and resource sizing inefficiencies. Leverages the `optimise` skill to produce a structured cost optimization report.
+*   **`/select-models`**: Selects and configures optimized models for each agent based on jurisdiction, cost/quality focus, and local hardware capabilities. Leverages the `model-optimiser` skill to update configurations and run verification tests.
+
 
 ---
 

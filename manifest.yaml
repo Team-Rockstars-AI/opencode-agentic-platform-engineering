@@ -1,80 +1,59 @@
-# Agentic Configuration Manifest for EU-Sovereign Platform Engineering
-# This manifest defines the active agents, their roles, and their model endpoints.
-# All non-EU model endpoints (US/China) have been replaced with EU-sovereign alternatives
-# (Mistral API or local Ollama endpoints) except for the high-reasoning fallback orchestrator.
-
-version: "1.0.0"
-jurisdiction_policy: "EU-Sovereign"
-
 agents:
-  orchestrator:
-    name: "orchestrator"
-    role: "Strategic Platform Planner"
-    # Gemini 3.5 Flash is maintained as the 'High-Reasoning' fallback for complex orchestration
-    model: "opencode/gemini-3.5-flash"
-    endpoint: "https://opencode.ai/zen/v1"
-    jurisdiction: "US"
-    tier: "High-Reasoning"
-
-  builder-infra-tf:
-    name: "builder-infra-tf"
-    role: "Code-Generation"
-    # Replaced US/China models with Cohere North Mini Code (Sovereign-friendly)
-    model: "opencode/north-mini-code-free"
-    endpoint: "https://opencode.ai/zen/v1"
-    jurisdiction: "Sovereign"
-    tier: "Code-Generation"
-
   builder-infra-bicep:
-    name: "builder-infra-bicep"
-    role: "Code-Generation"
-    # Replaced US/China models with Cohere North Mini Code (Sovereign-friendly)
-    model: "opencode/north-mini-code-free"
-    endpoint: "https://opencode.ai/zen/v1"
-    jurisdiction: "Sovereign"
-    tier: "Code-Generation"
-
+    endpoint: http://localhost:11434/v1
+    jurisdiction: Local
+    model: ollama/codestral:22b
+    name: builder-infra-bicep
+    role: Code-Generation
+    tier: Code-Generation
+  builder-infra-tf:
+    endpoint: http://localhost:11434/v1
+    jurisdiction: Local
+    model: ollama/codestral:22b
+    name: builder-infra-tf
+    role: Code-Generation
+    tier: Code-Generation
   builder-pipelines:
-    name: "builder-pipelines"
-    role: "Code-Generation"
-    # Replaced US/China models with Cohere North Mini Code (Sovereign-friendly)
-    model: "opencode/north-mini-code-free"
-    endpoint: "https://opencode.ai/zen/v1"
-    jurisdiction: "Sovereign"
-    tier: "Code-Generation"
-
-  verifier:
-    name: "verifier"
-    role: "Task-Execution"
-    # Replaced US/China models with Cohere North Mini Code (Sovereign-friendly)
-    model: "opencode/north-mini-code-free"
-    endpoint: "https://opencode.ai/zen/v1"
-    jurisdiction: "Sovereign"
-    tier: "Task-Execution"
-
-  security-auditor:
-    name: "security-auditor"
-    role: "Task-Execution"
-    # Replaced US/China models with Cohere North Mini Code (Sovereign-friendly)
-    model: "opencode/north-mini-code-free"
-    endpoint: "https://opencode.ai/zen/v1"
-    jurisdiction: "Sovereign"
-    tier: "Task-Execution"
-
-  plan-validator:
-    name: "plan-validator"
-    role: "Task-Execution"
-    # Replaced US/China models with Cohere North Mini Code (Sovereign-friendly)
-    model: "opencode/north-mini-code-free"
-    endpoint: "https://opencode.ai/zen/v1"
-    jurisdiction: "Sovereign"
-    tier: "Task-Execution"
-
+    endpoint: http://localhost:11434/v1
+    jurisdiction: Local
+    model: ollama/codestral:22b
+    name: builder-pipelines
+    role: Code-Generation
+    tier: Code-Generation
   code-reviewer:
-    name: "code-reviewer"
-    role: "Task-Execution"
-    # Replaced US/China models with Cohere North Mini Code (Sovereign-friendly)
-    model: "opencode/north-mini-code-free"
-    endpoint: "https://opencode.ai/zen/v1"
-    jurisdiction: "Sovereign"
-    tier: "Task-Execution"
+    endpoint: http://localhost:11434/v1
+    jurisdiction: Local
+    model: ollama/mistral:7b
+    name: code-reviewer
+    role: Task-Execution
+    tier: Task-Execution
+  orchestrator:
+    endpoint: https://opencode.ai/zen/v1
+    jurisdiction: EU
+    model: opencode/mistral-small-latest
+    name: orchestrator
+    role: Strategic Platform Planner
+    tier: High-Reasoning
+  plan-validator:
+    endpoint: http://localhost:11434/v1
+    jurisdiction: Local
+    model: ollama/mistral:7b
+    name: plan-validator
+    role: Task-Execution
+    tier: Task-Execution
+  security-auditor:
+    endpoint: http://localhost:11434/v1
+    jurisdiction: Local
+    model: ollama/mistral:7b
+    name: security-auditor
+    role: Task-Execution
+    tier: Task-Execution
+  verifier:
+    endpoint: http://localhost:11434/v1
+    jurisdiction: Local
+    model: ollama/mistral:7b
+    name: verifier
+    role: Task-Execution
+    tier: Task-Execution
+jurisdiction_policy: EU-Sovereign
+version: 1.0.0

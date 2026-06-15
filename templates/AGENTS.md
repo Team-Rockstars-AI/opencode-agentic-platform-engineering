@@ -58,6 +58,7 @@ Your workspace includes a set of reusable **Skills** — codified procedures tha
 | **`doc-standards`** | `@docs-writer` | Documentation standards for module READMEs, ADR format, runbooks, and onboarding guides. |
 | **`expand`** | `/expand` workflow | Guided rollout of new IaC resource modules under governance guardrails. |
 | **`git-workflow`** | `@builder-infra-tf`, `@builder-infra-bicep`, `@builder-pipelines` | Branch naming, pre-commit hygiene (formatter, precision staging), commit blacklist (no secrets, debug artifacts, commented-out code), and standardised handoff summary for `@test-writer`. |
+| **`model-optimiser`** | `/select-models` workflow | Selects and configures optimized models for each agent based on jurisdiction, cost/quality focus, and local hardware capabilities. |
 | **`optimise`** | `/optimise` workflow | Static cost and resource optimization review checklist and finding report format. |
 | **`plan-tracking`** | `@plan-validator`, `@docs-writer` | Execution plan JSON conversion, resource action tracking, milestone status updates, and session state maintenance. |
 | **`scaffold`** | `/scaffold` workflow | Template selection, copy, placeholder substitution, git init. |
@@ -72,6 +73,8 @@ Interact with your multi-agent platform team directly from the OpenCode terminal
 *   **`/debug`**: Directs the verifier and builder agents to inspect failing pipeline execution logs, trace resource syntax compiler warnings, and propose/implement automated code fixes.
 *   **`/expand`**: Initiates a guided rollout to deploy new resource components (e.g., Virtual Networks, Databases, Containers, Private Endpoints) and secure-by-design pipelines under strict organization governance.
 *   **`/optimise`**: Scans your entire workspace (IaC templates, subnets, and container apps) for cost leaks, oversized SKUs, and resource sizing inefficiencies. Outputs a comprehensive cost optimization report.
+*   **`/select-models`**: Selects and configures optimized models for each agent based on jurisdiction, cost/quality focus, and local hardware capabilities.
+
 
 ```bash
 # Validate Terraform structures

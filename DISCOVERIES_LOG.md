@@ -153,3 +153,22 @@ This log serves as a persistent, in-project memory of discoveries, findings, and
 *   **Orchestrator Alignment:** Maintained **`opencode/gemini-3.5-flash`** (US-based) as the authorized high-reasoning fallback for the orchestrator.
 *   **Sovereignty Policy Update:** Updated `agent_config.py` to allow `Sovereign` jurisdictions (Canada/Cohere) alongside `EU` jurisdictions, keeping the policy enforcement layer fully synchronized.
 *   **Automated Verification:** Successfully ran the automated skill reference validator (`validate-skills.py`), JSON syntax checks, and live agent orchestration tests to verify that the entire team is fully functional.
+
+---
+
+## Milestone: Model Optimization & Selection Engine (June 2026)
+
+### 🔍 Discoveries
+*   **Dynamic Model Optimization:** Hardcoding model configurations in `opencode.json` and `manifest.yaml` prevents operators from easily adapting their agent team to changing cost, quality, and sovereignty requirements.
+*   **Local Model Cost Savings:** Utilizing local Ollama models (such as `ollama/codestral:22b` and `ollama/mistral:7b`) on mid-range or high-end hardware can completely eliminate cloud API costs for high-volume subagent tasks (code generation, verification, auditing) while maintaining strict data sovereignty.
+
+### ⚠️ Findings
+*   **Lack of Model Flexibility:** No mechanism existed to easily switch between EU-sovereign, EU+US, and Global model configurations, or to integrate local models based on the operator's hardware capabilities.
+*   **Manual Configuration Overhead:** Manually updating model IDs, endpoints, and jurisdictions across `opencode.json`, `manifest.yaml`, and `agent_config.py` is highly error-prone and can easily break the agent orchestration loop.
+
+### 💡 Solutions
+*   **Model Optimiser Skill (`skills/model-optimiser/SKILL.md`):** Authored a new skill and template equivalent that codifies a comprehensive Model Mapping Matrix covering EU, EU+US, and Global jurisdictions with Cost and Quality optimization focuses.
+*   **Interactive Selection Script (`scripts/select-models.py`):** Developed a robust Python script that handles interactive and non-interactive model selection, proposal generation, configuration updates, verification testing, and automatic rollback on failure.
+*   **Slash Command Integration (`/select-models`):** Registered the `select-models` command in `opencode.json` and its template equivalent, directing the orchestrator to run the model optimization workflow.
+*   **EU Cost-Focused Implementation:** Successfully ran the optimization engine to configure the workspace for EU cost-focused operations using local Ollama models (`ollama/codestral:22b` and `ollama/mistral:7b`) on mid-range hardware, verifying that all configuration files are syntactically valid and all self-tests passed.
+

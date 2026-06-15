@@ -431,3 +431,42 @@ This milestone resolved critical model availability and data sovereignty issues 
 
 - Explore hosting a local high-reasoning model (e.g., Mixtral-8x22B or Llama-3-70B) to completely eliminate the US-based fallback dependency.
 - Integrate the `agent_config.py` validation hook directly into the main OpenCode orchestration loop.
+
+---
+
+## Milestone: Model Optimization & Selection Engine
+
+**Date:** 2026-06-15
+
+### Summary
+
+This milestone implemented the Model Optimization & Selection Engine, introducing a new skill (`model-optimiser`), an accompanying slash command (`/select-models`), and an interactive Python script (`scripts/select-models.py`) to select and configure optimized models for each agent based on jurisdiction, cost/quality focus, and local hardware capabilities. The engine is designed to work exclusively with the OpenCode ZEN provider and supports strict EU-sovereignty, EU+US, and Global model mappings, including local Ollama models for cost-sensitive environments.
+
+### Changes Made
+
+1. **Created `skills/model-optimiser/SKILL.md`** (and template equivalent):
+   - Defined a structured workflow to verify the OpenCode ZEN provider, gather user preferences, map agent roles to optimized models, present a proposal, implement configurations, and run verification tests.
+   - Codified a comprehensive Model Mapping Matrix covering EU, EU+US, and Global jurisdictions with Cost and Quality optimization focuses.
+
+2. **Created `scripts/select-models.py`** (and template equivalent):
+   - Developed a robust Python script that handles interactive and non-interactive model selection, proposal generation, configuration updates (for `opencode.json`, `manifest.yaml`, and `agent_config.py`), verification testing, and automatic rollback on failure.
+
+3. **Registered `/select-models` slash command (`opencode.json`):**
+   - Registered the `select-models` command in `opencode.json` and its template equivalent (`templates/opencode-config/opencode.json`), directing the orchestrator to run the model optimization workflow.
+
+4. **Implemented Option 4 (EU Cost-Focused with Local Models):**
+   - Successfully ran the optimization engine to configure the workspace for EU cost-focused operations using local Ollama models (`ollama/codestral:22b` and `ollama/mistral:7b`) on mid-range hardware.
+   - Verified that all configuration files are syntactically valid and all self-tests passed.
+
+5. **Updated Documentation (`AGENTS.md` & `templates/AGENTS.md`):**
+   - Added the `model-optimiser` skill and `/select-models` command to the central agents, skills, and workflows reference tables.
+
+### Friction Points
+
+- **Local Model Runtime Dependency:** While local models are highly cost-effective and sovereign-friendly, they depend on a running Ollama instance on the operator's machine. If Ollama is not running or the specified models are not pulled, the subagents will fail. This is documented in the skill and handled gracefully by the rollback mechanism.
+
+### Next Steps
+
+- Integrate the `select-models` script into the scaffolding post-processor to allow operators to choose their model configuration during initial repository setup.
+- Add automated checks to verify if local Ollama models are pulled and available before applying local model configurations.
+

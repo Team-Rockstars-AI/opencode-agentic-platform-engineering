@@ -167,6 +167,11 @@
     }
   },
   "command": {
+    "select-models": {
+      "description": "Select and configure optimized models for each agent based on jurisdiction, cost/quality focus, and local hardware capabilities.",
+      "agent": "orchestrator",
+      "template": "Please use the `model-optimiser` skill to select and configure optimized models for each agent. Run the interactive script `scripts/select-models.py` to gather preferences, present a proposal, implement the chosen models, and run verification tests."
+    },
     "audit": {
       "description": "Scan the current workspace for compliance, credentials, and network vulnerability risks.",
       "agent": "security-auditor",

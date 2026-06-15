@@ -8,12 +8,12 @@ logger = logging.getLogger("EU-Sovereignty-Validator")
 
 # Define SECURITY_POLICY constant
 SECURITY_POLICY = {
-    "allowed_jurisdictions": ["EU", "Sovereign"],
+    "allowed_jurisdictions": ["EU", "Sovereign", "Local"],
     "high_reasoning_fallback_allowed": True,
     "high_reasoning_fallback_model": "opencode/gemini-3.5-flash",
     "restricted_tasks_jurisdiction_enforced": True,
-    "default_code_generation_model": "opencode/north-mini-code-free",
-    "default_task_execution_model": "opencode/north-mini-code-free"
+    "default_code_generation_model": "ollama/codestral:22b",
+    "default_task_execution_model": "ollama/mistral:7b",
 }
 
 class EUSovereigntyException(Exception):

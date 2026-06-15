@@ -69,6 +69,7 @@ Skills are the atomic unit of reuse. Prefer extracting a skill when the same pro
 | **`doc-standards`** | `skills/doc-standards/SKILL.md` | `@docs-writer` | Documentation standards for module READMEs, ADR format, runbooks, and onboarding guides targeting operations teams and developers. |
 | **`expand`** | `skills/expand/SKILL.md` | `/expand` workflow | Guided rollout of new IaC resource modules. |
 | **`git-workflow`** | `skills/git-workflow/SKILL.md` | `@builder-infra-tf`, `@builder-infra-bicep`, `@builder-pipelines` | Branch naming, pre-commit hygiene (formatter, precision staging), commit blacklist (no secrets, debug artifacts, commented-out code), and standardised handoff summary for `@test-writer`. |
+| **`model-optimiser`** | `skills/model-optimiser/SKILL.md` | `/select-models` workflow | Selects and configures optimized models for each agent based on jurisdiction, cost/quality focus, and local hardware capabilities. |
 | **`optimise`** | `skills/optimise/SKILL.md` | `/optimise` workflow | Static cost and resource optimization review checklist and finding report format. |
 | **`plan-tracking`** | `skills/plan-tracking/SKILL.md` | `@plan-validator`, `@docs-writer` | Execution plan JSON conversion, resource action tracking (create/update/delete/replace), milestone status updates, and session state maintenance. |
 | **`scaffold`** | `skills/scaffold/SKILL.md` | `/scaffold` workflow | Template selection, copy, placeholder substitution, git init. |
