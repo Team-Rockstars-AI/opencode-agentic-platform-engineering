@@ -187,6 +187,11 @@
       "description": "Onboard a new application workload or expand the landing zone infrastructure under strict governance.",
       "agent": "orchestrator",
       "template": "Please use the `expand` skill to design and deploy new cloud resources, spoke subnets, or workload applications under strict security governance rules."
+    },
+    "optimise": {
+      "description": "Scan the current workspace for cost-saving opportunities and resource sizing inefficiencies.",
+      "agent": "orchestrator",
+      "template": "Please use the `optimise` skill to scan the current workspace configurations, modules, and templates for cost leaks, oversized SKUs, and resource sizing inefficiencies. Coordinate with the code-reviewer and security-auditor to ensure optimizations do not compromise security or standards, and summon the docs-writer to compile a detailed cost optimization report."
     }
   }
 }

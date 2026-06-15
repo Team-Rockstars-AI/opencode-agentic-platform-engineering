@@ -30,8 +30,8 @@ resource "azurerm_container_app" "runner_app" {
     container {
       name   = "ubuntu-runner"
       image  = "mcr.microsoft.com/dotnet/runtime-deps:6.0-jammy" # jammy is highly compatible LTS base
-      cpu    = "1.0"
-      memory = "2.0Gi"
+      cpu    = var.runner_cpu
+      memory = var.runner_memory
 
       env {
         name  = "RUNNER_NAME"

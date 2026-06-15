@@ -77,3 +77,25 @@ variable "runner_token" {
   sensitive   = true
   default     = "placeholder-pat"
 }
+
+variable "runner_cpu" {
+  type        = string
+  description = "CPU cores allocated to the runner container (e.g., \"0.5\", \"1.0\", \"2.0\")"
+  default     = "1.0"
+
+  validation {
+    condition     = contains(["0.25", "0.5", "0.75", "1.0", "1.25", "1.5", "1.75", "2.0"], var.runner_cpu)
+    error_message = "The runner_cpu must be one of: 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0."
+  }
+}
+
+variable "runner_memory" {
+  type        = string
+  description = "Memory allocated to the runner container (e.g., \"0.5Gi\", \"1.0Gi\", \"2.0Gi\")"
+  default     = "2.0Gi"
+
+  validation {
+    condition     = contains(["0.5Gi", "1.0Gi", "1.5Gi", "2.0Gi", "3.0Gi", "4.0Gi"], var.runner_memory)
+    error_message = "The runner_memory must be one of: 0.5Gi, 1.0Gi, 1.5Gi, 2.0Gi, 3.0Gi, 4.0Gi."
+  }
+}

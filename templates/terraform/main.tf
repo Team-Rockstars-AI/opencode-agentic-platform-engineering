@@ -95,6 +95,8 @@ module "runners" {
   github_org_name            = var.github_org_name
   github_repo_name           = var.github_repo_name
   runner_token               = var.runner_token
+  runner_cpu                 = var.runner_cpu
+  runner_memory              = var.runner_memory
   log_analytics_workspace_id = azurerm_log_analytics_workspace.ops.id
   tags                       = azurerm_resource_group.core.tags
 }
