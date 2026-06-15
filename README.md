@@ -68,17 +68,17 @@ Your newly generated repository comes pre-loaded with an elite platform operatio
 
 | Subagent | Assigned Model | Operational Purpose |
 |---|---|---|
-| **`orchestrator`** | `gemini-3.5-flash` | The strategic lead. Parses backlogs, schedules rollouts, and delegates milestones. |
-| **`builder-infra-tf`** | `claude-sonnet-4.6` | Authors secure, modular, parameterized Terraform resources. |
-| **`builder-infra-bicep`** | `claude-sonnet-4.6` | Authors multi-scope Bicep templates. |
-| **`builder-pipelines`** | `claude-sonnet-4.6` | Configures OIDC-federated automated workflows. |
-| **`verifier`** | `deepseek-v4-flash` | Compiles code (`terraform validate` / `bicep build`) and generates dry-run logs. |
-| **`security-auditor`** | `deepseek-v4-pro` | Audits configurations for compliance and security gaps. |
-| **`plan-validator`** | `deepseek-v4-flash` | **Blast Radius Valve.** Scans plan logs and blocks destruction of critical resources. |
-| **`code-reviewer`** | `deepseek-v4-pro` | Reviews code naming conventions and tagging rules. |
-| **`explorer`** | `deepseek-v4-flash-free` | Traces dependencies and indexes the local directories. |
-| **`test-writer`** | `big-pickle` | Writes unit and integration tests (`.tftest.hcl`). |
-| **`docs-writer`** | `deepseek-v4-flash-free` | Maintains markdown runbooks, variables tables, and ADRs. |
+| **`orchestrator`** | `opencode/gemini-3.5-flash` | The strategic lead. Parses backlogs, schedules rollouts, and delegates milestones. |
+| **`builder-infra-tf`** | `opencode/north-mini-code-free` | Authors secure, modular, parameterized Terraform resources. |
+| **`builder-infra-bicep`** | `opencode/north-mini-code-free` | Authors multi-scope Bicep templates. |
+| **`builder-pipelines`** | `opencode/north-mini-code-free` | Configures OIDC-federated automated workflows. |
+| **`verifier`** | `opencode/north-mini-code-free` | Compiles code (`terraform validate` / `bicep build`) and generates dry-run logs. |
+| **`security-auditor`** | `opencode/north-mini-code-free` | Audits configurations for compliance and security gaps. |
+| **`plan-validator`** | `opencode/north-mini-code-free` | **Blast Radius Valve.** Scans plan logs and blocks destruction of critical resources. |
+| **`code-reviewer`** | `opencode/north-mini-code-free` | Reviews code naming conventions and tagging rules. |
+| **`explorer`** | `opencode/north-mini-code-free` | Traces dependencies and indexes the local directories. |
+| **`test-writer`** | `opencode/north-mini-code-free` | Writes unit and integration tests (`.tftest.hcl`). |
+| **`docs-writer`** | `opencode/north-mini-code-free` | Maintains markdown runbooks, variables tables, and ADRs. |
 
 ---
 
@@ -110,6 +110,7 @@ In addition to scaffolding, this repository contains active local OpenCode confi
 *   **`/audit`**: Scans our local landing zone modules, templates, and configurations for secure-by-design baseline compliance (credentials, public IPs, and logging). Leverages the `security-checklist` skill to produce structured PASS/FAIL findings with remediation blocks.
 *   **`/debug`**: Instructs our verifier and builders to identify and resolve any linter warnings or syntax compile errors in our module codebase.
 *   **`/expand`**: Assists in adding new resource modules or expanding existing Bicep and Terraform landing zone skeletons.
+*   **`/optimise`**: Scans our local landing zone modules, templates, and configurations for cost-saving opportunities and resource sizing inefficiencies. Leverages the `optimise` skill to produce a structured cost optimization report.
 
 ---
 
