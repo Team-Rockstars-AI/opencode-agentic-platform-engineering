@@ -354,6 +354,8 @@ def main():
     copy_dir(os.path.join(config_src, "skills"), os.path.join(target_dir, ".opencode", "skills"))
     copy_dir(os.path.join(config_src, "prompts"), os.path.join(target_dir, ".opencode", "prompts"))
     copy_file(os.path.join(config_src, "opencode.json"), os.path.join(target_dir, "opencode.json"))
+    copy_file(os.path.join(config_src, "manifest.yaml"), os.path.join(target_dir, "manifest.yaml"))
+    copy_file(os.path.join(config_src, "agent_config.py"), os.path.join(target_dir, "agent_config.py"))
     copy_file(os.path.join(config_src, "scripts", "validate-skills.py"), os.path.join(target_dir, "scripts", "validate-skills.py"))
 
     # 5. Copy AGENTS.md
