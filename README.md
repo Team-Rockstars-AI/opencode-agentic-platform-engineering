@@ -136,4 +136,9 @@ python3 scripts/validate-skills.py
 
 ## 📖 Deployed Documentation
 
-Once scaffolded, refer to the **`AGENTS.md`** file created at the root of your new target directory. It outlines the specific developer workflows and exact operational standards required to manage your live workloads.
+To help you operate and maintain this platform, we have authored comprehensive, human-facing operator manuals:
+
+*   **[Provisioning Platform Operator Manual (THIS Platform)](docs/operator-manual-provisioning-platform.md)** — A detailed guide on how to install, set up, and operate this generator repository to scaffold new workspaces.
+*   **[Provisioned Platform Operator Manual (The Generated Workspace)](docs/operator-manual-provisioned-platform.md)** — A detailed guide on how to operate, maintain, and expand your newly generated repository using the integrated OpenCode multi-agent team and secure-by-design workflows.
+
+Once scaffolded, you can also refer to the **`AGENTS.md`** file created at the root of your new target directory. It outlines the specific developer workflows and exact operational standards required to manage your live workloads.
