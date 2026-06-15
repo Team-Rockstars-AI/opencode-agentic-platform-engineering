@@ -135,3 +135,21 @@ This log serves as a persistent, in-project memory of discoveries, findings, and
 *   **EU-Sovereign Manifest (`manifest.yaml`):** Created a centralized agentic configuration manifest that maps all active sub-agents to EU-sovereign model endpoints (Mistral API and local Ollama endpoints) while maintaining Claude 4 as an authorized high-reasoning fallback for the orchestrator.
 *   **Sovereignty Policy Enforcement (`agent_config.py`):** Implemented a robust Python configuration layer with a strict `SECURITY_POLICY` constant that automatically overrides non-EU models for Code-Generation and Task-Execution roles with EU-sovereign defaults.
 *   **Jurisdiction Validation Hook:** Added a validation hook that logs the origin jurisdiction of every model used in the orchestration loop and triggers a critical alert/exception if a non-EU, non-authorized model is selected for a 'RESTRICTED' task.
+
+---
+
+## Milestone: Sovereign-Friendly Model Migration & Verification (June 2026)
+
+### 🔍 Discoveries
+*   **Model Availability Gaps:** Configuring agents to use models that are not available in the active OpenCode environment (such as `mistral/codestral-24b` or `ollama/ministral-8b` when Ollama is not installed) breaks the entire agentic orchestration loop.
+*   **Sovereign-Friendly Alternatives:** Cohere's newly released **North Mini Code** (`opencode/north-mini-code-free`) is a highly capable, sovereign-friendly (Canadian-based, Apache 2.0), non-US, non-Chinese model that is available and free on OpenCode, making it the perfect engine for subagent code generation and task execution.
+
+### ⚠️ Findings
+*   **Broken Agent Loop:** All subagents were configured to use unavailable Mistral and Ollama models, causing immediate `ProviderModelNotFoundError` and connection failures.
+*   **Chinese Model Risks:** Historical recommendations in `.opencode/memory.md` suggested Chinese-based models (such as DeepSeek, GLM/Big Pickle, and Xiaomi MiMo), which violate strict data sovereignty requirements.
+
+### 💡 Solutions
+*   **Sovereign-Friendly Migration:** Migrated all subagents in `opencode.json` and `manifest.yaml` (both root and templates) to use **`opencode/north-mini-code-free`** (Cohere North Mini Code), restoring 100% functionality to the agent team.
+*   **Orchestrator Alignment:** Maintained **`opencode/gemini-3.5-flash`** (US-based) as the authorized high-reasoning fallback for the orchestrator.
+*   **Sovereignty Policy Update:** Updated `agent_config.py` to allow `Sovereign` jurisdictions (Canada/Cohere) alongside `EU` jurisdictions, keeping the policy enforcement layer fully synchronized.
+*   **Automated Verification:** Successfully ran the automated skill reference validator (`validate-skills.py`), JSON syntax checks, and live agent orchestration tests to verify that the entire team is fully functional.
