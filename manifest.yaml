@@ -10,71 +10,71 @@ agents:
   orchestrator:
     name: "orchestrator"
     role: "Strategic Platform Planner"
-    # Claude 4 is maintained as the 'High-Reasoning' fallback for complex orchestration
-    model: "anthropic/claude-4"
-    endpoint: "https://api.anthropic.com/v1"
+    # Gemini 3.5 Flash is maintained as the 'High-Reasoning' fallback for complex orchestration
+    model: "opencode/gemini-3.5-flash"
+    endpoint: "https://opencode.ai/zen/v1"
     jurisdiction: "US"
     tier: "High-Reasoning"
 
   builder-infra-tf:
     name: "builder-infra-tf"
     role: "Code-Generation"
-    # Replaced US/China models with Mistral Codestral-24b (EU-sovereign)
-    model: "mistral/codestral-24b"
-    endpoint: "https://api.mistral.ai/v1"
-    jurisdiction: "EU"
+    # Replaced US/China models with Cohere North Mini Code (Sovereign-friendly)
+    model: "opencode/north-mini-code-free"
+    endpoint: "https://opencode.ai/zen/v1"
+    jurisdiction: "Sovereign"
     tier: "Code-Generation"
 
   builder-infra-bicep:
     name: "builder-infra-bicep"
     role: "Code-Generation"
-    # Replaced US/China models with Mistral Codestral-24b (EU-sovereign)
-    model: "mistral/codestral-24b"
-    endpoint: "https://api.mistral.ai/v1"
-    jurisdiction: "EU"
+    # Replaced US/China models with Cohere North Mini Code (Sovereign-friendly)
+    model: "opencode/north-mini-code-free"
+    endpoint: "https://opencode.ai/zen/v1"
+    jurisdiction: "Sovereign"
     tier: "Code-Generation"
 
   builder-pipelines:
     name: "builder-pipelines"
     role: "Code-Generation"
-    # Replaced US/China models with local Ollama Ministral-8b (EU-sovereign)
-    model: "ollama/ministral-8b"
-    endpoint: "http://localhost:11434/v1"
-    jurisdiction: "EU"
+    # Replaced US/China models with Cohere North Mini Code (Sovereign-friendly)
+    model: "opencode/north-mini-code-free"
+    endpoint: "https://opencode.ai/zen/v1"
+    jurisdiction: "Sovereign"
     tier: "Code-Generation"
 
   verifier:
     name: "verifier"
     role: "Task-Execution"
-    # Replaced US/China models with local Ollama Ministral-8b (EU-sovereign)
-    model: "ollama/ministral-8b"
-    endpoint: "http://localhost:11434/v1"
-    jurisdiction: "EU"
+    # Replaced US/China models with Cohere North Mini Code (Sovereign-friendly)
+    model: "opencode/north-mini-code-free"
+    endpoint: "https://opencode.ai/zen/v1"
+    jurisdiction: "Sovereign"
     tier: "Task-Execution"
 
   security-auditor:
     name: "security-auditor"
     role: "Task-Execution"
-    # Replaced US/China models with Mistral Codestral-24b (EU-sovereign)
-    model: "mistral/codestral-24b"
-    endpoint: "https://api.mistral.ai/v1"
-    jurisdiction: "EU"
+    # Replaced US/China models with Cohere North Mini Code (Sovereign-friendly)
+    model: "opencode/north-mini-code-free"
+    endpoint: "https://opencode.ai/zen/v1"
+    jurisdiction: "Sovereign"
     tier: "Task-Execution"
 
   plan-validator:
     name: "plan-validator"
     role: "Task-Execution"
-    # Replaced US/China models with local Ollama Ministral-8b (EU-sovereign)
-    model: "ollama/ministral-8b"
-    endpoint: "http://localhost:11434/v1"
-    jurisdiction: "EU"
+    # Replaced US/China models with Cohere North Mini Code (Sovereign-friendly)
+    model: "opencode/north-mini-code-free"
+    endpoint: "https://opencode.ai/zen/v1"
+    jurisdiction: "Sovereign"
     tier: "Task-Execution"
 
   code-reviewer:
     name: "code-reviewer"
     role: "Task-Execution"
-    # Replaced US/China models with local Ollama Ministral-8b (EU-sovereign)
-    model: "ollama/ministral-8b"
-    endpoint: "http://localhost:11434/v1"
-    jurisdiction: "EU"
+    # Replaced US/China models with Cohere North Mini Code (Sovereign-friendly)
+    model: "opencode/north-mini-code-free"
+    endpoint: "https://opencode.ai/zen/v1"
+    jurisdiction: "Sovereign"
     tier: "Task-Execution"

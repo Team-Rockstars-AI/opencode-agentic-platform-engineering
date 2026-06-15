@@ -8,12 +8,12 @@ logger = logging.getLogger("EU-Sovereignty-Validator")
 
 # Define SECURITY_POLICY constant
 SECURITY_POLICY = {
-    "allowed_jurisdictions": ["EU"],
+    "allowed_jurisdictions": ["EU", "Sovereign"],
     "high_reasoning_fallback_allowed": True,
-    "high_reasoning_fallback_model": "anthropic/claude-4",
+    "high_reasoning_fallback_model": "opencode/gemini-3.5-flash",
     "restricted_tasks_jurisdiction_enforced": True,
-    "default_code_generation_model": "mistral/codestral-24b",
-    "default_task_execution_model": "ollama/ministral-8b"
+    "default_code_generation_model": "opencode/north-mini-code-free",
+    "default_task_execution_model": "opencode/north-mini-code-free"
 }
 
 class EUSovereigntyException(Exception):
@@ -79,12 +79,12 @@ def get_agent_config(agent_name, task_type="STANDARD", manifest_path="manifest.y
             logger.warning(f"Policy Enforcement: Overriding non-EU model '{model}' for agent '{agent_name}' (Role: {role}) with EU-sovereign default.")
             if role == "Code-Generation":
                 agent_cfg["model"] = SECURITY_POLICY["default_code_generation_model"]
-                agent_cfg["endpoint"] = "https://api.mistral.ai/v1"
-                agent_cfg["jurisdiction"] = "EU"
+                agent_cfg["endpoint"] = "https://opencode.ai/zen/v1"
+                agent_cfg["jurisdiction"] = "Sovereign"
             else:
                 agent_cfg["model"] = SECURITY_POLICY["default_task_execution_model"]
-                agent_cfg["endpoint"] = "http://localhost:11434/v1"
-                agent_cfg["jurisdiction"] = "EU"
+                agent_cfg["endpoint"] = "https://opencode.ai/zen/v1"
+                agent_cfg["jurisdiction"] = "Sovereign"
                 
     # Run the validation hook
     validate_model_jurisdiction(
