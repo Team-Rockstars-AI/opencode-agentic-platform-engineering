@@ -1,59 +1,59 @@
 agents:
   builder-infra-bicep:
     endpoint: https://opencode.ai/zen/v1
-    jurisdiction: EU
-    model: opencode/codestral-latest
+    jurisdiction: US
+    model: opencode/gpt-5.1-codex
     name: builder-infra-bicep
     role: Code-Generation
     tier: Code-Generation
   builder-infra-tf:
     endpoint: https://opencode.ai/zen/v1
-    jurisdiction: EU
-    model: opencode/codestral-latest
+    jurisdiction: US
+    model: opencode/gpt-5.1-codex
     name: builder-infra-tf
     role: Code-Generation
     tier: Code-Generation
   builder-pipelines:
     endpoint: https://opencode.ai/zen/v1
-    jurisdiction: EU
-    model: opencode/codestral-latest
+    jurisdiction: US
+    model: opencode/gpt-5.1-codex
     name: builder-pipelines
     role: Code-Generation
     tier: Code-Generation
   code-reviewer:
     endpoint: https://opencode.ai/zen/v1
-    jurisdiction: EU
-    model: opencode/mistral-small-latest
+    jurisdiction: US
+    model: opencode/claude-haiku-4-5
     name: code-reviewer
     role: Task-Execution
     tier: Task-Execution
   orchestrator:
     endpoint: https://opencode.ai/zen/v1
-    jurisdiction: EU
-    model: opencode/mistral-large-latest
+    jurisdiction: US
+    model: opencode/gpt-5.1
     name: orchestrator
     role: Strategic Platform Planner
     tier: High-Reasoning
   plan-validator:
     endpoint: https://opencode.ai/zen/v1
-    jurisdiction: EU
-    model: opencode/mistral-small-latest
+    jurisdiction: US
+    model: opencode/claude-haiku-4-5
     name: plan-validator
     role: Task-Execution
     tier: Task-Execution
   security-auditor:
     endpoint: https://opencode.ai/zen/v1
-    jurisdiction: EU
-    model: opencode/mistral-small-latest
+    jurisdiction: US
+    model: opencode/claude-haiku-4-5
     name: security-auditor
     role: Task-Execution
     tier: Task-Execution
   verifier:
-    endpoint: http://localhost:11434/v1
-    jurisdiction: Local
-    model: ollama/mistral:latest
+    endpoint: https://opencode.ai/zen/v1
+    jurisdiction: US
+    model: opencode/gemini-3-flash
     name: verifier
     role: Task-Execution
     tier: Task-Execution
-jurisdiction_policy: EU-Sovereign
+jurisdiction_policy: EU+US-Sovereign
 version: 1.0.0
