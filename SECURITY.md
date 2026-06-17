@@ -42,15 +42,22 @@ Out of scope:
 This repository runs several automated controls on every pull request and on a
 weekly schedule:
 
-| Control | Tool | Where results appear |
-|:---|:---|:---|
-| Static code analysis | CodeQL | Security → Code scanning |
-| IaC misconfiguration scanning | Checkov | Security → Code scanning |
-| Secret scanning | gitleaks (CI) + GitHub secret scanning + push protection | CI logs / Security |
-| Dependency advisories | Dependabot alerts & security updates | Security → Dependabot |
+| Control | Tool | Gate | Where results appear |
+|:---|:---|:---|:---|
+| Python static analysis (SAST) | Bandit | Blocks on HIGH severity | `Security Scan` workflow logs |
+| IaC misconfiguration scanning | Checkov | Report-only | `Security Scan` workflow logs |
+| Secret scanning | gitleaks | Blocks on any finding | `CI` workflow logs |
+| Dependency advisories | Dependabot alerts & security updates | Auto PRs | Security → Dependabot |
+
+> **Note:** GitHub-native code scanning (CodeQL, SARIF upload to the Security
+> tab) and secret scanning/push protection require **GitHub Advanced Security**,
+> which is not available on this private repository under the current plan. The
+> Bandit, Checkov, and gitleaks jobs above provide equivalent coverage in CI. If
+> the repository is made public or GHAS is enabled, CodeQL and SARIF upload can
+> be layered on top.
 
 ## Handling secrets
 
 Never commit secrets, API keys, tokens, passwords, `.tfvars`, or unencrypted
-state. Push protection is enabled to block accidental secret commits. If a secret
-is exposed, **rotate it immediately** and notify the maintainers.
+state. The gitleaks CI job blocks pull requests that introduce secrets. If a
+secret is exposed, **rotate it immediately** and notify the maintainers.

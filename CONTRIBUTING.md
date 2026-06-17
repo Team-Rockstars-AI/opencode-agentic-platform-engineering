@@ -110,7 +110,7 @@ Run the same checks CI runs, locally:
 4. A [code owner](.github/CODEOWNERS) review is required before merge — at least
    **one approval** and all conversations resolved.
 5. Prefer **squash merge** to keep `main` history clean and Conventional.
-6. CodeQL, Checkov, and Dependabot run automatically; address any new alerts.
+6. Bandit, Checkov, gitleaks, and Dependabot run automatically; address any new findings.
 
 Because the goal is also learning: explain *why* in your PR description, not just
 *what*. Reviewers should leave constructive, teaching-oriented comments.
@@ -134,4 +134,4 @@ outputs, providers, and resources, following the `doc-standards` skill.
 
 Never commit secrets, tokens, `.tfvars`, or unencrypted state. Report
 vulnerabilities privately — see [SECURITY.md](SECURITY.md). Automated scanning
-(CodeQL, Checkov, gitleaks, Dependabot) runs on every PR.
+(Bandit, Checkov, gitleaks, Dependabot) runs on every PR.

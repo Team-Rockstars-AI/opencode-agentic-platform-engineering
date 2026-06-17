@@ -1,0 +1,70 @@
+name: Security Scan
+
+# Vulnerability and misconfiguration scanning that works on a private repo
+# without GitHub Advanced Security:
+#   - Bandit: static analysis of the Python tooling (fails on HIGH severity).
+#   - Checkov: Terraform/Bicep misconfiguration scanning (report-only).
+# Secret scanning (gitleaks) and dependency advisories (Dependabot) are handled
+# in ci.yml and at the repository level respectively.
+#
+# Note: GitHub code scanning (CodeQL / SARIF upload to the Security tab) requires
+# GitHub Advanced Security, which is unavailable on private repos on the free
+# plan. If this repo is made public or GHAS is enabled, a CodeQL workflow and
+# SARIF upload can be added on top of these scans.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "27 4 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bandit:
+    name: Bandit (Python SAST)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Bandit
+        run: pip install bandit
+
+      # Full report for visibility (never fails the build)...
+      - name: Bandit report (all severities)
+        run: bandit -r scripts agent_config.py templates -ll --exit-zero
+
+      # ...but HIGH-severity findings block the build.
+      - name: Bandit gate (fail on HIGH severity)
+        run: bandit -r scripts agent_config.py templates --severity-level high --confidence-level medium
+
+  checkov:
+    name: Checkov (IaC misconfig, report-only)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          framework: terraform,bicep
+          quiet: true
+          # Report-only: surface misconfigurations for triage/learning without
+          # hard-blocking every pull request. Flip to false to enforce.
+          soft_fail: true
+          output_format: cli
