@@ -1,0 +1,20 @@
+# Code owners are automatically requested for review on matching files.
+# See https://docs.github.com/articles/about-code-owners
+#
+# Replace/extend with team handles (e.g. @Team-Rockstars-AI/platform-eng)
+# as more colleagues join the repository.
+
+# Default owner for everything in the repo.
+*                       @niels-emmer
+
+# Tooling and automation
+/.github/               @niels-emmer
+/scripts/               @niels-emmer
+
+# Infrastructure as Code
+/modules/               @niels-emmer
+/templates/             @niels-emmer
+
+# Documentation
+/docs/                  @niels-emmer
+*.md                    @niels-emmer

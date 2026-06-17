@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Report a security vulnerability
+    url: https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/security/advisories/new
+    about: Please report security issues privately via a GitHub security advisory, not a public issue.
+  - name: 💬 Questions & discussion
+    url: https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/discussions
+    about: Ask questions and share ideas with the team (enable Discussions if not already on).
