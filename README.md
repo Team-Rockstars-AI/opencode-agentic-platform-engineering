@@ -94,7 +94,7 @@ Run `/select-models` (see below) and choose your preferences; the team is then o
 *   **Optimization focus** — `Cost` prefers free / ultra-low-cost tiers; `Quality` prefers maximum reasoning and code-generation capability. Decisions use the **live pricing** scraped from the Zen docs (with a clearly-flagged cached fallback if pricing can't be fetched).
 *   **Local models (Ollama)** — *hardware allowing*, locally installed Ollama models can be assigned to suitable roles for zero-cost, fully sovereign execution. You declare your hardware tier (`Low-end` ≤8B, `Mid-range` ≤27B, `High-end` 70B+) and the optimizer only picks local models that fit.
 
-> **Shipped default:** out of the box the team is configured sovereign-friendly — `opencode/gemini-3.5-flash` for the `orchestrator` and `opencode/north-mini-code-free` for all subagents. Re-run `/select-models` at any time to re-optimize against the *current* live catalog, pricing, and your hardware.
+> **Shipped default:** out of the box the team ships **cloud-only, EU/US, cost-aware** so it works immediately without any local runtime — no Ollama required. Models are assigned by tier against the OpenCode Zen catalog: `opencode/gpt-5.1` for the `orchestrator`; `opencode/gpt-5.1-codex` for the code-generation builders; `opencode/claude-haiku-4-5` for the review agents (`security-auditor`, `plan-validator`, `code-reviewer`); and low-cost `opencode/gemini-3-flash` / `opencode/gpt-5.4-nano` / `opencode/gpt-5.1-codex-mini` for the lightweight `verifier`, `docs-writer`, `explorer`, and `test-writer` roles. Re-run `/select-models` at any time to re-optimize against the *current* live catalog, pricing, jurisdiction policy, and (optionally) local hardware.
 
 ---
 
