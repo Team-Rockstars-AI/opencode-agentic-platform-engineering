@@ -48,9 +48,15 @@ Each discovery reports a `pricing.status`:
   that takes down the orchestration loop.
 
 ## Current Default Configuration
-The repository ships with a sovereign-friendly default (see `manifest.yaml` / `opencode.json`):
-- **Orchestrator:** `opencode/gemini-3.5-flash` (US authorized fallback).
-- **All other subagents:** `opencode/north-mini-code-free` (Sovereign, Cohere) by default; some roles
-  may be remapped to local Ollama models when the operator enables them.
+The repository ships **cloud-only, EU/US, cost-aware** by default (see `manifest.yaml` /
+`opencode.json`) so the team runs out of the box with no local runtime (no Ollama required).
+The `EU+US-Sovereign` policy admits `EU`, `Sovereign`, and `US` jurisdictions; the live Zen catalog
+currently exposes no EU (Mistral) models, so the cost-aware defaults resolve to US-jurisdiction Zen
+models on `https://opencode.ai/zen/v1`:
+- **`orchestrator`:** `opencode/gpt-5.1` (strong, mid-cost planning).
+- **Code-gen builders** (`builder-infra-tf`, `builder-infra-bicep`, `builder-pipelines`): `opencode/gpt-5.1-codex`.
+- **Review agents** (`security-auditor`, `plan-validator`, `code-reviewer`): `opencode/claude-haiku-4-5`.
+- **Lightweight roles:** `verifier` & `docs-writer` → `opencode/gemini-3-flash`; `explorer` → `opencode/gpt-5.4-nano`; `test-writer` → `opencode/gpt-5.1-codex-mini`.
 
-Re-run `/select-models` at any time to re-optimize against the *current* live catalog and pricing.
+Re-run `/select-models` at any time to re-optimize against the *current* live catalog, pricing,
+jurisdiction policy, and (optionally) local hardware.

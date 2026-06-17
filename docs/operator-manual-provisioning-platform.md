@@ -9,7 +9,7 @@ Welcome to the Operator Manual for the **Azure Platform Engineering Provisioning
 This provisioning platform is a **Secure-by-Design generator** designed for organizations operating under strict European and Dutch regulatory baselines (such as **GDPR, DORA, BIO, and NEN 7510**). 
 
 Instead of manually copying files and risking configuration drift, this platform automates the generation of new, fully independent repositories. Each generated repository comes pre-loaded with:
-1.  **Sovereign-Friendly Multi-Agent Team:** An elite 11-agent team pre-configured to run on cost-effective, sovereign-friendly models.
+1.  **Cloud-Only, EU/US, Cost-Aware Multi-Agent Team:** An elite 11-agent team pre-configured to run out of the box on cost-aware EU/US OpenCode Zen models — no local runtime required.
 2.  **Secure Landing Zone Skeletons:** Parameterized Terraform or Bicep modules enforcing private connectivity, soft-delete, and micro-segmentation.
 3.  **Zero-Secrets Pipelines:** GitHub Actions or Azure DevOps pipelines utilizing passwordless OIDC authentication.
 4.  **Pre-Populated Governance:** Pre-written Architecture Decision Records (ADRs) establishing immediate compliance.
@@ -57,7 +57,7 @@ List the models available in your OpenCode environment:
 ```bash
 opencode models
 ```
-*Note: The platform ships with a sovereign-friendly default — `opencode/north-mini-code-free` (Cohere North Mini Code) for all subagents and `opencode/gemini-3.5-flash` for the orchestrator. You do not need to match models by hand: the `/select-models` command (see Section 5) discovers this live list automatically, infers each model's jurisdiction, scrapes current pricing, and re-optimizes the per-agent assignments for you.*
+*Note: The platform ships with a **cloud-only, EU/US, cost-aware** default — `opencode/gpt-5.1` for the orchestrator, `opencode/gpt-5.1-codex` for the code-generation builders, `opencode/claude-haiku-4-5` for the review agents, and low-cost `opencode/gemini-3-flash` / `opencode/gpt-5.4-nano` / `opencode/gpt-5.1-codex-mini` for the lightweight roles. You do not need to match models by hand: the `/select-models` command (see Section 5) discovers the live list automatically, infers each model's jurisdiction, scrapes current pricing, and re-optimizes the per-agent assignments for you.*
 
 ---
 
@@ -140,8 +140,8 @@ python3 scripts/validate-skills.py
 This platform enforces a strict **Sovereignty Policy** to ensure that no sensitive code generation or task execution is sent to non-compliant jurisdictions (such as China).
 
 ### How it Works
-1.  **`manifest.yaml`:** Defines the active agents and their model endpoints. All subagents are mapped to `opencode/north-mini-code-free` (Sovereign-based, Cohere), and the orchestrator is mapped to `opencode/gemini-3.5-flash` (US-based authorized fallback).
-2.  **`agent_config.py`:** A Python configuration layer that intercepts agent execution. It enforces a strict `SECURITY_POLICY` that automatically overrides any non-compliant model with sovereign-friendly defaults.
+1.  **`manifest.yaml`:** Defines the active agents and their model endpoints. Under the shipped **EU+US-Sovereign** policy, every agent is mapped to an EU/US-jurisdiction OpenCode Zen model (the cost-aware default resolves to US models such as `opencode/gpt-5.1`, `opencode/gpt-5.1-codex`, `opencode/claude-haiku-4-5`, and `opencode/gemini-3-flash`).
+2.  **`agent_config.py`:** A Python configuration layer that intercepts agent execution. It enforces a strict `SECURITY_POLICY` that automatically overrides any non-compliant (out-of-policy) model with the configured EU/US defaults.
 3.  **Validation Hook:** Logs the origin jurisdiction of every model and triggers a critical exception if a non-compliant model is selected for a restricted task.
 
 ### Running the Sovereignty Self-Test
@@ -151,10 +151,9 @@ python3 agent_config.py
 ```
 *Expected Output:*
 ```text
-Validating agent 'orchestrator' using model 'opencode/gemini-3.5-flash' (Jurisdiction: US) for task type 'STANDARD'
-Authorized fallback model 'opencode/gemini-3.5-flash' used for standard task.
-Validating agent 'builder-infra-tf' using model 'opencode/north-mini-code-free' (Jurisdiction: Sovereign) for task type 'RESTRICTED'
-Validating agent 'verifier' using model 'opencode/north-mini-code-free' (Jurisdiction: Sovereign) for task type 'STANDARD'
-Validating agent 'malicious-agent' using model 'openai/gpt-4o' (Jurisdiction: US) for task type 'RESTRICTED'
-CRITICAL SECURITY VIOLATION: Non-EU, non-authorized model 'openai/gpt-4o' (Jurisdiction: US) selected for RESTRICTED task!
+Validating agent 'orchestrator' using model 'opencode/gpt-5.1' (Jurisdiction: US) for task type 'STANDARD'
+Validating agent 'builder-infra-tf' using model 'opencode/gpt-5.1-codex' (Jurisdiction: US) for task type 'RESTRICTED'
+Validating agent 'verifier' using model 'opencode/gemini-3-flash' (Jurisdiction: US) for task type 'STANDARD'
+Validating agent 'malicious-agent' using model 'deepseek/deepseek-v4-pro' (Jurisdiction: Global) for task type 'RESTRICTED'
+CRITICAL SECURITY VIOLATION: Non-EU, non-authorized model 'deepseek/deepseek-v4-pro' (Jurisdiction: Global) selected for RESTRICTED task!
 ```

@@ -8,12 +8,12 @@ logger = logging.getLogger("EU-Sovereignty-Validator")
 
 # Define SECURITY_POLICY constant
 SECURITY_POLICY = {
-    "allowed_jurisdictions": ["EU", "Sovereign", "Local"],
+    "allowed_jurisdictions": ["EU", "Sovereign", "US", "Local"],
     "high_reasoning_fallback_allowed": True,
     "high_reasoning_fallback_model": "opencode/gemini-3.5-flash",
     "restricted_tasks_jurisdiction_enforced": True,
-    "default_code_generation_model": "opencode/codestral-latest",
-    "default_task_execution_model": "ollama/mistral:latest",
+    "default_code_generation_model": "opencode/gpt-5.1-codex",
+    "default_task_execution_model": "opencode/gemini-3-flash",
 }
 
 class EUSovereigntyException(Exception):
@@ -116,8 +116,10 @@ if __name__ == "__main__":
         print(f"Result: Success. Model: {ver_cfg['model']} ({ver_cfg['jurisdiction']})")
         
         # 4. Test Restricted Task with unauthorized model (Simulated)
+        # Under the EU+US policy, US models are permitted, so a Global-jurisdiction
+        # model (e.g. a Chinese provider) is used to demonstrate enforcement.
         print("\n4. Testing Restricted Task with unauthorized model (Simulated):")
-        validate_model_jurisdiction("malicious-agent", "openai/gpt-4o", "US", task_type="RESTRICTED")
+        validate_model_jurisdiction("malicious-agent", "deepseek/deepseek-v4-pro", "Global", task_type="RESTRICTED")
         
     except EUSovereigntyException as e:
         print(f"\nCaught expected security exception: {e}")

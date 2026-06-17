@@ -51,19 +51,19 @@ To operate the provisioned workspace, ensure you have the following tools set up
 
 ## 4. Multi-Agent Operations Topology
 
-Your workspace utilizes an **Orchestration-Led multi-agent paradigm** optimized for secure platform-engineering operations. The team consists of 11 specialized agents configured to run on cost-effective, sovereign-friendly models:
+Your workspace utilizes an **Orchestration-Led multi-agent paradigm** optimized for secure platform-engineering operations. The team consists of 11 specialized agents shipped with a **cloud-only, EU/US, cost-aware** default — it runs out of the box on OpenCode Zen with no local runtime required:
 
-*   **`orchestrator`** (`opencode/gemini-3.5-flash`): The strategic lead. Parses requirements, reviews the backlog, and delegates tasks to builders.
-*   **`builder-infra-tf`** (`opencode/north-mini-code-free`): Authors secure, modular, parameterized Terraform resources.
-*   **`builder-infra-bicep`** (`opencode/north-mini-code-free`): Authors multi-scope Bicep templates.
-*   **`builder-pipelines`** (`opencode/north-mini-code-free`): Configures OIDC-federated automated workflows.
-*   **`verifier`** (`opencode/north-mini-code-free`): Compiles code (`terraform validate` / `bicep build`) and generates dry-run logs.
-*   **`security-auditor`** (`opencode/north-mini-code-free`): Audits configurations for compliance and security gaps.
-*   **`plan-validator`** (`opencode/north-mini-code-free`): **Blast Radius Valve.** Scans plan logs and blocks destruction of critical resources.
-*   **`code-reviewer`** (`opencode/north-mini-code-free`): Reviews code naming conventions and tagging rules.
-*   **`explorer`** (`opencode/north-mini-code-free`): Traces dependencies and indexes local directories.
-*   **`test-writer`** (`opencode/north-mini-code-free`): Writes unit and integration tests (`.tftest.hcl`).
-*   **`docs-writer`** (`opencode/north-mini-code-free`): Maintains markdown runbooks, variables tables, and ADRs.
+*   **`orchestrator`** (`opencode/gpt-5.1`): The strategic lead. Parses requirements, reviews the backlog, and delegates tasks to builders.
+*   **`builder-infra-tf`** (`opencode/gpt-5.1-codex`): Authors secure, modular, parameterized Terraform resources.
+*   **`builder-infra-bicep`** (`opencode/gpt-5.1-codex`): Authors multi-scope Bicep templates.
+*   **`builder-pipelines`** (`opencode/gpt-5.1-codex`): Configures OIDC-federated automated workflows.
+*   **`verifier`** (`opencode/gemini-3-flash`): Compiles code (`terraform validate` / `bicep build`) and generates dry-run logs.
+*   **`security-auditor`** (`opencode/claude-haiku-4-5`): Audits configurations for compliance and security gaps.
+*   **`plan-validator`** (`opencode/claude-haiku-4-5`): **Blast Radius Valve.** Scans plan logs and blocks destruction of critical resources.
+*   **`code-reviewer`** (`opencode/claude-haiku-4-5`): Reviews code naming conventions and tagging rules.
+*   **`explorer`** (`opencode/gpt-5.4-nano`): Traces dependencies and indexes local directories.
+*   **`test-writer`** (`opencode/gpt-5.1-codex-mini`): Writes unit and integration tests (`.tftest.hcl`).
+*   **`docs-writer`** (`opencode/gemini-3-flash`): Maintains markdown runbooks, variables tables, and ADRs.
 
 ---
 

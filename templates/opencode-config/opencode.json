@@ -14,7 +14,7 @@
     "orchestrator": {
       "description": "Strategic platform planner: reads backlog and plan, decomposes work, delegates to infra/pipeline builders. Entry point for every session.",
       "mode": "primary",
-      "model": "opencode/mistral-large-latest",
+      "model": "opencode/gpt-5.1",
       "temperature": 0,
       "steps": 50,
       "prompt": "{file:./.opencode/prompts/orchestrator.txt}",
@@ -29,7 +29,7 @@
     "builder-infra-tf": {
       "description": "Implements Azure Terraform infrastructure as code (IaC) modules and configurations.",
       "mode": "subagent",
-      "model": "opencode/codestral-latest",
+      "model": "opencode/gpt-5.1-codex",
       "temperature": 0,
       "steps": 50,
       "prompt": "{file:./.opencode/prompts/builder-infra-tf.txt}",
@@ -44,7 +44,7 @@
     "builder-infra-bicep": {
       "description": "Implements Azure Bicep infrastructure as code (IaC) templates and parameter files.",
       "mode": "subagent",
-      "model": "opencode/codestral-latest",
+      "model": "opencode/gpt-5.1-codex",
       "temperature": 0,
       "steps": 50,
       "prompt": "{file:./.opencode/prompts/builder-infra-bicep.txt}",
@@ -59,7 +59,7 @@
     "builder-pipelines": {
       "description": "Implements secure CI/CD pipelines (GitHub Actions and Azure DevOps Pipelines) with OIDC federation.",
       "mode": "subagent",
-      "model": "opencode/codestral-latest",
+      "model": "opencode/gpt-5.1-codex",
       "temperature": 0,
       "steps": 50,
       "prompt": "{file:./.opencode/prompts/builder-pipelines.txt}",
@@ -74,7 +74,7 @@
     "verifier": {
       "description": "Runs linter, compilation validations (terraform validate / bicep build), and plan generation dry-runs.",
       "mode": "subagent",
-      "model": "ollama/mistral:latest",
+      "model": "opencode/gemini-3-flash",
       "temperature": 0,
       "steps": 20,
       "prompt": "{file:./.opencode/prompts/verifier.txt}",
@@ -84,12 +84,12 @@
         "write": "deny",
         "skill": "allow"
       },
-      "endpoint": "http://localhost:11434/v1"
+      "endpoint": "https://opencode.ai/zen/v1"
     },
     "security-auditor": {
       "description": "Read-only security review. Audits IaC files and pipelines for resource configurations, exposed secrets, and weak IAM.",
       "mode": "subagent",
-      "model": "opencode/mistral-small-latest",
+      "model": "opencode/claude-haiku-4-5",
       "temperature": 0,
       "steps": 20,
       "prompt": "{file:./.opencode/prompts/security-auditor.txt}",
@@ -104,7 +104,7 @@
     "plan-validator": {
       "description": "Compares execution plans (terraform plan / what-if) against state safety rules. Safely prevents accidental resource deletion.",
       "mode": "subagent",
-      "model": "opencode/mistral-small-latest",
+      "model": "opencode/claude-haiku-4-5",
       "temperature": 0,
       "steps": 15,
       "prompt": "{file:./.opencode/prompts/plan-validator.txt}",
@@ -119,7 +119,7 @@
     "code-reviewer": {
       "description": "Reviews implemented IaC files for maintainability, tagging rules, structure, and naming conventions.",
       "mode": "subagent",
-      "model": "opencode/mistral-small-latest",
+      "model": "opencode/claude-haiku-4-5",
       "temperature": 0,
       "steps": 20,
       "prompt": "{file:./.opencode/prompts/code-reviewer.txt}",
@@ -134,7 +134,7 @@
     "explorer": {
       "description": "Fast read-only codebase navigator to trace modules, resource references, and folder structures.",
       "mode": "subagent",
-      "model": "ollama/mistral:latest",
+      "model": "opencode/gpt-5.4-nano",
       "temperature": 0,
       "steps": 15,
       "prompt": "{file:./.opencode/prompts/explorer.txt}",
@@ -144,12 +144,12 @@
         "write": "deny",
         "skill": "deny"
       },
-      "endpoint": "http://localhost:11434/v1"
+      "endpoint": "https://opencode.ai/zen/v1"
     },
     "test-writer": {
       "description": "Writes sprint-appropriate infrastructure assertions and unit tests (e.g., .tftest.hcl or Bicep test files).",
       "mode": "subagent",
-      "model": "opencode/mistral-small-latest",
+      "model": "opencode/gpt-5.1-codex-mini",
       "temperature": 0,
       "steps": 20,
       "prompt": "{file:./.opencode/prompts/test-writer.txt}",
@@ -164,7 +164,7 @@
     "docs-writer": {
       "description": "Updates module READMEs, variables parameters documentation, architecture records (ADRs), and runbooks.",
       "mode": "subagent",
-      "model": "ollama/mistral:latest",
+      "model": "opencode/gemini-3-flash",
       "temperature": 0.3,
       "steps": 15,
       "prompt": "{file:./.opencode/prompts/docs-writer.txt}",
@@ -174,7 +174,7 @@
         "write": "allow",
         "skill": "allow"
       },
-      "endpoint": "http://localhost:11434/v1"
+      "endpoint": "https://opencode.ai/zen/v1"
     }
   },
   "command": {
