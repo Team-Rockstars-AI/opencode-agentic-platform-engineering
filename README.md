@@ -1,5 +1,9 @@
 # Azure Platform Engineering Template Repository
 
+[![CI](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/ci.yml/badge.svg)](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/ci.yml)
+[![Security Scan](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/security.yml/badge.svg)](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/security.yml)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://www.conventionalcommits.org)
+
 Welcome! This repository scaffolds secure, opinionated, **Secure-by-Design**, and compliant Azure platform infrastructures. By cloning this repo and running a few simple commands, you can generate a brand-new target repository fully pre-populated with a highly sophisticated **OpenCode Multi-Agent Team**, workflows, and secure infrastructure blueprints.
 
 ---
@@ -163,3 +167,49 @@ To help you operate, maintain, and govern this platform, we have authored a comp
 *   **[Cost Governance & Sizing Guide](docs/cost-governance-guide.md)** — Outlines the cost-saving strategies, sizing guidelines, and optimization rules enforced by the platform.
 
 Once scaffolded, you can also refer to the **`AGENTS.md`** file created at the root of your new target directory. It outlines the specific developer workflows and exact operational standards required to manage your live workloads.
+
+---
+
+## 🤝 Contributing & Collaboration
+
+This repository is built to be **shared and worked on together** — for cooperation
+on code, bugs, fixes, and pull requests, and as a learning resource for the team.
+
+**Start here:** read the **[Contributing Guide](CONTRIBUTING.md)**. In short:
+
+1.  **Branch** off `main` using `feature/<id>-<description>` — never commit to `main` directly.
+2.  **Commit** using [Conventional Commits](https://www.conventionalcommits.org) (`feat:`, `fix:`, `docs:`, `ci:`, …).
+3.  **Open a PR** against `main` using the [pull request template](.github/PULL_REQUEST_TEMPLATE.md); a [code owner](.github/CODEOWNERS) is auto-requested for review.
+4.  **Get one approval**, resolve conversations, and **squash-merge**.
+
+Use the issue forms to **[report a bug](.github/ISSUE_TEMPLATE/bug_report.yml)** or
+**[request a feature](.github/ISSUE_TEMPLATE/feature_request.yml)**. Please be kind
+and constructive — see the **[Code of Conduct](CODE_OF_CONDUCT.md)**.
+
+### Automated checks on every pull request
+
+Continuous integration and security scanning run automatically on each PR (and weekly):
+
+| Workflow | Job | Purpose |
+|:---|:---|:---|
+| **CI** | Python lint & skill validation | `ruff`, byte-compile, and `validate-skills.py` |
+| **CI** | Config validation (JSON/YAML) | Parse all repo JSON/YAML config |
+| **CI** | Terraform format check | `terraform fmt -check` on `modules/` |
+| **CI** | Secret scan (gitleaks) | Block leaked credentials |
+| **Security Scan** | Bandit (Python SAST) | Block on HIGH-severity findings |
+| **Security Scan** | Checkov (IaC) | Report Terraform/Bicep misconfigurations |
+| **Dependabot** | — | Weekly dependency & GitHub Actions update PRs + security advisories |
+
+> **Plan note:** This repository is **private on the GitHub Free plan**, where
+> server-side branch protection, required checks, and GitHub Advanced Security
+> (CodeQL, secret scanning, the code-scanning dashboard) are unavailable. The
+> checks above therefore run and report on every PR but are enforced as **team
+> conventions** rather than hard merge gates. Enabling **GitHub Team** (private)
+> or making the repo **public** would unlock branch protection and CodeQL; see
+> [SECURITY.md](SECURITY.md) for details.
+
+### Security
+
+Report vulnerabilities **privately** — never in a public issue. See the
+**[Security Policy](SECURITY.md)** for the process and the full list of automated
+controls.
