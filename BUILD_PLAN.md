@@ -1,6 +1,9 @@
-# Session Continuity Tracker & Build Plan
+# Build Plan & Backlog
 
-This file serves as the strict source of truth for session continuity and remaining platform engineering milestones.
+This file is the **strict source of truth** for session continuity and the remaining
+platform-engineering milestones. The orchestrator reads it at the start of every session to
+decide what to do next, and the `plan-tracking` skill keeps its milestone statuses current.
+Completed milestones are archived in [`BUILD_JOURNAL.md`](BUILD_JOURNAL.md).
 
 ---
 

@@ -20,5 +20,5 @@ All execution plans and milestone statuses must be tracked and validated to ensu
 - **Replace/Recreate (red + green):** Track resources scheduled for replacement. Block immediately if any critical stateful resource is marked for replacement.
 
 ### 3. Milestone Status & Session State
-- **Milestone Tracking:** Update the session-continuity tracker (`build-plan.md`) and backlog (`Detailed_Planning_Engineer2.md`) to reflect the current milestone status.
+- **Milestone Tracking:** Update the build plan / backlog (`BUILD_PLAN.md`) to reflect the current milestone status, and archive completed milestones in `BUILD_JOURNAL.md`.
 - **Session State:** Maintain the in-project memory (`.opencode/memory.md`) to track actions taken, model optimizations, and cost reports.
