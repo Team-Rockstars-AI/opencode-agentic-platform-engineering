@@ -1,4 +1,4 @@
 # Runtime dependencies for the repository's Python tooling
 # (scripts/select-models.py and the scaffold templates import PyYAML).
 # Pinned loosely so Dependabot can propose security and version updates.
-PyYAML>=6.0,<7.0
+PyYAML>=6.0.3,<7.0
