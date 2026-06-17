@@ -525,3 +525,102 @@ skills to assign the optimal *available* model per agent.
   (`https://opencode.ai/docs/zen/`), since neither `opencode models` nor the `/zen/v1/models`
   JSON endpoint exposes cost. If a structured pricing endpoint is published later, switch the
   `fetch_zen_prices()` scraper to consume it.
+
+---
+
+## Milestone: Agent Team Refactor — Self-Consistent Platform Team
+
+**Date:** 2026-06-17
+
+### Summary
+
+This milestone executed the full `docs/agent-team-refactor-plan.md` refactor, making the agent team self-consistent, model-resilient, and unattended-capable. The refactor enforces the mandatory 9-stage lifecycle (`research → plan → build → verify → review → security → safety → test → docs`), installs fixed output contracts on every agent prompt, wires WAF pillar ownership explicitly, closes the template parity gap (generated repos were missing prompts and skills), and adds comprehensive team validation tooling.
+
+### Changes Made
+
+1. **All prompts — added explicit output contracts:**
+   - `orchestrator.txt` → `## Milestone plan`
+   - `explorer.txt` → `## Research summary`
+   - `builder-*` → `## Build summary` (already present, confirmed)
+   - `verifier.txt` → `Verification: PASSED|FAILED` (already present, confirmed)
+   - `code-reviewer.txt` → `Quality gate: PASSED|FAILED`
+   - `security-auditor.txt` → `Security gate: PASSED|FAILED` (already present, confirmed)
+   - `plan-validator.txt` → `Plan safety gate: PASSED|FAILED` (corrected from "Plan gate:")
+   - `test-writer.txt` → `## Test summary`
+   - `docs-writer.txt` → `## Documentation summary`
+
+2. **`orchestrator.txt` — rewrote to enforce mandatory lifecycle:**
+   - Added explicit `## Mandatory lifecycle` section with the 9-stage sequence
+   - Added `## Output contract` section requiring `## Milestone plan` output
+   - Added `## WAF ownership` section mapping all 5 WAF pillars to owning agents
+   - Removed ghost reference to "session-tracking sections in AGENTS.md"
+
+3. **`code-reviewer.txt` — expanded WAF coverage:**
+   - Added Reliability/Availability pillar (soft-delete, retry, availability zones, `prevent_destroy`)
+   - Added Performance Efficiency pillar (SKU sizing, autoscale)
+   - Added Cost Optimization pillar (oversized SKUs, `optimise` skill invocation)
+   - Added Operational Excellence pillar (diagnostic settings, tagging)
+   - Existing Maintainability & Correctness pillar retained
+
+4. **`docs-writer.txt` — removed ghost reference:**
+   - Removed "session-tracking sections in `AGENTS.md`" (these sections do not exist)
+
+5. **`root AGENTS.md` — fixed stale references:**
+   - Added `explorer` agent entry with output contract
+   - Added `test-writer` and `docs-writer` agent entries with output contracts
+   - Updated `workflows/` section to correctly describe it as documentation-only; commands are in `opencode.json → command`
+   - Fixed "Adding new content" table entry from `opencode.json → workflows[]` to `opencode.json → command[name]`
+   - Added `validate-team.py` to development commands
+
+6. **`workflows/scaffold.md` — rewrote stale workflow doc:**
+   - Removed references to nonexistent `architect` and `platform-engineer` agents
+   - Now correctly references `orchestrator` and `security-auditor`
+   - Documents actual `scripts/scaffold.py` backend and scaffold template copy paths
+
+7. **`templates/opencode-config/prompts/`** — created (was missing):
+   - All 11 agent prompt `.txt` files copied; generated repos now have the full agent team
+
+8. **`templates/opencode-config/skills/`** — created (was missing):
+   - 13 skill directories copied (excluding `scaffold` which generated repos don't need)
+   - Generated repos now have the full skill set under `.opencode/skills/`
+
+9. **`templates/opencode-config/scripts/`** — created (was missing):
+   - `validate-skills.py` and `select-models.py` copied; referenced scripts now exist in template
+
+10. **`scripts/scaffold.py`** — added `select-models.py` to copy list:
+    - Generated repos now receive `scripts/select-models.py` (required by `/select-models` command)
+
+11. **`templates/AGENTS.md`** — complete rewrite:
+    - All 11 agents documented with output contracts
+    - Mandatory 9-stage lifecycle table added
+    - WAF ownership table added
+    - Commands section corrected (uses `command` not `workflows[]`)
+
+12. **`scripts/validate-team.py`** — new comprehensive validator:
+    - Check 1: JSON validity for root and template `opencode.json`
+    - Check 2+3: Every agent has an existing prompt file; every prompt is referenced by an agent
+    - Check 4: Every skill referenced in a prompt resolves to an existing skill file
+    - Check 5: Every command references an existing agent
+    - Check 6: Root and template agent topologies match
+    - Check 7: `AGENTS.md` documents all configured agents
+    - Check 8: No orphan skills (command-invoked skills counted via template text scan)
+
+### Validation Results
+
+```
+python3 -m json.tool opencode.json             → valid
+python3 -m json.tool templates/opencode-config/opencode.json  → valid
+python3 scripts/validate-skills.py            → 0 broken skill references (22 files scanned)
+python3 scripts/validate-team.py              → ✅ All checks passed!
+python3 agent_config.py                       → all self-tests passed
+```
+
+### Friction Points
+
+- **Template prompt redundancy:** Template prompts are copies of root prompts. They will drift over time. The current approach is intentional (generated repos are self-contained) but requires updating templates whenever root prompts change. `validate-team.py` check 6 (topology parity) catches agent-level drift but not content drift.
+- **Skill `scaffold` excluded from templates:** The `scaffold/SKILL.md` was deliberately excluded from `templates/opencode-config/skills/` since generated repos have no `/scaffold` command. The root `skills/scaffold/` remains for the platform repo's own use.
+
+### Next Steps
+
+- Wire `validate-team.py` into CI (`.github/workflows/ci.yml`) as a required pre-merge check
+- Consider a content-level diff check between root and template prompts to catch semantic drift earlier

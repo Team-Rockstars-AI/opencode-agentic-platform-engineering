@@ -357,6 +357,7 @@ def main():
     copy_file(os.path.join(config_src, "manifest.yaml"), os.path.join(target_dir, "manifest.yaml"))
     copy_file(os.path.join(config_src, "agent_config.py"), os.path.join(target_dir, "agent_config.py"))
     copy_file(os.path.join(config_src, "scripts", "validate-skills.py"), os.path.join(target_dir, "scripts", "validate-skills.py"))
+    copy_file(os.path.join(config_src, "scripts", "select-models.py"), os.path.join(target_dir, "scripts", "select-models.py"))
 
     # 5. Copy AGENTS.md
     copy_file(os.path.join(repo_root, "templates", "AGENTS.md"), os.path.join(target_dir, "AGENTS.md"))
