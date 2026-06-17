@@ -70,9 +70,9 @@ resource "azurerm_container_app" "runner_app" {
       name             = "github-queue-scaler"
       custom_rule_type = "github-runner"
       metadata = {
-        owner             = var.github_org_name
-        repos             = var.github_repo_name
-        targetWorkflowId  = "deploy.yml"
+        owner            = var.github_org_name
+        repos            = var.github_repo_name
+        targetWorkflowId = "deploy.yml"
       }
     }
   }
