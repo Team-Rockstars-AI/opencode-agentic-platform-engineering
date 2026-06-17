@@ -1,0 +1,66 @@
+name: "🐛 Bug report"
+description: Report a problem with the scaffold, a template, a skill, or the tooling
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve the platform-engineering scaffold!
+        Please search existing issues first to avoid duplicates.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear and concise description of the bug.
+      placeholder: When I run `/scaffold` with Terraform + GitHub, the workflow ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Include the exact command, agent, or skill invoked.
+      placeholder: |
+        1. Run `python scripts/select-models.py ...`
+        2. Choose ...
+        3. See error
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Scaffold / templates
+        - Terraform modules
+        - Bicep modules
+        - OpenCode config / agents / skills
+        - select-models tooling
+        - CI / workflows
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version, Terraform/Bicep version, OpenCode version (as relevant).
+      placeholder: macOS 15, Python 3.12, Terraform 1.9.5
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or output
+      description: Paste any error output. It will be rendered as code.
+      render: shell
+    validations:
+      required: false

@@ -53,11 +53,11 @@ opencode connect --provider zen
 ```
 
 ### Step 3: Verify Model Availability
-Verify that the required sovereign-friendly models are available in your OpenCode environment:
+List the models available in your OpenCode environment:
 ```bash
 opencode models
 ```
-*Note: The platform is configured to use `opencode/north-mini-code-free` (Cohere North Mini Code) for all subagents and `opencode/gemini-3.5-flash` for the orchestrator.*
+*Note: The platform ships with a sovereign-friendly default — `opencode/north-mini-code-free` (Cohere North Mini Code) for all subagents and `opencode/gemini-3.5-flash` for the orchestrator. You do not need to match models by hand: the `/select-models` command (see Section 5) discovers this live list automatically, infers each model's jurisdiction, scrapes current pricing, and re-optimizes the per-agent assignments for you.*
 
 ---
 
@@ -112,6 +112,9 @@ As an operator of the provisioning platform, you can run local checks and slash 
 *   **`/debug`**: Instructs the verifier and builders to resolve any linter warnings or syntax compile errors in the module codebase.
 *   **`/expand`**: Assists in adding new resource modules or expanding existing skeletons.
 *   **`/optimise`**: Scans the local landing zone modules and configurations for cost-saving opportunities and resource sizing inefficiencies.
+*   **`/select-models`**: Re-optimizes the per-agent model assignments. After gathering your jurisdiction, local-model, focus, and hardware preferences, it fetches a fresh OpenCode Zen model list and your installed Ollama models, scrapes current per-1M-token pricing, and reasons over each agent's prompt and skills to assign the optimal *available* model per agent — then applies the change with automatic verification and rollback.
+
+> **Model selection is dynamic.** Prefer `/select-models` over hand-editing `opencode.json` / `manifest.yaml`. If live pricing cannot be fetched (the Zen docs page is unreachable or its pricing-table layout changed), the command clearly says so and offers to continue using the most recently cached pricing — or to proceed without cost figures when no cache exists.
 
 ### Manual Quality & Verification Checks
 Run these commands to manually verify the integrity of the generator repository before making changes or creating releases:

@@ -1,0 +1,13 @@
+# Ruff configuration for the repository's Python tooling.
+# Defaults (pyflakes `F` + pycodestyle `E`) are kept intentionally lean so the
+# learning-focused scaffold stays contributor-friendly while still catching
+# real errors (undefined names, unused imports, syntax issues).
+target-version = "py312"
+line-length = 120
+
+extend-exclude = [
+    "node_modules",
+    ".opencode",
+    "**/__pycache__",
+    ".sisyphus",
+]

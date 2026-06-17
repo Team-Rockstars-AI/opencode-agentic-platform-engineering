@@ -1,0 +1,47 @@
+version: 2
+
+# Dependabot keeps the repository's dependencies and pinned action/provider
+# versions current, and opens PRs for security advisories. Alerts themselves are
+# enabled at the repository level (Settings -> Code security).
+
+updates:
+  # Python tooling dependencies (requirements.txt).
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - python
+    commit-message:
+      prefix: "chore(deps)"
+
+  # GitHub Actions used by the workflows in .github/workflows.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: "ci(deps)"
+
+  # Terraform providers/modules across the reusable modules and templates.
+  - package-ecosystem: terraform
+    directories:
+      - "/modules/**"
+      - "/templates/**"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - terraform
+    commit-message:
+      prefix: "chore(deps)"

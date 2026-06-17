@@ -8,6 +8,10 @@ __pycache__/
 *$py.class
 .pytest_cache/
 
+# select-models pricing cache (last-known-good ZEN pricing snapshot)
+scripts/.zen-pricing-cache.json
+*.bak
+
 # IDEs/Editors
 .vscode/
 .idea/

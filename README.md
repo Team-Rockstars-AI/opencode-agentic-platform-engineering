@@ -1,5 +1,9 @@
 # Azure Platform Engineering Template Repository
 
+[![CI](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/ci.yml/badge.svg)](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/ci.yml)
+[![Security Scan](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/security.yml/badge.svg)](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/security.yml)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://www.conventionalcommits.org)
+
 Welcome! This repository scaffolds secure, opinionated, **Secure-by-Design**, and compliant Azure platform infrastructures. By cloning this repo and running a few simple commands, you can generate a brand-new target repository fully pre-populated with a highly sophisticated **OpenCode Multi-Agent Team**, workflows, and secure infrastructure blueprints.
 
 ---
@@ -64,23 +68,33 @@ The platform agent team will automatically:
 
 ## 🤖 Deployed Multi-Agent Team Structure
 
-Your newly generated repository comes pre-loaded with an elite platform operations team defined inside `.opencode/opencode.json` and optimized via cost-effective **OpenCode Zen models**:
+Your newly generated repository comes pre-loaded with an elite platform operations team defined inside `.opencode/opencode.json`. Rather than pinning a fixed model to each agent, the team is **dynamically optimized against the live OpenCode Zen bundle** — the `/select-models` command discovers which Zen models are currently available, reads their **current per-1M-token pricing**, and — *hardware allowing* — folds in your locally installed **Ollama** models, then reasons over each agent's prompt and skills to assign the best *available* model per role.
 
-| Subagent | Assigned Model | Operational Purpose |
+Each agent maps to a **selection tier** that determines the class of model chosen for it:
+
+| Subagent | Selection Tier | Operational Purpose |
 |---|---|---|
-| **`orchestrator`** | `opencode/gemini-3.5-flash` | The strategic lead. Parses backlogs, schedules rollouts, and delegates milestones. |
-| **`builder-infra-tf`** | `opencode/north-mini-code-free` | Authors secure, modular, parameterized Terraform resources. |
-| **`builder-infra-bicep`** | `opencode/north-mini-code-free` | Authors multi-scope Bicep templates. |
-| **`builder-pipelines`** | `opencode/north-mini-code-free` | Configures OIDC-federated automated workflows. |
-| **`verifier`** | `opencode/north-mini-code-free` | Compiles code (`terraform validate` / `bicep build`) and generates dry-run logs. |
-| **`security-auditor`** | `opencode/north-mini-code-free` | Audits configurations for compliance and security gaps. |
-| **`plan-validator`** | `opencode/north-mini-code-free` | **Blast Radius Valve.** Scans plan logs and blocks destruction of critical resources. |
-| **`code-reviewer`** | `opencode/north-mini-code-free` | Reviews code naming conventions and tagging rules. |
-| **`explorer`** | `opencode/north-mini-code-free` | Traces dependencies and indexes the local directories. |
-| **`test-writer`** | `opencode/north-mini-code-free` | Writes unit and integration tests (`.tftest.hcl`). |
-| **`docs-writer`** | `opencode/north-mini-code-free` | Maintains markdown runbooks, variables tables, and ADRs. |
+| **`orchestrator`** | High-Reasoning | The strategic lead. Parses backlogs, schedules rollouts, and delegates milestones. |
+| **`builder-infra-tf`** | Code-Generation | Authors secure, modular, parameterized Terraform resources. |
+| **`builder-infra-bicep`** | Code-Generation | Authors multi-scope Bicep templates. |
+| **`builder-pipelines`** | Code-Generation | Configures OIDC-federated automated workflows. |
+| **`verifier`** | Task-Execution | Compiles code (`terraform validate` / `bicep build`) and generates dry-run logs. |
+| **`security-auditor`** | Task-Execution | Audits configurations for compliance and security gaps. |
+| **`plan-validator`** | Task-Execution | **Blast Radius Valve.** Scans plan logs and blocks destruction of critical resources. |
+| **`code-reviewer`** | Task-Execution | Reviews code naming conventions and tagging rules. |
+| **`explorer`** | Task-Execution | Traces dependencies and indexes the local directories. |
+| **`test-writer`** | Task-Execution | Writes unit and integration tests (`.tftest.hcl`). |
+| **`docs-writer`** | Task-Execution | Maintains markdown runbooks, variables tables, and ADRs. |
 
----
+### How models are selected
+
+Run `/select-models` (see below) and choose your preferences; the team is then optimized accordingly:
+
+*   **Jurisdiction policy** — `EU` (EU/Sovereign-only), `EU+US`, or `Global`. Each Zen model's jurisdiction is inferred from its id and filtered to your policy, so sovereignty is enforced by construction.
+*   **Optimization focus** — `Cost` prefers free / ultra-low-cost tiers; `Quality` prefers maximum reasoning and code-generation capability. Decisions use the **live pricing** scraped from the Zen docs (with a clearly-flagged cached fallback if pricing can't be fetched).
+*   **Local models (Ollama)** — *hardware allowing*, locally installed Ollama models can be assigned to suitable roles for zero-cost, fully sovereign execution. You declare your hardware tier (`Low-end` ≤8B, `Mid-range` ≤27B, `High-end` 70B+) and the optimizer only picks local models that fit.
+
+> **Shipped default:** out of the box the team is configured sovereign-friendly — `opencode/gemini-3.5-flash` for the `orchestrator` and `opencode/north-mini-code-free` for all subagents. Re-run `/select-models` at any time to re-optimize against the *current* live catalog, pricing, and your hardware.
 
 ---
 
@@ -98,6 +112,7 @@ In addition to the agent team, the platform includes reusable **Skills** — cod
 | **`doc-standards`** | Documentation standards for module READMEs, ADR format, runbooks, and onboarding guides targeting operations teams and developers. Used by `@docs-writer`. |
 | **`expand`** | Powers `/expand` — guides the rollout of new resource modules under governance guardrails. |
 | **`git-workflow`** | Branch naming conventions (`feature/<id>-<desc>`), pre-commit hygiene (formatter, `git add -p`), commit blacklist rules (no secrets, no debug artifacts, no commented-out code), and handoff summary format for the `@test-writer`. Enforced by all builder agents before staging or committing. |
+| **`model-optimiser`** | Discovers the live OpenCode ZEN catalog and locally installed Ollama models, then reasons over each agent's prompt and skills to select the optimal *available* model per agent — honouring jurisdiction, cost/quality focus, and local hardware capabilities. Used by `@orchestrator` during model optimization. |
 | **`plan-tracking`** | Execution plan JSON conversion, resource action tracking (create/update/delete/replace), milestone status updates, and session state maintenance. Used by `@plan-validator` and `@docs-writer`. |
 | **`scaffold`** | Powers the `/scaffold` workflow — copies template sets, resolves placeholders, initialises git. |
 | **`security-checklist`** | Structured security review checklist with PASS/FAIL/NA criteria, covering OIDC enforcement, network isolation, soft-delete, least-privilege IAM, diagnostic logging, and strict typing. Used by the `@security-auditor` agent during every audit pass. |
@@ -111,6 +126,8 @@ In addition to scaffolding, this repository contains active local OpenCode confi
 *   **`/debug`**: Instructs our verifier and builders to identify and resolve any linter warnings or syntax compile errors in our module codebase.
 *   **`/expand`**: Assists in adding new resource modules or expanding existing Bicep and Terraform landing zone skeletons.
 *   **`/optimise`**: Scans our local landing zone modules, templates, and configurations for cost-saving opportunities and resource sizing inefficiencies. Leverages the `optimise` skill to produce a structured cost optimization report.
+*   **`/select-models`**: After gathering your jurisdiction, local-model, focus, and hardware preferences, fetches a fresh OpenCode ZEN model list and your installed Ollama models, then reasons over each agent's prompt and skills to assign the optimal *available* model per agent. Leverages the `model-optimiser` skill to update configurations and run verification tests.
+
 
 ---
 
@@ -150,3 +167,49 @@ To help you operate, maintain, and govern this platform, we have authored a comp
 *   **[Cost Governance & Sizing Guide](docs/cost-governance-guide.md)** — Outlines the cost-saving strategies, sizing guidelines, and optimization rules enforced by the platform.
 
 Once scaffolded, you can also refer to the **`AGENTS.md`** file created at the root of your new target directory. It outlines the specific developer workflows and exact operational standards required to manage your live workloads.
+
+---
+
+## 🤝 Contributing & Collaboration
+
+This repository is built to be **shared and worked on together** — for cooperation
+on code, bugs, fixes, and pull requests, and as a learning resource for the team.
+
+**Start here:** read the **[Contributing Guide](CONTRIBUTING.md)**. In short:
+
+1.  **Branch** off `main` using `feature/<id>-<description>` — never commit to `main` directly.
+2.  **Commit** using [Conventional Commits](https://www.conventionalcommits.org) (`feat:`, `fix:`, `docs:`, `ci:`, …).
+3.  **Open a PR** against `main` using the [pull request template](.github/PULL_REQUEST_TEMPLATE.md); a [code owner](.github/CODEOWNERS) is auto-requested for review.
+4.  **Get one approval**, resolve conversations, and **squash-merge**.
+
+Use the issue forms to **[report a bug](.github/ISSUE_TEMPLATE/bug_report.yml)** or
+**[request a feature](.github/ISSUE_TEMPLATE/feature_request.yml)**. Please be kind
+and constructive — see the **[Code of Conduct](CODE_OF_CONDUCT.md)**.
+
+### Automated checks on every pull request
+
+Continuous integration and security scanning run automatically on each PR (and weekly):
+
+| Workflow | Job | Purpose |
+|:---|:---|:---|
+| **CI** | Python lint & skill validation | `ruff`, byte-compile, and `validate-skills.py` |
+| **CI** | Config validation (JSON/YAML) | Parse all repo JSON/YAML config |
+| **CI** | Terraform format check | `terraform fmt -check` on `modules/` |
+| **CI** | Secret scan (gitleaks) | Block leaked credentials |
+| **Security Scan** | Bandit (Python SAST) | Block on HIGH-severity findings |
+| **Security Scan** | Checkov (IaC) | Report Terraform/Bicep misconfigurations |
+| **Dependabot** | — | Weekly dependency & GitHub Actions update PRs + security advisories |
+
+> **Plan note:** This repository is **private on the GitHub Free plan**, where
+> server-side branch protection, required checks, and GitHub Advanced Security
+> (CodeQL, secret scanning, the code-scanning dashboard) are unavailable. The
+> checks above therefore run and report on every PR but are enforced as **team
+> conventions** rather than hard merge gates. Enabling **GitHub Team** (private)
+> or making the repo **public** would unlock branch protection and CodeQL; see
+> [SECURITY.md](SECURITY.md) for details.
+
+### Security
+
+Report vulnerabilities **privately** — never in a public issue. See the
+**[Security Policy](SECURITY.md)** for the process and the full list of automated
+controls.

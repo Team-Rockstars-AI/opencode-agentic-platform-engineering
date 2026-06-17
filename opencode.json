@@ -15,7 +15,7 @@
     "orchestrator": {
       "description": "Strategic platform planner: reads backlog and plan, decomposes work, delegates to infra/pipeline builders. Entry point for every session.",
       "mode": "primary",
-      "model": "opencode/gemini-3.5-flash",
+      "model": "opencode/mistral-large-latest",
       "temperature": 0,
       "steps": 50,
       "prompt": "{file:./.opencode/prompts/orchestrator.txt}",
@@ -24,12 +24,13 @@
         "edit": "ask",
         "write": "ask",
         "skill": "allow"
-      }
+      },
+      "endpoint": "https://opencode.ai/zen/v1"
     },
     "builder-infra-tf": {
       "description": "Implements Azure Terraform infrastructure as code (IaC) modules and configurations.",
       "mode": "subagent",
-      "model": "opencode/north-mini-code-free",
+      "model": "opencode/codestral-latest",
       "temperature": 0,
       "steps": 50,
       "prompt": "{file:./.opencode/prompts/builder-infra-tf.txt}",
@@ -38,12 +39,13 @@
         "edit": "allow",
         "write": "allow",
         "skill": "allow"
-      }
+      },
+      "endpoint": "https://opencode.ai/zen/v1"
     },
     "builder-infra-bicep": {
       "description": "Implements Azure Bicep infrastructure as code (IaC) templates and parameter files.",
       "mode": "subagent",
-      "model": "opencode/north-mini-code-free",
+      "model": "opencode/codestral-latest",
       "temperature": 0,
       "steps": 50,
       "prompt": "{file:./.opencode/prompts/builder-infra-bicep.txt}",
@@ -52,12 +54,13 @@
         "edit": "allow",
         "write": "allow",
         "skill": "allow"
-      }
+      },
+      "endpoint": "https://opencode.ai/zen/v1"
     },
     "builder-pipelines": {
       "description": "Implements secure CI/CD pipelines (GitHub Actions and Azure DevOps Pipelines) with OIDC federation.",
       "mode": "subagent",
-      "model": "opencode/north-mini-code-free",
+      "model": "opencode/codestral-latest",
       "temperature": 0,
       "steps": 50,
       "prompt": "{file:./.opencode/prompts/builder-pipelines.txt}",
@@ -66,12 +69,13 @@
         "edit": "allow",
         "write": "allow",
         "skill": "allow"
-      }
+      },
+      "endpoint": "https://opencode.ai/zen/v1"
     },
     "verifier": {
       "description": "Runs linter, compilation validations (terraform validate / bicep build), and plan generation dry-runs.",
       "mode": "subagent",
-      "model": "opencode/north-mini-code-free",
+      "model": "ollama/mistral:latest",
       "temperature": 0,
       "steps": 20,
       "prompt": "{file:./.opencode/prompts/verifier.txt}",
@@ -80,12 +84,13 @@
         "edit": "deny",
         "write": "deny",
         "skill": "allow"
-      }
+      },
+      "endpoint": "http://localhost:11434/v1"
     },
     "security-auditor": {
       "description": "Read-only security review. Audits IaC files and pipelines for resource configurations, exposed secrets, and weak IAM.",
       "mode": "subagent",
-      "model": "opencode/north-mini-code-free",
+      "model": "opencode/mistral-small-latest",
       "temperature": 0,
       "steps": 20,
       "prompt": "{file:./.opencode/prompts/security-auditor.txt}",
@@ -94,12 +99,13 @@
         "edit": "deny",
         "write": "deny",
         "skill": "allow"
-      }
+      },
+      "endpoint": "https://opencode.ai/zen/v1"
     },
     "plan-validator": {
       "description": "Compares execution plans (terraform plan / what-if) against state safety rules. Safely prevents accidental resource deletion.",
       "mode": "subagent",
-      "model": "opencode/north-mini-code-free",
+      "model": "opencode/mistral-small-latest",
       "temperature": 0,
       "steps": 15,
       "prompt": "{file:./.opencode/prompts/plan-validator.txt}",
@@ -108,12 +114,13 @@
         "edit": "deny",
         "write": "deny",
         "skill": "allow"
-      }
+      },
+      "endpoint": "https://opencode.ai/zen/v1"
     },
     "code-reviewer": {
       "description": "Reviews implemented IaC files for maintainability, tagging rules, structure, and naming conventions.",
       "mode": "subagent",
-      "model": "opencode/north-mini-code-free",
+      "model": "opencode/mistral-small-latest",
       "temperature": 0,
       "steps": 20,
       "prompt": "{file:./.opencode/prompts/code-reviewer.txt}",
@@ -122,12 +129,13 @@
         "edit": "deny",
         "write": "deny",
         "skill": "allow"
-      }
+      },
+      "endpoint": "https://opencode.ai/zen/v1"
     },
     "explorer": {
       "description": "Fast read-only codebase navigator to trace modules, resource references, and folder structures.",
       "mode": "subagent",
-      "model": "opencode/north-mini-code-free",
+      "model": "ollama/mistral:latest",
       "temperature": 0,
       "steps": 15,
       "prompt": "{file:./.opencode/prompts/explorer.txt}",
@@ -136,12 +144,13 @@
         "edit": "deny",
         "write": "deny",
         "skill": "deny"
-      }
+      },
+      "endpoint": "http://localhost:11434/v1"
     },
     "test-writer": {
       "description": "Writes sprint-appropriate infrastructure assertions and unit tests (e.g., .tftest.hcl or Bicep test files).",
       "mode": "subagent",
-      "model": "opencode/north-mini-code-free",
+      "model": "opencode/mistral-small-latest",
       "temperature": 0,
       "steps": 20,
       "prompt": "{file:./.opencode/prompts/test-writer.txt}",
@@ -150,12 +159,13 @@
         "edit": "allow",
         "write": "allow",
         "skill": "allow"
-      }
+      },
+      "endpoint": "https://opencode.ai/zen/v1"
     },
     "docs-writer": {
       "description": "Updates module READMEs, variables parameters documentation, architecture records (ADRs), and runbooks.",
       "mode": "subagent",
-      "model": "opencode/north-mini-code-free",
+      "model": "ollama/mistral:latest",
       "temperature": 0.3,
       "steps": 15,
       "prompt": "{file:./.opencode/prompts/docs-writer.txt}",
@@ -164,10 +174,16 @@
         "edit": "allow",
         "write": "allow",
         "skill": "allow"
-      }
+      },
+      "endpoint": "http://localhost:11434/v1"
     }
   },
   "command": {
+    "select-models": {
+      "description": "Select and configure optimized models for each agent based on jurisdiction, cost/quality focus, and local hardware capabilities.",
+      "agent": "orchestrator",
+      "template": "Please use the `model-optimiser` skill. Gather the user's preferences (jurisdiction, local models, focus, hardware), then run `python3 scripts/select-models.py discover` to fetch the live ZEN and Ollama catalogs. Read each agent's prompt and skills to reason out the optimal available model per agent, present a proposal, and on acceptance write a mapping file and run `python3 scripts/select-models.py apply` to implement and verify."
+    },
     "scaffold": {
       "description": "Scaffold a new, secure and compliant platform-engineering repository",
       "template": "Please use the `scaffold` skill to execute the scaffold workflow. Coordinate between the orchestrator (to gather options), the builders (to deploy templates), and the auditors (to verify safety rules).",
