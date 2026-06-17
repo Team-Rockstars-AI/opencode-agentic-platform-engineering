@@ -1,0 +1,49 @@
+name: IaC Security Scan
+
+# Infrastructure-as-Code vulnerability and misconfiguration scanning for the
+# Terraform and Bicep that ships in modules/ and templates/. Findings are
+# uploaded to the Security tab as code-scanning alerts.
+#
+# soft_fail is enabled so misconfiguration findings are reported for learning
+# and triage without hard-blocking every pull request. Hard enforcement can be
+# turned on later by setting soft_fail: false.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "27 4 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  checkov:
+    name: Checkov (Terraform & Bicep)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Checkov
+        id: checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          framework: terraform,bicep
+          quiet: true
+          soft_fail: true
+          output_format: cli,sarif
+          output_file_path: console,results.sarif
+
+      - name: Upload SARIF results
+        if: ${{ always() && hashFiles('results.sarif') != '' }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+          category: checkov
