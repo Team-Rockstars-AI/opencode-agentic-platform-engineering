@@ -1,57 +1,57 @@
 agents:
   builder-infra-bicep:
-    endpoint: http://localhost:11434/v1
-    jurisdiction: Local
-    model: ollama/codestral:22b
+    endpoint: https://opencode.ai/zen/v1
+    jurisdiction: EU
+    model: opencode/codestral-latest
     name: builder-infra-bicep
     role: Code-Generation
     tier: Code-Generation
   builder-infra-tf:
-    endpoint: http://localhost:11434/v1
-    jurisdiction: Local
-    model: ollama/codestral:22b
+    endpoint: https://opencode.ai/zen/v1
+    jurisdiction: EU
+    model: opencode/codestral-latest
     name: builder-infra-tf
     role: Code-Generation
     tier: Code-Generation
   builder-pipelines:
-    endpoint: http://localhost:11434/v1
-    jurisdiction: Local
-    model: ollama/codestral:22b
+    endpoint: https://opencode.ai/zen/v1
+    jurisdiction: EU
+    model: opencode/codestral-latest
     name: builder-pipelines
     role: Code-Generation
     tier: Code-Generation
   code-reviewer:
-    endpoint: http://localhost:11434/v1
-    jurisdiction: Local
-    model: ollama/mistral:7b
+    endpoint: https://opencode.ai/zen/v1
+    jurisdiction: EU
+    model: opencode/mistral-small-latest
     name: code-reviewer
     role: Task-Execution
     tier: Task-Execution
   orchestrator:
     endpoint: https://opencode.ai/zen/v1
     jurisdiction: EU
-    model: opencode/mistral-small-latest
+    model: opencode/mistral-large-latest
     name: orchestrator
     role: Strategic Platform Planner
     tier: High-Reasoning
   plan-validator:
-    endpoint: http://localhost:11434/v1
-    jurisdiction: Local
-    model: ollama/mistral:7b
+    endpoint: https://opencode.ai/zen/v1
+    jurisdiction: EU
+    model: opencode/mistral-small-latest
     name: plan-validator
     role: Task-Execution
     tier: Task-Execution
   security-auditor:
-    endpoint: http://localhost:11434/v1
-    jurisdiction: Local
-    model: ollama/mistral:7b
+    endpoint: https://opencode.ai/zen/v1
+    jurisdiction: EU
+    model: opencode/mistral-small-latest
     name: security-auditor
     role: Task-Execution
     tier: Task-Execution
   verifier:
     endpoint: http://localhost:11434/v1
     jurisdiction: Local
-    model: ollama/mistral:7b
+    model: ollama/mistral:latest
     name: verifier
     role: Task-Execution
     tier: Task-Execution

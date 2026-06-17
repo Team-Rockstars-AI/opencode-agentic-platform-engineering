@@ -12,8 +12,8 @@ SECURITY_POLICY = {
     "high_reasoning_fallback_allowed": True,
     "high_reasoning_fallback_model": "opencode/gemini-3.5-flash",
     "restricted_tasks_jurisdiction_enforced": True,
-    "default_code_generation_model": "ollama/codestral:22b",
-    "default_task_execution_model": "ollama/mistral:7b",
+    "default_code_generation_model": "opencode/codestral-latest",
+    "default_task_execution_model": "ollama/mistral:latest",
 }
 
 class EUSovereigntyException(Exception):

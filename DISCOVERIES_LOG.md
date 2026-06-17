@@ -172,3 +172,30 @@ This log serves as a persistent, in-project memory of discoveries, findings, and
 *   **Slash Command Integration (`/select-models`):** Registered the `select-models` command in `opencode.json` and its template equivalent, directing the orchestrator to run the model optimization workflow.
 *   **EU Cost-Focused Implementation:** Successfully ran the optimization engine to configure the workspace for EU cost-focused operations using local Ollama models (`ollama/codestral:22b` and `ollama/mistral:7b`) on mid-range hardware, verifying that all configuration files are syntactically valid and all self-tests passed.
 
+
+---
+
+## Milestone: Dynamic Model Discovery (June 2026)
+
+### 🔍 Discoveries
+*   **Static matrices drift from reality:** The hardcoded model-mapping matrix referenced ZEN ids
+    that are not in the live catalog (e.g. `opencode/mistral-large-latest`, `opencode/codestral-latest`)
+    and Ollama ids that are not installed (`ollama/mistral:latest`). The active ZEN catalog
+    (`opencode models opencode`) exposes 45 models and, at the time of writing, **no Mistral models**.
+*   **Live Ollama metadata is richer via HTTP:** The Ollama `/api/tags` endpoint returns
+    `details.parameter_size`, enabling hardware-tier matching that `ollama list` alone cannot provide.
+
+### ⚠️ Findings
+*   **Availability must be enforced at apply time:** Trusting an agent-proposed mapping without
+    re-checking the live environment can silently re-introduce the model-availability breakage that
+    takes down the entire orchestration loop.
+
+### 💡 Solutions
+*   **Discovery + apply split (`scripts/select-models.py`):** The script now only fetches live
+    catalogs (`discover`) and validates + writes a mapping (`apply`); selection reasoning moved to
+    the orchestrator agent via the rewritten `model-optimiser` skill.
+*   **Prefix-based jurisdiction inference:** Model jurisdiction is inferred from the id prefix
+    (mistral→EU, claude/gpt/gemini→US, cohere/north→Sovereign, deepseek/glm/qwen/minimax→Global),
+    with unknown ids defaulting to Global so they can never leak into an EU-only configuration.
+*   **Hard availability guard:** `apply` rejects any mapping whose models are absent from the freshly
+    discovered ZEN/Ollama catalogs, and rolls back on any verification failure.

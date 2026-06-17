@@ -64,23 +64,33 @@ The platform agent team will automatically:
 
 ## 🤖 Deployed Multi-Agent Team Structure
 
-Your newly generated repository comes pre-loaded with an elite platform operations team defined inside `.opencode/opencode.json` and optimized via cost-effective **OpenCode Zen models**:
+Your newly generated repository comes pre-loaded with an elite platform operations team defined inside `.opencode/opencode.json`. Rather than pinning a fixed model to each agent, the team is **dynamically optimized against the live OpenCode Zen bundle** — the `/select-models` command discovers which Zen models are currently available, reads their **current per-1M-token pricing**, and — *hardware allowing* — folds in your locally installed **Ollama** models, then reasons over each agent's prompt and skills to assign the best *available* model per role.
 
-| Subagent | Assigned Model | Operational Purpose |
+Each agent maps to a **selection tier** that determines the class of model chosen for it:
+
+| Subagent | Selection Tier | Operational Purpose |
 |---|---|---|
-| **`orchestrator`** | `opencode/gemini-3.5-flash` | The strategic lead. Parses backlogs, schedules rollouts, and delegates milestones. |
-| **`builder-infra-tf`** | `opencode/north-mini-code-free` | Authors secure, modular, parameterized Terraform resources. |
-| **`builder-infra-bicep`** | `opencode/north-mini-code-free` | Authors multi-scope Bicep templates. |
-| **`builder-pipelines`** | `opencode/north-mini-code-free` | Configures OIDC-federated automated workflows. |
-| **`verifier`** | `opencode/north-mini-code-free` | Compiles code (`terraform validate` / `bicep build`) and generates dry-run logs. |
-| **`security-auditor`** | `opencode/north-mini-code-free` | Audits configurations for compliance and security gaps. |
-| **`plan-validator`** | `opencode/north-mini-code-free` | **Blast Radius Valve.** Scans plan logs and blocks destruction of critical resources. |
-| **`code-reviewer`** | `opencode/north-mini-code-free` | Reviews code naming conventions and tagging rules. |
-| **`explorer`** | `opencode/north-mini-code-free` | Traces dependencies and indexes the local directories. |
-| **`test-writer`** | `opencode/north-mini-code-free` | Writes unit and integration tests (`.tftest.hcl`). |
-| **`docs-writer`** | `opencode/north-mini-code-free` | Maintains markdown runbooks, variables tables, and ADRs. |
+| **`orchestrator`** | High-Reasoning | The strategic lead. Parses backlogs, schedules rollouts, and delegates milestones. |
+| **`builder-infra-tf`** | Code-Generation | Authors secure, modular, parameterized Terraform resources. |
+| **`builder-infra-bicep`** | Code-Generation | Authors multi-scope Bicep templates. |
+| **`builder-pipelines`** | Code-Generation | Configures OIDC-federated automated workflows. |
+| **`verifier`** | Task-Execution | Compiles code (`terraform validate` / `bicep build`) and generates dry-run logs. |
+| **`security-auditor`** | Task-Execution | Audits configurations for compliance and security gaps. |
+| **`plan-validator`** | Task-Execution | **Blast Radius Valve.** Scans plan logs and blocks destruction of critical resources. |
+| **`code-reviewer`** | Task-Execution | Reviews code naming conventions and tagging rules. |
+| **`explorer`** | Task-Execution | Traces dependencies and indexes the local directories. |
+| **`test-writer`** | Task-Execution | Writes unit and integration tests (`.tftest.hcl`). |
+| **`docs-writer`** | Task-Execution | Maintains markdown runbooks, variables tables, and ADRs. |
 
----
+### How models are selected
+
+Run `/select-models` (see below) and choose your preferences; the team is then optimized accordingly:
+
+*   **Jurisdiction policy** — `EU` (EU/Sovereign-only), `EU+US`, or `Global`. Each Zen model's jurisdiction is inferred from its id and filtered to your policy, so sovereignty is enforced by construction.
+*   **Optimization focus** — `Cost` prefers free / ultra-low-cost tiers; `Quality` prefers maximum reasoning and code-generation capability. Decisions use the **live pricing** scraped from the Zen docs (with a clearly-flagged cached fallback if pricing can't be fetched).
+*   **Local models (Ollama)** — *hardware allowing*, locally installed Ollama models can be assigned to suitable roles for zero-cost, fully sovereign execution. You declare your hardware tier (`Low-end` ≤8B, `Mid-range` ≤27B, `High-end` 70B+) and the optimizer only picks local models that fit.
+
+> **Shipped default:** out of the box the team is configured sovereign-friendly — `opencode/gemini-3.5-flash` for the `orchestrator` and `opencode/north-mini-code-free` for all subagents. Re-run `/select-models` at any time to re-optimize against the *current* live catalog, pricing, and your hardware.
 
 ---
 
@@ -98,7 +108,7 @@ In addition to the agent team, the platform includes reusable **Skills** — cod
 | **`doc-standards`** | Documentation standards for module READMEs, ADR format, runbooks, and onboarding guides targeting operations teams and developers. Used by `@docs-writer`. |
 | **`expand`** | Powers `/expand` — guides the rollout of new resource modules under governance guardrails. |
 | **`git-workflow`** | Branch naming conventions (`feature/<id>-<desc>`), pre-commit hygiene (formatter, `git add -p`), commit blacklist rules (no secrets, no debug artifacts, no commented-out code), and handoff summary format for the `@test-writer`. Enforced by all builder agents before staging or committing. |
-| **`model-optimiser`** | Selects and configures optimized models for each agent based on jurisdiction, cost/quality focus, and local hardware capabilities. Used by `@orchestrator` during model optimization. |
+| **`model-optimiser`** | Discovers the live OpenCode ZEN catalog and locally installed Ollama models, then reasons over each agent's prompt and skills to select the optimal *available* model per agent — honouring jurisdiction, cost/quality focus, and local hardware capabilities. Used by `@orchestrator` during model optimization. |
 | **`plan-tracking`** | Execution plan JSON conversion, resource action tracking (create/update/delete/replace), milestone status updates, and session state maintenance. Used by `@plan-validator` and `@docs-writer`. |
 | **`scaffold`** | Powers the `/scaffold` workflow — copies template sets, resolves placeholders, initialises git. |
 | **`security-checklist`** | Structured security review checklist with PASS/FAIL/NA criteria, covering OIDC enforcement, network isolation, soft-delete, least-privilege IAM, diagnostic logging, and strict typing. Used by the `@security-auditor` agent during every audit pass. |
@@ -112,7 +122,7 @@ In addition to scaffolding, this repository contains active local OpenCode confi
 *   **`/debug`**: Instructs our verifier and builders to identify and resolve any linter warnings or syntax compile errors in our module codebase.
 *   **`/expand`**: Assists in adding new resource modules or expanding existing Bicep and Terraform landing zone skeletons.
 *   **`/optimise`**: Scans our local landing zone modules, templates, and configurations for cost-saving opportunities and resource sizing inefficiencies. Leverages the `optimise` skill to produce a structured cost optimization report.
-*   **`/select-models`**: Selects and configures optimized models for each agent based on jurisdiction, cost/quality focus, and local hardware capabilities. Leverages the `model-optimiser` skill to update configurations and run verification tests.
+*   **`/select-models`**: After gathering your jurisdiction, local-model, focus, and hardware preferences, fetches a fresh OpenCode ZEN model list and your installed Ollama models, then reasons over each agent's prompt and skills to assign the optimal *available* model per agent. Leverages the `model-optimiser` skill to update configurations and run verification tests.
 
 
 ---

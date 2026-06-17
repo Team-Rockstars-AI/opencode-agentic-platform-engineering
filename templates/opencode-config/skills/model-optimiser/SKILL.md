@@ -8,6 +8,14 @@ compatibility: opencode
 ## Trigger
 This skill is activated when the user runs the `/select-models` slash command or requests model optimization under the OpenCode ZEN provider.
 
+## Overview
+Model selection is **agent-driven**. The `scripts/select-models.py` helper only gathers fresh data
+(the live OpenCode ZEN catalog and the live Ollama catalog) and applies a final mapping. The
+reasoning — matching each agent to the best *available* model — is performed here by reading each
+agent's prompt and the skills it relies on, then combining that with the discovered catalog. Never
+hard-code a model list: a model is only eligible if it appears in the freshly discovered catalog,
+which is the guard against pinning models that do not exist in the active environment.
+
 ## Steps
 
 ### 1. Provider Verification
@@ -16,67 +24,85 @@ This skill is activated when the user runs the `/select-models` slash command or
 
 ### 2. User Preferences Gathering
 Prompt the user to select:
-1. **Jurisdiction Policy**:
-   - `EU`: Strict EU-sovereign models only (Mistral, local models).
-   - `EU+US`: EU-sovereign and US-based models (Anthropic, Google, OpenAI, Mistral).
-   - `Global`: All available models including high-performance global models (DeepSeek, Qwen, GLM, MiniMax).
-2. **Local Models (Ollama)**:
-   - `Yes`: Allow local models to be mixed in for specific roles.
-   - `No`: Cloud-only models.
-3. **Optimization Focus**:
-   - `Cost`: Prioritize free or ultra-low-cost models that still offer good quality suitable for their tasks.
-   - `Quality`: Prioritize maximum reasoning and code-generation capabilities.
-4. **Hardware Profile** (Only if Local Models = `Yes`):
-   - `Low-end`: 8GB - 16GB RAM (runs models up to 8B parameters).
-   - `Mid-range`: 16GB - 32GB RAM (runs models up to 27B parameters).
-   - `High-end`: 64GB+ RAM (runs models up to 70B+ parameters).
+1. **Jurisdiction Policy** (`eu` / `eu+us` / `global`):
+   - `eu`: EU-sovereign and Sovereign-friendly models only (plus local models if enabled).
+   - `eu+us`: EU/Sovereign and US-based models (Anthropic, Google, OpenAI).
+   - `global`: All available models including high-performance global models (DeepSeek, Qwen, GLM, MiniMax).
+2. **Local Models (Ollama)** (`yes` / `no`):
+   - `yes`: Allow locally installed Ollama models to be mixed in for specific roles.
+   - `no`: Cloud (ZEN) models only.
+3. **Optimization Focus** (`cost` / `quality`):
+   - `cost`: Prefer free or ultra-low-cost models that are still good enough for the role.
+   - `quality`: Prefer maximum reasoning and code-generation capability.
+4. **Hardware Profile** (only if Local Models = `yes`): `low-end` (≤8B), `mid-range` (≤27B), or `high-end` (70B+).
 
-### 3. Model Mapping Matrix
+### 3. Discover Available Models
+Run the discovery helper with the gathered preferences and read the JSON catalog it prints:
 
-Based on the user's selections, map each agent role to the optimal model:
+```bash
+python3 scripts/select-models.py discover --jurisdiction <eu|eu+us|global> --allow-local <yes|no> [--machine-type <low-end|mid-range|high-end>]
+```
 
-| Agent Role | Jurisdiction | Focus | Local Allowed | Hardware | Selected Model | Cost (Input/Output per 1M) |
-|---|---|---|---|---|---|---|
-| **Strategic Planning** (`orchestrator`) | EU | Quality | - | - | `opencode/mistral-large-latest` | $2.00 / $6.00 |
-| **Strategic Planning** (`orchestrator`) | EU | Cost | - | - | `opencode/mistral-small-latest` | $1.00 / $3.00 |
-| **Strategic Planning** (`orchestrator`) | EU+US | Quality | - | - | `opencode/claude-sonnet-4-6` | $3.00 / $15.00 |
-| **Strategic Planning** (`orchestrator`) | EU+US | Cost | - | - | `opencode/gemini-3.5-flash` | $1.50 / $9.00 |
-| **Strategic Planning** (`orchestrator`) | Global | Quality | - | - | `opencode/claude-sonnet-4-6` | $3.00 / $15.00 |
-| **Strategic Planning** (`orchestrator`) | Global | Cost | - | - | `opencode/deepseek-v4-pro` | $1.74 / $3.84 |
-| **Code-Generation** (`builder-*`) | EU | Quality | Yes | Mid/High | `ollama/codestral:22b` | Local (Free) |
-| **Code-Generation** (`builder-*`) | EU | Quality | No / Low | - | `opencode/codestral-latest` | $1.00 / $3.00 |
-| **Code-Generation** (`builder-*`) | EU | Cost | Yes | Low/Mid/High | `ollama/mistral:7b` | Local (Free) |
-| **Code-Generation** (`builder-*`) | EU | Cost | No | - | `opencode/mistral-small-latest` | $1.00 / $3.00 |
-| **Code-Generation** (`builder-*`) | EU+US | Quality | - | - | `opencode/claude-sonnet-4-6` | $3.00 / $15.00 |
-| **Code-Generation** (`builder-*`) | EU+US | Cost | - | - | `opencode/gpt-5.4-mini` | $0.75 / $4.50 |
-| **Code-Generation** (`builder-*`) | Global | Quality | - | - | `opencode/claude-sonnet-4-6` | $3.00 / $15.00 |
-| **Code-Generation** (`builder-*`) | Global | Cost | - | - | `opencode/north-mini-code-free` | Free |
-| **Task-Execution** (`verifier`, `auditor`, etc.) | EU | Quality | Yes | Low/Mid/High | `ollama/ministral:8b` | Local (Free) |
-| **Task-Execution** (`verifier`, `auditor`, etc.) | EU | Quality | No | - | `opencode/mistral-small-latest` | $1.00 / $3.00 |
-| **Task-Execution** (`verifier`, `auditor`, etc.) | EU | Cost | Yes | Low/Mid/High | `ollama/mistral:7b` | Local (Free) |
-| **Task-Execution** (`verifier`, `auditor`, etc.) | EU | Cost | No | - | `opencode/mistral-small-latest` | $1.00 / $3.00 |
-| **Task-Execution** (`verifier`, `auditor`, etc.) | EU+US | Quality | - | - | `opencode/gemini-3.5-flash` | $1.50 / $9.00 |
-| **Task-Execution** (`verifier`, `auditor`, etc.) | EU+US | Cost | - | - | `opencode/gemini-3-flash` | $0.50 / $3.00 |
-| **Task-Execution** (`verifier`, `auditor`, etc.) | Global | Quality | - | - | `opencode/deepseek-v4-pro` | $1.74 / $3.84 |
-| **Task-Execution** (`verifier`, `auditor`, etc.) | Global | Cost | - | - | `opencode/deepseek-v4-flash-free` | Free |
+The catalog contains:
+- `zen`: every live ZEN model permitted under the policy, each with an inferred `jurisdiction` and
+  its `input_per_1m` / `output_per_1m` price (scraped fresh from the ZEN docs pricing tables; may be
+  `null` if a price could not be resolved or `"Free"` for free tiers).
+- `ollama`: every locally installed model (only when local is enabled), with `parameter_size`,
+  `parameter_billions`, and `size_gb` (local models are always free).
+- `policy`: the resolved policy, local toggle, machine type, and `allowed_jurisdictions`.
+- `pricing`: the provenance of the price data — `status` is `live`, `cached`, or `unavailable`.
 
-### 4. Proposal Presentation
-Present a structured proposal to the user detailing:
-- Selected model for each agent.
-- Jurisdiction and hosting type (Cloud vs. Local).
-- Estimated cost per 1M tokens.
-- Total estimated cost change.
+If the catalog is empty or missing expected models, report that to the user rather than inventing ids.
 
-### 5. Implementation
-Upon user acceptance:
-- Backup existing `opencode.json`, `manifest.yaml`, and `agent_config.py`.
-- Update the model configurations in `opencode.json` and `manifest.yaml`.
-- Update the `SECURITY_POLICY` in `agent_config.py` to match the selected jurisdiction and defaults.
+### 3a. Check Pricing Provenance (mandatory)
+Inspect `pricing.status` from the catalog **before** building the proposal and act accordingly:
+- **`live`** — prices are current. Proceed normally.
+- **`cached`** — the live fetch failed (the docs page was unreachable, or its pricing-table layout
+  changed and prices no longer parse). **Clearly tell the user that live pricing could not be
+  fetched**, state the reason (`pricing.reason`) and the date of the snapshot being used
+  (`pricing.fetched_at`), and warn that the figures may be out of date. Then **offer to either
+  continue using this last-known pricing or abort** — do not proceed until the user chooses.
+- **`unavailable`** — the live fetch failed and there is no cached snapshot. **Clearly tell the user
+  no pricing is available**, then offer to continue selecting on capability/jurisdiction alone (the
+  proposal will show prices as "unknown") or abort. Do not invent prices.
 
-### 6. Verification Testing
-- Ask the orchestrator to delegate a non-destructive action to each of the agents (e.g., a simple self-test or validation check).
-- If all tests succeed, proceed to documentation.
-- If any test fails, attempt to auto-resolve or roll back to the backup configurations.
+### 4. Reason Per-Agent Selection
+For **each** agent defined in `manifest.yaml`, read its prompt at `.opencode/prompts/<agent>.txt`,
+note the skills it references, and its `role`/`tier` from the manifest. Then choose the best model
+for that agent **from the discovered catalog only**, using this guidance:
+
+- **Strategic Planning** (`orchestrator`, tier `High-Reasoning`): the strongest reasoning model
+  available under the policy/focus.
+- **Code-Generation** (`builder-infra-tf`, `builder-infra-bicep`, `builder-pipelines`): prefer
+  code-specialized models (e.g. `*-codex`, `codestral`, `qwen*-coder`, `deepseek-coder`).
+- **Task-Execution** (`verifier`, `security-auditor`, `plan-validator`, `code-reviewer`,
+  `explorer`, `test-writer`, `docs-writer`): cheaper/faster models that meet the task; under `cost`
+  focus prefer free tiers.
+- For **local** assignments, pick an Ollama model whose `parameter_billions` fits the machine type
+  (`low-end` ≤8B, `mid-range` ≤27B, `high-end` larger), and that suits the role (coder models for
+  builders, general models for execution).
+- Respect the `cost`/`quality` focus throughout.
+
+### 5. Proposal Presentation
+Present a structured proposal table to the user: agent → selected model → jurisdiction → hosting
+(Cloud/Local) → input/output price per 1M tokens (from the catalog's `input_per_1m` /
+`output_per_1m`; show "Free" for local models and free tiers, and "unknown" when a price is null).
+State the policy and the overall cost direction versus the current configuration, using the catalog
+prices rather than guessing. If `pricing.status` is `cached` or `unavailable`, repeat the warning
+from step 3a in the proposal header so the user is reminded the prices are stale or missing.
+
+### 6. Implementation
+Upon user acceptance, write the chosen assignments to a mapping file and apply them. The mapping is
+`{ "<agent>": { "model": "<id>" }, ... }`:
+
+```bash
+python3 scripts/select-models.py apply --mapping /tmp/model-mapping.json --jurisdiction <eu|eu+us|global> --allow-local <yes|no>
+```
+
+The `apply` step re-validates that every chosen model still exists in the live environment and is
+permitted under the policy, backs up `opencode.json` / `manifest.yaml` / `agent_config.py`, writes
+the new configuration (including the `SECURITY_POLICY` defaults in `agent_config.py`), and runs
+verification tests. On any failure it rolls back automatically.
 
 ### 7. Documentation
 - Update `AGENTS.md`, `BUILD_JOURNAL.md`, and `DISCOVERIES_LOG.md` to record the new model configuration.

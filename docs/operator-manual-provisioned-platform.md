@@ -69,7 +69,7 @@ Your workspace utilizes an **Orchestration-Led multi-agent paradigm** optimized 
 
 ## 5. Operational Slash Commands
 
-You can interact with your multi-agent platform team directly from the OpenCode terminal using these four custom slash commands:
+You can interact with your multi-agent platform team directly from the OpenCode terminal using these custom slash commands:
 
 ### 1. `/audit` (Compliance Scanning)
 *   **Purpose:** Scans your entire workspace (IaC templates, subnets, NSGs, and pipelines) for credential leaks, compliance defects, and network isolation failures.
@@ -101,6 +101,15 @@ You can interact with your multi-agent platform team directly from the OpenCode 
 *   **Usage:**
     ```bash
     /optimise
+    ```
+
+### 5. `/select-models` (Model Optimization)
+*   **Purpose:** Re-optimizes the model assigned to each agent based on your jurisdiction, cost/quality, and local-hardware preferences — keeping every agent on a model that genuinely exists in your environment.
+*   **How it works:** Launches the `orchestrator` agent, which loads the `model-optimiser` skill. It fetches a fresh OpenCode Zen model list and your installed Ollama models, scrapes current per-1M-token pricing, infers each model's jurisdiction, then reasons over each agent's prompt and skills to assign the optimal *available* model per agent. After you approve the proposal it applies the change with automatic verification and rollback.
+*   **Pricing resilience:** If live pricing cannot be fetched (the Zen docs page is unreachable or its pricing-table layout changed), the command clearly states this and offers to continue with the most recently cached pricing — or, when no cache exists, to proceed without cost figures.
+*   **Usage:**
+    ```bash
+    /select-models
     ```
 
 ---

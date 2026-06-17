@@ -470,3 +470,58 @@ This milestone implemented the Model Optimization & Selection Engine, introducin
 - Integrate the `select-models` script into the scaffolding post-processor to allow operators to choose their model configuration during initial repository setup.
 - Add automated checks to verify if local Ollama models are pulled and available before applying local model configurations.
 
+
+---
+
+## Milestone: Dynamic Model Discovery for the Selection Engine
+
+**Date:** 2026-06-17
+
+### Summary
+
+This milestone replaced the static, hardcoded model-mapping matrix in the model-optimiser
+engine with **live discovery and agent-driven selection**. The previous implementation pinned
+model ids from a lookup table (e.g. `opencode/mistral-large-latest`, `ollama/mistral:latest`),
+many of which do not exist in the active environment — directly reproducing the model-availability
+failure mode recorded in `DISCOVERIES_LOG.md`. The engine now fetches the live OpenCode ZEN
+catalog and the live Ollama catalog, and the orchestrator reasons over each agent's prompt and
+skills to assign the optimal *available* model per agent.
+
+### Changes Implemented
+
+1. **Rewrote `scripts/select-models.py` into a discovery + apply tool** (and template equivalent):
+   - `discover` subcommand: runs `opencode models opencode`, queries the Ollama `/api/tags`
+     endpoint (with an `ollama list` fallback), scrapes live per-1M-token pricing from the ZEN
+     docs page, infers each model's jurisdiction from its id prefix, filters to the chosen policy +
+     local toggle, and prints a structured JSON catalog (each ZEN model annotated with
+     `input_per_1m` / `output_per_1m`).
+   - **Resilient pricing:** every successful scrape is cached to `scripts/.zen-pricing-cache.json`
+     (gitignored). If a later fetch fails — the docs page is unreachable *or* its table layout
+     changes so fewer than `MIN_EXPECTED_PRICES` parse — the catalog reports `pricing.status =
+     "cached"` with the snapshot date and reason, and the skill clearly warns the user and asks
+     whether to continue on the last-known pricing. With no cache at all it reports
+     `pricing.status = "unavailable"` and offers to continue without cost figures.
+   - `apply` subcommand: validates that every model in the agent-produced mapping actually exists
+     in the live environment and is permitted under the policy *before* writing, then backs up,
+     applies, runs verification tests, and rolls back on failure.
+   - Removed the static `get_zen_*` / `get_local_task_model` lookup tables.
+
+2. **Rewrote `skills/model-optimiser/SKILL.md`** to drive the agent: discover → read each agent's
+   prompt/skills/role → reason out the best available model → propose → apply.
+
+3. **Updated the `/select-models` command template** in `opencode.json` (and template equivalent)
+   to describe the discover → reason → apply flow, and refreshed the README/AGENTS skill docs.
+
+### Friction Points
+
+- **EU cloud sparsity:** Live discovery revealed the active ZEN catalog currently exposes no
+  Mistral models; under an EU policy the only cloud-eligible model is `north-mini-code-free`
+  (classified Sovereign). This is exactly why availability must be discovered, not assumed — and
+  why enabling local Ollama models is valuable for EU-sovereign cost-focused setups.
+
+### Next Steps
+
+- Live per-model pricing is now sourced by scraping the ZEN docs pricing tables
+  (`https://opencode.ai/docs/zen/`), since neither `opencode models` nor the `/zen/v1/models`
+  JSON endpoint exposes cost. If a structured pricing endpoint is published later, switch the
+  `fetch_zen_prices()` scraper to consume it.
