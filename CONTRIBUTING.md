@@ -106,11 +106,18 @@ Run the same checks CI runs, locally:
 
 1. Push your `feature/...` branch and open a PR against `main`.
 2. Fill in the [pull request template](.github/PULL_REQUEST_TEMPLATE.md).
-3. Ensure all required status checks pass (CI: Python, config, Terraform, secret scan).
-4. A [code owner](.github/CODEOWNERS) review is required before merge — at least
-   **one approval** and all conversations resolved.
+3. Ensure all CI checks pass — they run automatically on every PR
+   (Python, config, Terraform, secret scan, security scan).
+4. A [code owner](.github/CODEOWNERS) is automatically requested for review.
+   Get at least **one approval** and resolve all conversations before merging.
 5. Prefer **squash merge** to keep `main` history clean and Conventional.
 6. Bandit, Checkov, gitleaks, and Dependabot run automatically; address any new findings.
+
+> **Note on enforcement:** This repository is private on the GitHub Free plan,
+> where branch protection / required checks cannot be enforced server-side. The
+> review and green-CI steps above are therefore **team conventions we hold each
+> other to**, not hard gates. If the org upgrades to GitHub Team (or the repo is
+> made public), branch protection on `main` should be enabled to enforce them.
 
 Because the goal is also learning: explain *why* in your PR description, not just
 *what*. Reviewers should leave constructive, teaching-oriented comments.
