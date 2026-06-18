@@ -1,0 +1,268 @@
+# Azure DevOps pipeline for the control repository. Aligns with `.github/workflows/ci.yml`
+# and `.github/workflows/security.yml`, focusing on static validation only. No Azure
+# service connections, plans, or applies run here. Scaffolded repos rely on the
+# templates under `templates/github` and `templates/azure-devops` for full deployments.
+
+trigger:
+  - main
+
+pr:
+  - main
+
+stages:
+  - stage: DevSecOps
+    displayName: DevSecOps (static validation)
+    jobs:
+      - job: PythonLintAndSkills
+        displayName: Python lint & skill validation
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+
+          - task: UsePythonVersion@0
+            displayName: Use Python 3.12
+            inputs:
+              versionSpec: "3.12"
+              addToPath: true
+
+          - bash: |
+              set -euo pipefail
+              python -m pip install --upgrade pip
+              pip install ruff
+              pip install -r requirements.txt
+            displayName: Install Python dependencies
+
+          - bash: |
+              set -euo pipefail
+              ruff check .
+            displayName: Ruff lint
+
+          - bash: |
+              set -euo pipefail
+              python -m compileall -q scripts agent_config.py templates
+            displayName: Byte-compile Python sources
+
+          - bash: |
+              set -euo pipefail
+              python3 scripts/validate-skills.py
+            displayName: Validate OpenCode skill references
+
+          - bash: |
+              set -euo pipefail
+              python3 scripts/validate-team.py
+            displayName: Validate team consistency
+
+      - job: ConfigValidation
+        displayName: Config validation (JSON/YAML)
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+
+          - task: UsePythonVersion@0
+            displayName: Use Python 3.12
+            inputs:
+              versionSpec: "3.12"
+              addToPath: true
+
+          - bash: |
+              set -euo pipefail
+              pip install -r requirements.txt
+            displayName: Install PyYAML
+
+          - bash: |
+              set -euo pipefail
+              python - <<'PY'
+              import json, sys, pathlib
+              import yaml
+
+              errors = []
+              root = pathlib.Path(".")
+              skip = {".git", "node_modules", "__pycache__", ".sisyphus", "templates"}
+
+              def skipped(path: pathlib.Path) -> bool:
+                  return any(part in skip for part in path.parts)
+
+              for path in root.rglob("*.json"):
+                  if skipped(path):
+                      continue
+                  try:
+                      json.loads(path.read_text(encoding="utf-8"))
+                  except Exception as exc:  # noqa: BLE001
+                      errors.append(f"JSON  {path}: {exc}")
+
+              for path in list(root.rglob("*.yml")) + list(root.rglob("*.yaml")):
+                  if skipped(path):
+                      continue
+                  try:
+                      list(yaml.safe_load_all(path.read_text(encoding="utf-8")))
+                  except Exception as exc:  # noqa: BLE001
+                      errors.append(f"YAML  {path}: {exc}")
+
+              if errors:
+                  print("Invalid config files:")
+                  print("\n".join(errors))
+                  sys.exit(1)
+              print("All JSON/YAML config files parsed successfully.")
+              PY
+            displayName: Validate JSON/YAML config files
+
+      - job: TerraformFmt
+        displayName: Terraform fmt (modules only)
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+
+          - bash: |
+              set -euo pipefail
+              version="1.9.5"
+              curl -sSfL "https://releases.hashicorp.com/terraform/${version}/terraform_${version}_linux_amd64.zip" -o terraform.zip
+              unzip -o terraform.zip
+              sudo mv terraform /usr/local/bin/terraform
+              terraform version
+            displayName: Install Terraform 1.9.5
+
+          - bash: |
+              set -euo pipefail
+              terraform fmt -check -recursive -diff modules
+            displayName: terraform fmt -check (modules)
+
+      - job: SecretScanGitleaks
+        displayName: Secret scan (gitleaks)
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+            fetchDepth: 0
+
+          - bash: |
+              set -euo pipefail
+              version="8.21.2"
+              curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${version}/gitleaks_${version}_linux_x64.tar.gz" -o gitleaks.tgz
+              tar -xzvf gitleaks.tgz gitleaks >/tmp/gitleaks-install.log
+              sudo mv gitleaks /usr/local/bin/gitleaks
+              gitleaks version
+            displayName: Install gitleaks
+
+          - bash: |
+              set -euo pipefail
+              gitleaks detect --source . --redact --no-banner --verbose
+            displayName: Run gitleaks
+
+      - job: BanditSAST
+        displayName: Bandit (Python SAST)
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+
+          - task: UsePythonVersion@0
+            displayName: Use Python 3.12
+            inputs:
+              versionSpec: "3.12"
+              addToPath: true
+
+          - bash: |
+              set -euo pipefail
+              pip install bandit
+            displayName: Install Bandit
+
+          - bash: |
+              set -euo pipefail
+              bandit -r scripts agent_config.py templates -ll --exit-zero
+            displayName: Bandit report (all severities)
+
+          - bash: |
+              set -euo pipefail
+              bandit -r scripts agent_config.py templates --severity-level high --confidence-level medium
+            displayName: Bandit gate (fail on HIGH severity)
+
+      - job: CheckovIaC
+        displayName: Checkov (Terraform/Bicep) — report only
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+
+          - task: UsePythonVersion@0
+            displayName: Use Python 3.12
+            inputs:
+              versionSpec: "3.12"
+              addToPath: true
+
+          - bash: |
+              set -euo pipefail
+              pip install --upgrade pip
+              pip install checkov
+            displayName: Install Checkov
+
+          - bash: |
+              set -euo pipefail
+              checkov -d . --framework terraform,bicep --quiet --soft-fail
+            displayName: Run Checkov (soft fail)
+
+  - stage: Validate
+    displayName: Validate (Terraform & Bicep)
+    dependsOn: DevSecOps
+    jobs:
+      - job: IaCValidate
+        displayName: IaC structural validation
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+
+          - bash: |
+              set -euo pipefail
+              version="1.9.5"
+              curl -sSfL "https://releases.hashicorp.com/terraform/${version}/terraform_${version}_linux_amd64.zip" -o terraform.zip
+              unzip -o terraform.zip
+              sudo mv terraform /usr/local/bin/terraform
+              terraform version
+            displayName: Install Terraform 1.9.5
+
+          - bash: |
+              set -euo pipefail
+              shopt -s nullglob
+              modules=(modules/terraform/*/v*/)
+              if [ ${#modules[@]} -eq 0 ]; then
+                echo "No Terraform module directories found under modules/terraform"
+              fi
+              for module_dir in "${modules[@]}"; do
+                echo "Validating Terraform module: ${module_dir%/}"
+                (
+                  cd "$module_dir"
+                  terraform init -backend=false
+                  terraform validate
+                )
+              done
+            displayName: Terraform module validation
+
+          # templates/terraform contains scaffold placeholders ({{ }}) and is skipped intentionally.
+
+          - bash: |
+              set -euo pipefail
+              if ! command -v az >/dev/null 2>&1; then
+                curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+              fi
+              az bicep install
+              az bicep version
+            displayName: Install Azure CLI Bicep
+
+          - bash: |
+              set -euo pipefail
+              shopt -s globstar nullglob
+              found=0
+              for file in modules/bicep/**/main.bicep; do
+                found=1
+                echo "Building Bicep module: $file"
+                az bicep build --file "$file" --stdout >/dev/null
+              done
+              if [ $found -eq 0 ]; then
+                echo "No Bicep modules found under modules/bicep"
+              fi
+            displayName: Bicep module build validation
+
+          # templates/bicep contains scaffold placeholders ({{ }}) and is intentionally skipped until rendered in a consumer repo.

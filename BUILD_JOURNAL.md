@@ -624,3 +624,34 @@ python3 agent_config.py                       → all self-tests passed
 
 - Wire `validate-team.py` into CI (`.github/workflows/ci.yml`) as a required pre-merge check
 - Consider a content-level diff check between root and template prompts to catch semantic drift earlier
+
+---
+
+## Milestone: Azure DevOps Canonical CI Integration
+
+**Date:** 2026-06-18
+
+### Summary
+
+This milestone established Azure DevOps (ADO) as the canonical git host and CI platform for the repository, while maintaining GitHub as a mirror. A root-level `azure-pipelines.yml` was added to provide authoritative static validation for all commits.
+
+### Changes Made
+
+1. **Added root-level `azure-pipelines.yml`:**
+   - Implements authoritative CI for the platform repository itself.
+   - Performs static validation only: Python linting (`flake8`), JSON/YAML config validation, Terraform/Bicep linting (`tflint`, `bicep lint`), secret scanning (`gitleaks`), and SAST (`checkov`).
+   - Explicitly decoupled from Azure environment access: no login, no plan/apply, and no deployments are performed by this pipeline.
+2. **Updated `AGENTS.md`:**
+   - Documented Azure DevOps as the canonical home for the repository.
+   - Clarified the relationship between ADO (authoritative) and GitHub (mirror).
+   - Specified the scope of the root `azure-pipelines.yml` (static validation only).
+
+### Friction Points
+
+- **Dual-Platform Maintenance:** Maintaining CI configurations across both GitHub Actions and Azure DevOps introduces a small amount of duplication. However, this is necessary to ensure visibility on the GitHub mirror while maintaining ADO as the source of truth for internal operations.
+- **Static-Only Scope:** The decision to keep the root pipeline static-only (no Azure login) simplifies the bootstrap process and reduces the security surface area of the main repository CI, but means that full integration tests still require manual or downstream execution.
+
+### Next Steps
+
+- Monitor mirror health and ensure the GitHub mirror remains in sync with the ADO primary.
+- Evaluate if any additional static checks (e.g., `validate-team.py`) should be promoted to the ADO pipeline.

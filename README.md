@@ -192,25 +192,19 @@ and constructive — see the **[Code of Conduct](CODE_OF_CONDUCT.md)**.
 
 ### Automated checks on every pull request
 
-Continuous integration and security scanning run automatically on each PR (and weekly):
+Continuous integration and security scanning run automatically on each PR (and weekly). **Azure DevOps is the canonical CI platform**; the root `azure-pipelines.yml` performs authoritative static validation. GitHub Actions continue to run for visibility on the mirror.
 
 | Workflow | Job | Purpose |
 |:---|:---|:---|
-| **CI** | Python lint & skill validation | `ruff`, byte-compile, `validate-skills.py`, and `validate-team.py` |
-| **CI** | Config validation (JSON/YAML) | Parse all repo JSON/YAML config |
-| **CI** | Terraform format check | `terraform fmt -check` on `modules/` |
-| **CI** | Secret scan (gitleaks) | Block leaked credentials |
+| **CI (ADO/GitHub)** | Python lint & skill validation | `ruff`, byte-compile, `validate-skills.py`, and `validate-team.py` |
+| **CI (ADO/GitHub)** | Config validation (JSON/YAML) | Parse all repo JSON/YAML config |
+| **CI (ADO/GitHub)** | IaC Linting | `terraform fmt -check`, `tflint`, and `bicep lint` |
+| **CI (ADO/GitHub)** | Secret scan (gitleaks) | Block leaked credentials |
 | **Security Scan** | Bandit (Python SAST) | Block on HIGH-severity findings |
 | **Security Scan** | Checkov (IaC) | Report Terraform/Bicep misconfigurations |
 | **Dependabot** | — | Weekly dependency & GitHub Actions update PRs + security advisories |
 
-> **Plan note:** This repository is **private on the GitHub Free plan**, where
-> server-side branch protection, required checks, and GitHub Advanced Security
-> (CodeQL, secret scanning, the code-scanning dashboard) are unavailable. The
-> checks above therefore run and report on every PR but are enforced as **team
-> conventions** rather than hard merge gates. Enabling **GitHub Team** (private)
-> or making the repo **public** would unlock branch protection and CodeQL; see
-> [SECURITY.md](SECURITY.md) for details.
+> **Canonical Host:** This repository's primary home is **Azure DevOps**. GitHub is maintained as a manually updated mirror. Contributors must not push directly to the GitHub mirror; all changes must flow through the Azure DevOps repository.
 
 ### Security
 
