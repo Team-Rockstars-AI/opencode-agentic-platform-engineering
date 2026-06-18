@@ -42,11 +42,18 @@ This environment utilizes an advanced **Orchestration-Led multi-agent paradigm**
 *   **`builder-infra-bicep`**: Handles multi-scope (Tenant, Subscription, Management Group) Bicep resource structures.
 *   **`builder-pipelines`**: Responsible for designing secure GitHub Actions workflows and Azure DevOps Pipelines.
 
+### Read-Only Discovery
+*   **`explorer`**: Fast read-only codebase navigator for tracing modules, resource references, and folder structures. No file modifications. Output: `## Research summary`
+
 ### Read-Only Verification Gates
-*   **`verifier`**: Syntactical validation executor (`terraform validate`, `bicep build`, `tflint`). Runs execution plan dry-runs (`terraform plan`, `bicep what-if`).
-*   **`security-auditor`**: Compliance policy scanner (audits Checkov outputs, TLS standards, private connectivity, and OIDC setups).
-*   **`plan-validator`**: **BLAST RADIUS SAFETY GATE.** Evaluates dry-run execution plan outputs. Blocks immediately if any critical stateful resource (databases, storage networks, keyvaults) is marked for destruction or replacement.
-*   **`code-reviewer`**: Architecture and maintainability review.
+*   **`verifier`**: Syntactical validation executor (`terraform validate`, `bicep build`, `tflint`). Runs execution plan dry-runs (`terraform plan`, `bicep what-if`). Output: `Verification: PASSED|FAILED`
+*   **`code-reviewer`**: Quality gate covering all five WAF pillars: maintainability/correctness, reliability/availability, performance efficiency, cost optimization, and operational excellence. Output: `Quality gate: PASSED|FAILED`
+*   **`security-auditor`**: Compliance policy scanner (audits Checkov outputs, TLS standards, private connectivity, and OIDC setups). Output: `Security gate: PASSED|FAILED`
+*   **`plan-validator`**: **BLAST RADIUS SAFETY GATE.** Evaluates dry-run execution plan outputs. Blocks immediately if any critical stateful resource (databases, storage networks, keyvaults) is marked for destruction or replacement. Output: `Plan safety gate: PASSED|FAILED`
+
+### Post-Gate Agents
+*   **`test-writer`**: Writes sprint-appropriate infrastructure unit and validation tests (`.tftest.hcl`, `tests/main.test.bicep`). Output: `## Test summary`
+*   **`docs-writer`**: Updates module READMEs, ADRs, runbooks, BUILD_JOURNAL.md, and DISCOVERIES_LOG.md. Output: `## Documentation summary`
 
 ## Reusable Skills (`skills/`)
 
@@ -78,16 +85,13 @@ Skills are the atomic unit of reuse. Prefer extracting a skill when the same pro
 
 ## Workflows (`workflows/`)
 
-Slash-command definitions for `opencode.json`. Each workflow:
-- Has a `name`, `command`, `trigger`, `steps`
-- Steps reference agents, skills, or inline prompt templates
-- Prompts may branch based on user choices (IaC framework, cloud, etc.)
+Documentation-only markdown files that describe the intent and steps of slash commands defined in `opencode.json`. These files are reference material for humans and agents — the actual commands are registered under `command` in `opencode.json`.
 
-**Scaffold workflow** (`/scaffold` or similar) is the primary user-facing command. It:
+**Scaffold workflow** (`/scaffold`) is the primary user-facing command. It:
 1. Asks the user to pick options (IaC → terraform/bicep/both, repo source, DevOps platform, governance tier)
-2. Copies the matching template set into a target directory
+2. Runs `python3 scripts/scaffold.py` via the `scaffold` skill to copy matching templates into a target directory
 3. Post-processes placeholders (`{{project_name}}`, `{{azure_location}}`, etc.)
-4. Initializes git and runs any configured post-scaffold hook
+4. Initializes git and creates the initial commit
 
 ## Templates (`templates/`)
 
@@ -132,8 +136,11 @@ python3 -m json.tool opencode.json > /dev/null
 # Verify all skill references in prompts resolve to existing skill files
 python3 scripts/validate-skills.py
 
-# Dry-run scaffolding (must be run from repo root)
-# (defined in workflows/ once the scaffold workflow exists)
+# Full team consistency validation (agents, prompts, skills, commands, docs, root/template parity)
+python3 scripts/validate-team.py
+
+# Scaffold a new platform-engineering repository
+python3 scripts/scaffold.py --help
 ```
 
 ## Adding new content
@@ -142,7 +149,7 @@ python3 scripts/validate-skills.py
 |------|-------|-------------|
 | New agent | `.opencode/prompts/<name>.txt` | `opencode.json` → `agent[name]` |
 | New skill | `skills/<name>/SKILL.md` | `opencode.json` → `skills[]`, `AGENTS.md` → Named Skills table |
-| New workflow | `workflows/<name>.md` | `opencode.json` → `workflows[]` |
+| New command | `workflows/<name>.md` (docs) | `opencode.json` → `command[name]` |
 | New template | `templates/<category>/` | `.opencode-scaffold.json` inside template dir |
 | New module | `modules/<framework>/<name>/` | — (referenced by templates) |
 

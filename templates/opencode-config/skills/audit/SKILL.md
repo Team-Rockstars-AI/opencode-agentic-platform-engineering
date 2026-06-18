@@ -15,7 +15,7 @@ Use this skill when the user initiates a security review, asks to inspect files 
    - Scan all IaC code files (Terraform/Bicep) for hardcoded secrets, connection strings, or password definitions.
    - Trace subnets, Network Security Groups, and virtual network associations to identify open administrative ports or public internet exposures.
    - Verify if Key Vault, Storage Accounts, and databases have public access disabled and rely on Private Endpoints.
-   - Run the skill validation script (`python3 .opencode/scripts/validate-skills.py`) to ensure all referenced skills exist and are valid.
+   - Run the skill validation script (`./scripts/validate-skills.py`) to ensure all referenced skills exist and are valid.
 2. **Analysis Execution:**
    - Load the `security-checklist` skill to evaluate the workspace against the platform engineering security baseline.
    - Summon the `@security-auditor` to review these configuration aspects.

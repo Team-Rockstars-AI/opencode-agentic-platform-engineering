@@ -2,34 +2,61 @@
 
 - **Name:** Scaffold Platform Engineering Repository
 - **Command:** `/scaffold`
-- **Trigger:** Explicit user invocation or running `/scaffold`
-- **Agent:** architect
+- **Trigger:** Explicit user invocation via `/scaffold`
+- **Agent:** `orchestrator`
+- **Script:** `python3 scripts/scaffold.py`
+
+## Overview
+
+The `/scaffold` command bootstraps a new, secure, and compliant platform-engineering repository from the templates in this repo. The `orchestrator` coordinates the workflow using the `scaffold` skill.
 
 ## Steps
 
-1. **Option Selection (Interactive Wizard):**
-   - The `architect` agent invokes the `question` tool to gather deployment parameters.
-   - Prompt the user to select the IaC Framework (`terraform`, `bicep`, `both`).
-   - Prompt the user to select the DevOps flow (`github`, `azure-devops`).
-   - Prompt the user to select the Governance tier (`basic`, `enterprise`).
-   - Prompt the user to define the Project Name and target directory location.
+1. **Option Selection**
 
-2. **File & Template Generation:**
-   - The `platform-engineer` agent is summoned to handle the copying of templates from `templates/` to the target directory.
-   - The `platform-engineer` uses the `scaffold` skill to execute copy-verbatim operations on:
-     - `templates/terraform` (if Terraform selected)
-     - `templates/bicep` (if Bicep selected)
-     - `templates/github` (if GitHub selected)
-     - `templates/azure-devops` (if Azure DevOps selected)
-     - `templates/opencode-config` (to prepopulate `opencode.json`, agent `prompts/`, and operational `skills/` inside `.opencode/` under the target repo)
-     - `templates/AGENTS.md` (to copy the platform operations instructions `AGENTS.md` to the target repo root)
+   The `orchestrator` invokes the `scaffold` skill, which gathers deployment parameters from the user:
+   - IaC Framework: `terraform`, `bicep`, or `both`
+   - DevOps platform: `github` or `azure-devops`
+   - Governance tier: `basic` or `enterprise`
+   - Project name and target directory
+   - Azure location, subscription ID, tenant ID
+   - GitHub org/repo (if applicable)
 
-3. **Substitution and Customization:**
-   - The `platform-engineer` replaces all double-brace placeholders (`{{project_name}}`, `{{azure_location}}`, `{{governance_tier}}`, etc.) with user responses.
+2. **Template Generation**
 
-4. **Security Audit & Review:**
-   - The `security-engineer` agent reviews the generated templates to ensure no secrets are exposed, RBAC profiles are correct, and security policies are appropriately assigned.
+   The `orchestrator` runs `python3 scripts/scaffold.py` with the collected parameters. The script:
+   - Copies `templates/terraform/` → `<target>/terraform/` (if Terraform selected)
+   - Copies `templates/bicep/` → `<target>/bicep/` (if Bicep selected)
+   - Copies `templates/github/` → `<target>/.github/` (if GitHub selected)
+   - Copies `templates/azure-devops/` → `<target>/` (if Azure DevOps selected)
+   - Copies `templates/opencode-config/prompts/` → `<target>/.opencode/prompts/`
+   - Copies `templates/opencode-config/skills/` → `<target>/.opencode/skills/`
+   - Copies `templates/opencode-config/opencode.json` → `<target>/opencode.json`
+   - Copies `templates/opencode-config/scripts/validate-skills.py` → `<target>/scripts/validate-skills.py`
+   - Copies `templates/opencode-config/scripts/select-models.py` → `<target>/scripts/select-models.py`
+   - Copies `templates/AGENTS.md` → `<target>/AGENTS.md`
 
-5. **Initial Git Commit:**
-   - Initialize git in the target repository directory, stage all files, and commit:
-     `git init && git add . && git commit -m "feat: initial platform-engineering template"`
+3. **Placeholder Substitution**
+
+   The script replaces all `{{placeholder}}` tokens with user-provided values (project_name, azure_location, subscription_id, tenant_id, github_org_name, github_repo_name, etc.).
+
+4. **Security Review**
+
+   The `security-auditor` scans the generated templates to verify no credentials or secrets are present in any generated file, RBAC profiles are appropriately scoped, and NSG rules meet the security baseline.
+
+5. **Initial Git Commit**
+
+   The script initializes git in the target directory and creates the initial commit:
+   `git init && git add . && git commit -m "feat: initial platform-engineering template"`
+
+## Agent output contracts
+
+| Stage | Agent | Expected output |
+|-------|-------|----------------|
+| Scaffold coordination | `orchestrator` | `## Milestone plan` |
+| Security review | `security-auditor` | `Security gate: PASSED\|FAILED` |
+
+## Skills used
+
+- `scaffold` — template selection, copy, placeholder substitution, git init
+- `security-checklist` — post-scaffold security verification
