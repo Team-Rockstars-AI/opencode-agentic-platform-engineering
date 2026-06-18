@@ -4,6 +4,13 @@
 
 This repo scaffolds opinionated platform-engineering repositories. A user clones it, answers prompts (IaC framework, repo source, DevOps flow, governance model), and out comes a new repo pre-populated with an OpenCode agent team, workflows, and docs for building/running/hosting on Azure securely.
 
+## Canonical CI/CD & Git Hosting
+
+Azure DevOps (ADO) is the canonical home for this repository.
+- **Git Host:** The primary repository resides in Azure DevOps. GitHub is maintained as a manually updated mirror.
+- **CI/CD:** The root-level `azure-pipelines.yml` is the authoritative CI pipeline. It performs static validation only (Python linting, config validation, Terraform/Bicep linting, secret scanning, and SAST). It does **not** perform Azure login, plan/apply, or deployments.
+- **GitHub Mirroring:** GitHub continues to run `.github/workflows/ci.yml` and `.github/workflows/security.yml` for visibility and mirror health. Contributors must not push directly to the GitHub mirror; all changes must flow through the Azure DevOps repository.
+
 ## Enforced structure
 
 ```

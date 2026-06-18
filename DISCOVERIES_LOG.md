@@ -199,3 +199,20 @@ This log serves as a persistent, in-project memory of discoveries, findings, and
     with unknown ids defaulting to Global so they can never leak into an EU-only configuration.
 *   **Hard availability guard:** `apply` rejects any mapping whose models are absent from the freshly
     discovered ZEN/Ollama catalogs, and rolls back on any verification failure.
+
+---
+
+## Milestone: Azure DevOps Canonical CI Integration (June 2026)
+
+### 🔍 Discoveries
+*   **Dual-Platform Visibility:** Maintaining a GitHub mirror is essential for public visibility and community engagement, but using it as the primary CI/CD host can conflict with internal enterprise standards that mandate Azure DevOps for authoritative platform governance.
+*   **Static-Only CI Resilience:** Decoupling the root-level CI pipeline from Azure environment access (no login, no plan/apply) provides a robust, low-privilege safety net that validates code quality and security compliance without requiring complex OIDC bootstrap or secret management for the main repository itself.
+
+### ⚠️ Findings
+*   **Lack of Authoritative CI:** Prior to this milestone, the repository relied on GitHub Actions for CI, which did not align with the "Azure-first" platform engineering philosophy and lacked an authoritative presence in the canonical Azure DevOps environment.
+*   **Mirroring Ambiguity:** Without explicit documentation, contributors might push directly to the GitHub mirror, leading to branch divergence and bypassing the authoritative Azure DevOps governance flow.
+
+### 💡 Solutions
+*   **Azure DevOps Canonicalization:** Established Azure DevOps as the canonical git host and CI platform, with GitHub maintained as a manually updated mirror.
+*   **Root-Level ADO CI (`azure-pipelines.yml`):** Implemented a root-level Azure DevOps pipeline that performs authoritative static validation (Python linting, config validation, Terraform/Bicep linting, secret scanning, and SAST) on every commit.
+*   **Governance Documentation:** Updated `AGENTS.md` to explicitly define the dual-platform relationship and mandate that all changes flow through Azure DevOps, ensuring the GitHub mirror remains a read-only reflection of the authoritative source.
