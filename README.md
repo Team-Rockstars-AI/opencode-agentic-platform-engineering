@@ -1,9 +1,5 @@
 # Azure Platform Engineering Template Repository
 
-[![CI](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/ci.yml/badge.svg)](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/ci.yml)
-[![Security Scan](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/security.yml/badge.svg)](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/security.yml)
-[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://www.conventionalcommits.org)
-
 Welcome! This repository scaffolds secure, opinionated, **Secure-by-Design**, and compliant Azure platform infrastructures. By cloning this repo and running a few simple commands, you can generate a brand-new target repository fully pre-populated with a highly sophisticated **OpenCode Multi-Agent Team**, workflows, and secure infrastructure blueprints.
 
 ---
