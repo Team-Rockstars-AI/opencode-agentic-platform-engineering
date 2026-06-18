@@ -46,6 +46,9 @@ jobs:
       - name: Validate OpenCode skill references
         run: python3 scripts/validate-skills.py
 
+      - name: Validate team consistency
+        run: python3 scripts/validate-team.py
+
   config:
     name: Config validation (JSON/YAML)
     runs-on: ubuntu-latest

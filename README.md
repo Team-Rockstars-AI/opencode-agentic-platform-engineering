@@ -62,7 +62,7 @@ The platform agent team will automatically:
 *   Copy your selected landing zone skeletons.
 *   Inject the complete, pre-configured **11-Agent Team** and prompts into `.opencode/`.
 *   Replace all variable placeholders (`{{project_name}}`, `{{azure_location}}`, etc.) across modules and pipelines.
-*   Initialize Git and run compliance validates.
+*   Initialize Git and run compliance validations.
 
 ---
 
@@ -81,7 +81,7 @@ Each agent maps to a **selection tier** that determines the class of model chose
 | **`verifier`** | Task-Execution | Compiles code (`terraform validate` / `bicep build`) and generates dry-run logs. |
 | **`security-auditor`** | Task-Execution | Audits configurations for compliance and security gaps. |
 | **`plan-validator`** | Task-Execution | **Blast Radius Valve.** Scans plan logs and blocks destruction of critical resources. |
-| **`code-reviewer`** | Task-Execution | Reviews code naming conventions and tagging rules. |
+| **`code-reviewer`** | Task-Execution | Reviews all five WAF pillars: maintainability/correctness, reliability/availability, performance efficiency, cost optimization, and operational excellence. |
 | **`explorer`** | Task-Execution | Traces dependencies and indexes the local directories. |
 | **`test-writer`** | Task-Execution | Writes unit and integration tests (`.tftest.hcl`). |
 | **`docs-writer`** | Task-Execution | Maintains markdown runbooks, variables tables, and ADRs. |
@@ -147,6 +147,9 @@ python3 -m json.tool opencode.json > /dev/null
 
 # Verify all skill references in prompts resolve to existing skill files
 python3 scripts/validate-skills.py
+
+# Full team consistency check (agents, prompts, skills, commands, root/template parity)
+python3 scripts/validate-team.py
 ```
 
 ---
@@ -158,6 +161,7 @@ To help you operate, maintain, and govern this platform, we have authored a comp
 ### Operator Manuals
 *   **[Provisioning Platform Operator Manual (THIS Platform)](docs/operator-manual-provisioning-platform.md)** — A detailed guide on how to install, set up, and operate this generator repository to scaffold new workspaces.
 *   **[Provisioned Platform Operator Manual (The Generated Workspace)](docs/operator-manual-provisioned-platform.md)** — A detailed guide on how to operate, maintain, and expand your newly generated repository using the integrated OpenCode multi-agent team and secure-by-design workflows.
+*   **[Orchestrator Workflow](docs/orchestrator-workflow.md)** — The mandatory 9-stage agent lifecycle, gate definitions, WAF pillar ownership, session closure rules, and the difference between the platform repo and a provisioned repo.
 
 ### Architecture & Governance Guides
 *   **[Architecture Blueprint & Network Topology](docs/architecture-blueprint.md)** — A detailed blueprint of the secure-by-design Hub-Spoke network topology, Private Link integration, and micro-segmentation.
@@ -192,7 +196,7 @@ Continuous integration and security scanning run automatically on each PR (and w
 
 | Workflow | Job | Purpose |
 |:---|:---|:---|
-| **CI** | Python lint & skill validation | `ruff`, byte-compile, and `validate-skills.py` |
+| **CI** | Python lint & skill validation | `ruff`, byte-compile, `validate-skills.py`, and `validate-team.py` |
 | **CI** | Config validation (JSON/YAML) | Parse all repo JSON/YAML config |
 | **CI** | Terraform format check | `terraform fmt -check` on `modules/` |
 | **CI** | Secret scan (gitleaks) | Block leaked credentials |
