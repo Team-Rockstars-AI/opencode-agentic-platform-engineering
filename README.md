@@ -1,19 +1,6 @@
 # Azure Platform Engineering Template Repository
 
-[![CI](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/ci.yml/badge.svg)](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/ci.yml)
-[![Security Scan](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/security.yml/badge.svg)](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/security.yml)
-[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://www.conventionalcommits.org)
-
-Welcome! This repository is a **scaffolding generator** (a "repo that stamps other repos") designed for Azure platform engineering. It enables platform engineers and teams operating under strict regulatory baselines (such as **GDPR, DORA, and BIO**) to rapidly instantiate secure, compliant, and highly automated infrastructure-as-code (IaC) environments.
-
-This platform provides a comprehensive foundation covering:
-*   **Opinionated IaC:** Secure-by-Design blueprints for Terraform and Bicep.
-*   **DevOps & Governance:** Pre-configured GitHub Actions and Azure DevOps pipelines with OIDC-federated, zero-secret deployments.
-*   **Multi-Agent Team:** A sophisticated OpenCode agent team with specialized roles for infrastructure building, security auditing, and plan validation.
-*   **Reusable Skills:** Codified procedures for audits, compliance reporting, drift detection, and resource optimization.
-*   **Agent Team Packs:** Curated agent configurations and model profiles for different operational needs.
-
-By cloning this repo and running the `/scaffold` command, you can generate a brand-new target repository fully pre-populated with these capabilities, ready for production-grade Azure operations.
+Welcome! This repository scaffolds secure, opinionated, **Secure-by-Design**, and compliant Azure platform infrastructures. By cloning this repo and running a few simple commands, you can generate a brand-new target repository fully pre-populated with a highly sophisticated **OpenCode Multi-Agent Team**, workflows, and secure infrastructure blueprints.
 
 ---
 
@@ -28,7 +15,6 @@ This template is designed specifically for organizations operating under strict 
 *   **Zero-Secrets Pipelines (OIDC):** Fully passwordless deployments using OpenID Connect (OIDC) Federated Credentials, eliminating long-lived credentials, Client Secrets, and connection strings from source code.
 *   **Private PaaS Isolation (Private Link):** Disables public internet access to Key Vault and Storage Accounts, restricting routing to **Private Endpoints** inside micro-segmented subnets.
 *   **Scale-to-Zero Private Runner Pools (Enterprise Tier):** Automatically deploys transient, KEDA-scaled, **Ubuntu-based self-hosted runners** inside Azure Container Apps (ACA). Runners scale up on pipeline demand to execute secure private deployments and scale to zero when idle, saving all operational costs.
-*   **Runtime Policy Guardrails (Azure Policy Baseline):** Subscription-scope assignments of six built-in Azure Policy definitions (allowed EU locations, storage secure transfer, storage/Key Vault public-access lockdown, Key Vault purge protection, no public IPs on NICs) enforce the secure-by-design controls against the **live estate** — catching post-deployment drift and clickops that authoring-time gates can't see.
 *   **Continuous DevSecOps Validation:**
     *   **Gitleaks & Checkov:** Automatic pipeline gates scanning for leaked credentials or IaC misconfigurations.
     *   **Plan Validator Safety Gate:** The verifier generates execution logs and triggers the `@plan-validator` agent. The run is **instantly terminated** if databases, Key Vaults, or Hub networking are slated for destruction or replacement.
@@ -40,10 +26,10 @@ This template is designed specifically for organizations operating under strict 
 Follow this step-by-step walkthrough to scaffold your secure platform-engineering workspace:
 
 ### Step 1: Clone the Repository
-Clone the repository from GitHub to your local workspace.
+Clone this generator repository to your local workspace:
 ```bash
-git clone https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering.git
-cd opencode-agentic-platform-engineering
+git clone https://github.com/your-org/platform-engineer.git
+cd platform-engineer
 ```
 
 ### Step 2: Connect to OpenCode Zen
@@ -72,12 +58,7 @@ The platform agent team will automatically:
 *   Copy your selected landing zone skeletons.
 *   Inject the complete, pre-configured **11-Agent Team** and prompts into `.opencode/`.
 *   Replace all variable placeholders (`{{project_name}}`, `{{azure_location}}`, etc.) across modules and pipelines.
-*   Stamp the workspace with `.platform-scaffold.json` (template version, inputs, and file manifest) so it can receive upstream updates later.
 *   Initialize Git and run compliance validations.
-
-### Keeping scaffolded repositories up to date
-
-Scaffolded workspaces are not orphaned: each ships with `scripts/update.py` and an `/update` slash command. When this template repository improves (module fixes, new skills, security patches), run `/update` inside the generated repo — files you never touched are updated automatically, your local modifications are preserved, and genuine conflicts are flagged for agent-assisted merging with a full report under `docs/reports/`.
 
 ---
 
@@ -111,18 +92,6 @@ Run `/select-models` (see below) and choose your preferences; the team is then o
 
 > **Shipped default:** out of the box the team ships **cloud-only, EU/US, cost-aware** so it works immediately without any local runtime — no Ollama required. Models are assigned by tier against the OpenCode Zen catalog: `opencode/gpt-5.1` for the `orchestrator`; `opencode/gpt-5.1-codex` for the code-generation builders; `opencode/claude-haiku-4-5` for the review agents (`security-auditor`, `plan-validator`, `code-reviewer`); and low-cost `opencode/gemini-3-flash` / `opencode/gpt-5.4-nano` / `opencode/gpt-5.1-codex-mini` for the lightweight `verifier`, `docs-writer`, `explorer`, and `test-writer` roles. Re-run `/select-models` at any time to re-optimize against the *current* live catalog, pricing, jurisdiction policy, and (optionally) local hardware.
 
-### 📦 Agent Team Packs & Model Profiles
-
-To simplify agent management, the platform supports **Agent Team Packs**. These are curated configurations that bundle specific agent prompts, skills, and model profiles (e.g., "Sovereign-Only", "High-Performance", or "Cost-Optimized").
-
-Key commands for managing packs:
-*   **`/pack-list`**: Discovers available agent team packs in the repository.
-*   **`/pack-validate`**: Validates a pack's compatibility with the current environment.
-*   **`/pack-apply`**: Applies a selected pack to the workspace.
-*   **`/pack-create-from-current`**: Exports the current local agent configuration as a new reusable pack.
-
-For more details on how to use and create packs, refer to the **[Agent Team Packs Guide (PACKS.md)](PACKS.md)** and the **[Packs Workflow Documentation](workflows/packs.md)**.
-
 ---
 
 ## 🛠️ Reusable Skills
@@ -150,9 +119,7 @@ In addition to the agent team, the platform includes reusable **Skills** — cod
 In addition to scaffolding, this repository contains active local OpenCode configurations. You can run compliance audits, debug compilation errors, or expand templates directly on this repository using these custom slash actions:
 
 *   **`/audit`**: Scans our local landing zone modules, templates, and configurations for secure-by-design baseline compliance (credentials, public IPs, and logging). Leverages the `security-checklist` skill to produce structured PASS/FAIL findings with remediation blocks.
-*   **`/compliance`**: Scans our local landing zone and maps technical configurations directly to regulatory controls (DORA, BIO, GDPR). Leverages the `compliance` skill to produce an auditor-ready compliance readiness report.
 *   **`/debug`**: Instructs our verifier and builders to identify and resolve any linter warnings or syntax compile errors in our module codebase.
-*   **`/drift`**: Executes a dry-run plan against the live Azure subscription to identify, classify, and reconcile manual "clickops" changes. Leverages the `drift` skill to produce a structured reconciliation report.
 *   **`/expand`**: Assists in adding new resource modules or expanding existing Bicep and Terraform landing zone skeletons.
 *   **`/optimise`**: Scans our local landing zone modules, templates, and configurations for cost-saving opportunities and resource sizing inefficiencies. Leverages the `optimise` skill to produce a structured cost optimization report.
 *   **`/select-models`**: After gathering your jurisdiction, local-model, focus, and hardware preferences, fetches a fresh OpenCode ZEN model list and your installed Ollama models, then reasons over each agent's prompt and skills to assign the optimal *available* model per agent. Leverages the `model-optimiser` skill to update configurations and run verification tests.
@@ -168,9 +135,6 @@ Run the following commands within your directory to manually compile and check c
 # Validate all Terraform modules
 for d in modules/terraform/*/; do (cd "$d" && terraform init -backend=false && terraform validate); done
 
-# Run all Terraform module tests (offline, provider-mocked — requires Terraform >= 1.7)
-for d in modules/terraform/*/v1/; do (cd "$d" && terraform init -backend=false && terraform test); done
-
 # Compile and syntax check all Bicep modules
 for f in modules/bicep/**/main.bicep; do bicep build "$f" --stdout > /dev/null; done
 
@@ -182,9 +146,6 @@ python3 scripts/validate-skills.py
 
 # Full team consistency check (agents, prompts, skills, commands, root/template parity)
 python3 scripts/validate-team.py
-
-# Run the Python tooling unit tests (scaffolding engine, validators, model selector)
-python3 -m pytest tests/
 ```
 
 ---
@@ -227,20 +188,19 @@ and constructive — see the **[Code of Conduct](CODE_OF_CONDUCT.md)**.
 
 ### Automated checks on every pull request
 
-Continuous integration and security scanning run automatically on each PR (and weekly) using **GitHub Actions**. The root `azure-pipelines.yml` is kept for Azure DevOps support but is not required.
+Continuous integration and security scanning run automatically on each PR (and weekly). **Azure DevOps is the canonical CI platform**; the root `azure-pipelines.yml` performs authoritative static validation. GitHub Actions continue to run for visibility on the mirror.
 
 | Workflow | Job | Purpose |
 |:---|:---|:---|
 | **CI (ADO/GitHub)** | Python lint & skill validation | `ruff`, byte-compile, `validate-skills.py`, and `validate-team.py` |
 | **CI (ADO/GitHub)** | Config validation (JSON/YAML) | Parse all repo JSON/YAML config |
 | **CI (ADO/GitHub)** | IaC Linting | `terraform fmt -check`, `tflint`, and `bicep lint` |
-| **CI (ADO/GitHub)** | Python unit tests | `pytest` over the scaffolding engine, validators, and model selector |
-| **CI (ADO/GitHub)** | IaC module tests | `terraform test` (provider-mocked) and Bicep test-file builds for every module |
-| **CI (ADO/GitHub)** | E2E scaffold verification | Generates real workspaces (4 IaC/platform/tier combos) and validates placeholders, configs, and rendered IaC |
 | **CI (ADO/GitHub)** | Secret scan (gitleaks) | Block leaked credentials |
 | **Security Scan** | Bandit (Python SAST) | Block on HIGH-severity findings |
 | **Security Scan** | Checkov (IaC) | Report Terraform/Bicep misconfigurations |
 | **Dependabot** | — | Weekly dependency & GitHub Actions update PRs + security advisories |
+
+> **Canonical Host:** This repository's primary home is **Azure DevOps**. GitHub is maintained as a manually updated mirror. Contributors must not push directly to the GitHub mirror; all changes must flow through the Azure DevOps repository.
 
 ### Security
 
