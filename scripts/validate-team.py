@@ -16,7 +16,6 @@ Safe and read-only — never modifies any file.
 """
 
 import json
-import os
 import re
 import sys
 from pathlib import Path
