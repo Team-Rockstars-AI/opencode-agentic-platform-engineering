@@ -4,7 +4,22 @@ This log serves as a persistent, in-project memory of discoveries, findings, and
 
 ---
 
-## Milestone: Formalised Reusable Skills Framework (June 2026)
+## Milestone: Regulatory Compliance Mapping Engine (June 2026)
+
+### 🔍 Discoveries
+*   **Regulatory-Technical Gap:** There is often a significant gap between high-level regulatory requirements (DORA, BIO, GDPR) and the technical configurations in IaC. Bridging this gap requires a codified mapping matrix that translates technical controls into regulatory articles.
+*   **Continuous Audit Readiness:** Moving from point-in-time audits to continuous compliance mapping reduces the "compliance tax" on engineering teams and provides immediate visibility into the regulatory impact of infrastructure changes.
+
+### ⚠️ Findings
+*   **Manual Mapping Overhead:** Manually mapping every NSG rule or Key Vault setting to a regulatory article is time-consuming and prone to error, especially as infrastructure scales.
+*   **Lack of Auditor-Ready Artifacts:** While the platform was "secure-by-design," it lacked a single, automated artifact that could be presented to an auditor to prove compliance across multiple frameworks.
+
+### 💡 Solutions
+*   **Compliance Mapping Engine (`/compliance`):** Implemented a coordinated workflow that maps technical findings from `@security-auditor` and `@code-reviewer` directly to DORA, BIO, and GDPR articles.
+*   **Codified Mapping Matrix:** Authored the `compliance` skill which contains the source-of-truth mapping between Azure resource configurations and regulatory articles.
+*   **Automated Readiness Reporting:** Created a structured `COMPLIANCE_READINESS_REPORT.md` template that provides an executive summary and a detailed regulatory control matrix, significantly reducing audit preparation effort.
+*   **Architecture Decision Record (ADR 0006):** Formalized the decision to implement continuous regulatory mapping as a core platform capability.
+
 
 ### 🔍 Discoveries
 *   **Scattered Workflow Rules:** Scattered workflow rules across individual agent prompt files create structural drift, duplicate instructions, and make it difficult to maintain a single source of truth.
@@ -230,3 +245,22 @@ This log serves as a persistent, in-project memory of discoveries, findings, and
 *   **Azure DevOps Canonicalization:** Established Azure DevOps as the canonical git host and CI platform, with GitHub maintained as a manually updated mirror.
 *   **Root-Level ADO CI (`azure-pipelines.yml`):** Implemented a root-level Azure DevOps pipeline that performs authoritative static validation (Python linting, config validation, Terraform/Bicep linting, secret scanning, and SAST) on every commit.
 *   **Governance Documentation:** Updated `AGENTS.md` to explicitly define the dual-platform relationship and mandate that all changes flow through Azure DevOps, ensuring the GitHub mirror remains a read-only reflection of the authoritative source.
+
+---
+
+## Milestone: Regulatory Compliance Mapping Engine (June 2026)
+
+### 🔍 Discoveries
+*   **Regulatory-Technical Gap:** There is often a significant gap between high-level regulatory requirements (DORA, BIO, GDPR) and the technical configurations in IaC. Bridging this gap requires a codified mapping matrix that translates technical controls into regulatory articles.
+*   **Continuous Audit Readiness:** Moving from point-in-time audits to continuous compliance mapping reduces the "compliance tax" on engineering teams and provides immediate visibility into the regulatory impact of infrastructure changes.
+
+### ⚠️ Findings
+*   **Manual Mapping Overhead:** Manually mapping every NSG rule or Key Vault setting to a regulatory article is time-consuming and prone to error, especially as infrastructure scales.
+*   **Lack of Auditor-Ready Artifacts:** While the platform was "secure-by-design," it lacked a single, automated artifact that could be presented to an auditor to prove compliance across multiple frameworks.
+
+### 💡 Solutions
+*   **Compliance Mapping Engine (`/compliance`):** Implemented a coordinated workflow that maps technical findings from `@security-auditor` and `@code-reviewer` directly to DORA, BIO, and GDPR articles.
+*   **Codified Mapping Matrix:** Authored the `compliance` skill which contains the source-of-truth mapping between Azure resource configurations and regulatory articles.
+*   **Automated Readiness Reporting:** Created a structured `COMPLIANCE_READINESS_REPORT.md` template that provides an executive summary and a detailed regulatory control matrix, significantly reducing audit preparation effort.
+*   **Architecture Decision Record (ADR 0006):** Formalized the decision to implement continuous regulatory mapping as a core platform capability.
+

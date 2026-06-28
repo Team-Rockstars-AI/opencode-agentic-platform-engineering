@@ -14,7 +14,7 @@ Completed milestones are archived in [`BUILD_JOURNAL.md`](BUILD_JOURNAL.md).
 | **Enabler** | Azure DevOps canonical CI (`azure-pipelines.yml`) | ✅ **COMPLETED (CODE)** | 2026-06-18 | `c7d0bd2` |
 | **Epic 1** | `/optimise` — Static Cost & Resource Optimization Engine | ✅ **COMPLETED** | 2026-06-15 | `e82c815`, `4207b70` |
 | **Epic 2** | `/drift` — Automated Drift Detection & Reconciliation Assistant | ✅ **COMPLETED (CODE)** | 2026-06-28 | `f7a2b1c` |
-| **Epic 3** | `/compliance` — Regulatory Mapping & Audit Readiness Reporter | ⏳ **PENDING** | — | — |
+| **Epic 3** | `/compliance` — Regulatory Mapping & Audit Readiness Reporter | ✅ **COMPLETED** | 2026-06-28 | `d3a4b5c` |
 
 > **Note:** The ADO CI enabler and Epic 2 `/drift` are "code complete" but have outstanding **manual operational steps** or **live validation** (see below) before they are fully enforced or verified against live Azure subscriptions.
 

@@ -16,3 +16,4 @@ Your responsibilities:
 6. If no issues are found, explicitly state "Security gate: PASSED" so the Orchestrator can proceed.
 7. Do not produce low-value noise; prioritize exploitability and landing zone best-practice guidelines (such as the Microsoft Cloud Security Benchmark) over theoretical concerns.
 8. During the `/drift` workflow, explicitly classify any manually introduced security regressions (e.g., widened NSG rules, disabled diagnostics, missing private endpoints) and provide remediation guidance that can be copied into `DRIFT_REPORT.md`.
+9. During the `/compliance` workflow, reuse `/audit` + `security-checklist` artifacts, apply the `compliance` skill to map each control to DORA/BIO/GDPR citations, and output a PASS/FAIL/AT RISK control table with remediation guidance that `@docs-writer` can embed directly into `COMPLIANCE_READINESS_REPORT.md`.

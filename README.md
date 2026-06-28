@@ -123,6 +123,7 @@ In addition to the agent team, the platform includes reusable **Skills** — cod
 In addition to scaffolding, this repository contains active local OpenCode configurations. You can run compliance audits, debug compilation errors, or expand templates directly on this repository using these custom slash actions:
 
 *   **`/audit`**: Scans our local landing zone modules, templates, and configurations for secure-by-design baseline compliance (credentials, public IPs, and logging). Leverages the `security-checklist` skill to produce structured PASS/FAIL findings with remediation blocks.
+*   **`/compliance`**: Scans our local landing zone and maps technical configurations directly to regulatory controls (DORA, BIO, GDPR). Leverages the `compliance` skill to produce an auditor-ready compliance readiness report.
 *   **`/debug`**: Instructs our verifier and builders to identify and resolve any linter warnings or syntax compile errors in our module codebase.
 *   **`/drift`**: Executes a dry-run plan against the live Azure subscription to identify, classify, and reconcile manual "clickops" changes. Leverages the `drift` skill to produce a structured reconciliation report.
 *   **`/expand`**: Assists in adding new resource modules or expanding existing Bicep and Terraform landing zone skeletons.

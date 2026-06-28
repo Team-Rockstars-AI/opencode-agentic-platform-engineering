@@ -56,3 +56,17 @@ When presenting this platform engineering repository to external compliance audi
 2.  **Local Gating:** Show the `.pre-commit-config.yaml` file to demonstrate that Gitleaks (secret scanning) and Checkov (SAST compliance) are enforced locally on every developer's machine before code can be committed.
 3.  **Blast Radius Safety:** Explain the role of the `@plan-validator` agent, which automatically parses dry-run execution plans and blocks any deployment that schedules critical stateful resources (databases, vaults) for destruction or replacement.
 4.  **Zero-Secrets Trail:** Demonstrate that your deployment pipelines contain zero long-lived credentials, relying entirely on short-lived, auditable OIDC federated tokens.
+
+---
+
+## 4. Automated Compliance Workflow
+
+This platform includes an automated **[/compliance workflow](../workflows/compliance.md)** that can be triggered at any time to generate a real-time mapping of your technical state to these regulatory controls.
+
+Run the following command in the OpenCode console:
+```bash
+/compliance
+```
+
+The agent team will scan your IaC, pipelines, and drift reports, and produce a **Compliance Readiness Report** based on the mappings defined in this guide.
+

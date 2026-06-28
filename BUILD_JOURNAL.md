@@ -528,7 +528,42 @@ skills to assign the optimal *available* model per agent.
 
 ---
 
-## Milestone: Agent Team Refactor — Self-Consistent Platform Team
+## Milestone: Regulatory Compliance Mapping Engine (`/compliance`)
+
+**Date:** 2026-06-28
+
+### Summary
+
+This milestone implemented Epic 3 (Regulatory Compliance Mapping Engine), enabling the operator to scan their workspace and map technical configurations directly to regulatory controls (DORA, BIO, GDPR). This was achieved by authoring the `compliance` skill, registering the `/compliance` command, and creating a structured reporting template and ADR. The engine provides a continuous, automated mapping of infrastructure-as-code and live environment state to regulatory requirements, ensuring audit readiness and identifying compliance gaps early.
+
+### Changes Made
+
+1. **Created `skills/compliance/SKILL.md`** (and template equivalent):
+   - Codified the Regulatory Mapping Matrix mapping technical controls (OIDC, Key Vault hardening, Private Endpoints, NSGs, WAF, Logging) to DORA, BIO, and GDPR articles.
+   - Defined a structured workflow for discovery, mapping, gap analysis, and report generation.
+
+2. **Integrated `/compliance` slash command (`opencode.json`):**
+   - Registered the `compliance` command in `opencode.json` and its template equivalent, directing the orchestrator to coordinate the compliance mapping workflow.
+   - Created `templates/docs/reports/compliance-readiness-template.md` as the standardized report template format.
+
+3. **Created ADR 0006: Continuous Regulatory Compliance Mapping:**
+   - Documented the decision to implement continuous regulatory mapping to reduce audit preparation time and identify compliance gaps early.
+
+4. **Updated Documentation:**
+   - Added the `compliance` skill and `/compliance` workflow to `AGENTS.md` and `templates/AGENTS.md`.
+   - Updated `README.md` and `docs/compliance-mapping-guide.md` to include the new command and workflow.
+   - Created `workflows/compliance.md` to document the workflow intent and steps.
+
+### Friction Points
+
+- **Mapping Maintenance:** The regulatory mapping matrix requires ongoing maintenance as regulations evolve and new Azure services are onboarded. This was mitigated by centralizing the mapping in the `compliance` skill for easy updates.
+- **Qualitative Compliance:** Automated scanning is highly effective for technical controls but may not cover all qualitative or procedural aspects of regulatory compliance. The report includes auditor guidance to address this limitation.
+
+### Next Steps
+
+- **Live Environment Validation:** Test the `/compliance` workflow against a live Azure subscription with known compliance gaps to verify the accuracy of the regulatory mapping and report generation.
+- **Expanded Regulatory Coverage:** Extend the mapping matrix to include additional frameworks such as NEN 7510 (Healthcare) and ISO 27001.
+
 
 **Date:** 2026-06-17
 

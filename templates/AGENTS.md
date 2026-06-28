@@ -84,6 +84,7 @@ Your workspace includes a set of reusable **Skills** — codified procedures tha
 | **`architecture-review`** | `@code-reviewer`, `@orchestrator` | Architectural change review covering subscription topology, network isolation, central state access, and IAM least-privilege standards. |
 | **`audit`** | `/audit` command | Workspace compliance scan — codebase secrets check, NSG/public-endpoint audit, Private Endpoint verification. Loads `security-checklist` for structured reporting. |
 | **`code-standards`** | `@code-reviewer`, `@builder-infra-tf`, `@builder-infra-bicep` | CAF naming conventions, Azure Well-Architected Framework alignment, tagging standards, and IaC best practices for Terraform and Bicep. |
+| **`compliance`** | `/compliance` command, `@security-auditor` | Regulatory mapping engine mapping technical configurations to DORA, BIO, and GDPR articles for audit readiness. |
 | **`commit-format`** | `@builder-infra-tf`, `@builder-infra-bicep`, `@builder-pipelines` | Conventional Commits specification enforcing structured commit types, scopes, and description format for automated changelog generation. |
 | **`debug`** | `/debug` command | Compilation error tracing and resolution. |
 | **`doc-standards`** | `@docs-writer` | Documentation standards for module READMEs, ADR format, runbooks, and onboarding guides. |
@@ -99,6 +100,7 @@ Your workspace includes a set of reusable **Skills** — codified procedures tha
 ## Developer Commands & Slash Actions
 
 *   **`/audit`**: Scans your entire workspace for credentials leaks, compliance defects, and network isolation failures. Outputs a comprehensive compliance report.
+*   **`/compliance`**: Scans your workspace and maps technical configurations directly to regulatory controls (DORA, BIO, GDPR). Outputs an auditor-ready compliance readiness report.
 *   **`/debug`**: Directs the verifier and builder agents to inspect failing pipeline logs, trace resource syntax issues, and propose/implement fixes.
 *   **`/drift`**: Executes a dry-run plan against the live Azure subscription to identify, classify, and reconcile manual "clickops" changes. Outputs a reconciliation report with remediation guidance.
 *   **`/expand`**: Initiates a guided rollout to deploy new resource components under strict organization governance.

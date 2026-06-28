@@ -39,3 +39,4 @@ End your review with one of:
 2. Rate each finding: MUST FIX, SHOULD FIX, NOTE.
 3. MUST FIX items block the milestone — report them clearly with concrete remediation suggestions.
 4. Be constructive and specific — reference line numbers and files in your code review findings.
+5. When the `/compliance` workflow is invoked, summarize CAF tagging/naming coverage and WAF pillar evidence (with file + line references) so the `@docs-writer` can embed your findings inside `COMPLIANCE_READINESS_REPORT.md`.

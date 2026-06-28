@@ -78,6 +78,7 @@ Skills are the atomic unit of reuse. Prefer extracting a skill when the same pro
 | **`architecture-review`** | `skills/architecture-review/SKILL.md` | `@code-reviewer`, `@orchestrator` | Architectural change review covering subscription topology, network isolation, central state access patterns, and IAM least-privilege standards. |
 | **`audit`** | `skills/audit/SKILL.md` | `/audit` workflow | Workspace compliance scan — codebase secrets check, NSG/public-endpoint audit, Private Endpoint verification. Loads `security-checklist` for structured reporting. |
 | **`code-standards`** | `skills/code-standards/SKILL.md` | `@code-reviewer`, `@builder-infra-tf`, `@builder-infra-bicep` | CAF naming conventions, Azure Well-Architected Framework alignment (5 pillars), tagging standards, and IaC best practices for Terraform and Bicep. |
+| **`compliance`** | `skills/compliance/SKILL.md` | `/compliance` workflow, `@security-auditor` | Regulatory mapping engine mapping technical configurations to DORA, BIO, and GDPR articles for audit readiness. |
 | **`commit-format`** | `skills/commit-format/SKILL.md` | `@builder-infra-tf`, `@builder-infra-bicep`, `@builder-pipelines` | Conventional Commits specification enforcing structured commit types, scopes, and description format for automated changelog generation. |
 | **`debug`** | `skills/debug/SKILL.md` | `/debug` workflow | Compilation error tracing and resolution. |
 | **`doc-standards`** | `skills/doc-standards/SKILL.md` | `@docs-writer` | Documentation standards for module READMEs, ADR format, runbooks, and onboarding guides targeting operations teams and developers. |
@@ -105,6 +106,11 @@ Documentation-only markdown files that describe the intent and steps of slash co
 1. Triggers a dry-run plan against the live Azure subscription.
 2. Classifies manual changes (Benign, Operational, Critical).
 3. Generates a reconciliation report with `terraform import` or Bicep parameter updates.
+
+**Compliance workflow** (`/compliance`) maps technical controls to regulatory articles. It:
+1. Scans the workspace for IaC and pipeline configurations.
+2. Maps findings to DORA, BIO, and GDPR articles using the `compliance` skill.
+3. Generates an auditor-ready `COMPLIANCE_READINESS_REPORT.md`.
 
 ## Templates (`templates/`)
 

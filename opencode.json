@@ -214,6 +214,11 @@
       "description": "Detect, classify, and reconcile infrastructure drift against the desired IaC state.",
       "agent": "orchestrator",
       "template": "Please use the `drift` skill to coordinate the automated drift detection workflow. Direct `@verifier` to run the necessary Terraform plan and/or Bicep what-if commands with JSON outputs, provide those artifacts to `@plan-validator` so they can classify each drift and enforce blast-radius safety rules, summon `@security-auditor` to flag any security regressions introduced by manual drift, and instruct `@docs-writer` to compile `DRIFT_REPORT.md` from `templates/docs/reports/drift-reconciliation-template.md` with remediation guidance."
+    },
+    "compliance": {
+      "description": "Map IaC, pipelines, and audit artifacts to regulatory controls and generate a compliance readiness report.",
+      "agent": "orchestrator",
+      "template": "Please use the `compliance` skill to orchestrate the `/compliance` workflow. Direct `@security-auditor` to ingest the latest `security-checklist` and `/audit` artifacts, validate OIDC evidence, and produce control status findings; request `@code-reviewer` to confirm CAF tagging, naming, and WAF alignment for the scoped modules; and instruct `@docs-writer` to compile `COMPLIANCE_READINESS_REPORT.md` from `templates/docs/reports/compliance-readiness-template.md`, cross-referencing `DRIFT_REPORT.md` and other supporting evidence."
     }
   }
 }
