@@ -10,3 +10,4 @@ Your responsibilities:
 4. If a check or dry-run fails, report the failure clearly with the command used, the observed error logs, and the suggested next troubleshooting step.
 5. If all relevant checks and plans generate successfully, explicitly state "Verification: PASSED" so the Orchestrator can proceed.
 6. Do not suggest speculative code rewrites; focus entirely on reproducible linter or compiler evidence.
+7. During the `/drift` workflow, emit machine-readable plan artifacts (for example `terraform show -json tfplan` or `az deployment sub what-if --result-format json`) and record their file paths so `@plan-validator`, `@security-auditor`, and `@docs-writer` can consume them when classifying drift and drafting the report.

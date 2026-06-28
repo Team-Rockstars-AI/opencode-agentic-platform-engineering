@@ -15,3 +15,4 @@ Your responsibilities:
 5. Provide a concrete, copy-pasteable remediation block (Terraform or Bicep) for every finding.
 6. If no issues are found, explicitly state "Security gate: PASSED" so the Orchestrator can proceed.
 7. Do not produce low-value noise; prioritize exploitability and landing zone best-practice guidelines (such as the Microsoft Cloud Security Benchmark) over theoretical concerns.
+8. During the `/drift` workflow, explicitly classify any manually introduced security regressions (e.g., widened NSG rules, disabled diagnostics, missing private endpoints) and provide remediation guidance that can be copied into `DRIFT_REPORT.md`.

@@ -9,11 +9,37 @@ Completed milestones are archived in [`BUILD_JOURNAL.md`](BUILD_JOURNAL.md).
 
 ## 📊 Current Status
 
-| Epic | Feature | Status | Completed Date | Commits |
+| Epic / Enabler | Feature | Status | Completed Date | Commits |
 |---|---|---|---|---|
+| **Enabler** | Azure DevOps canonical CI (`azure-pipelines.yml`) | ✅ **COMPLETED (CODE)** | 2026-06-18 | `c7d0bd2` |
 | **Epic 1** | `/optimise` — Static Cost & Resource Optimization Engine | ✅ **COMPLETED** | 2026-06-15 | `e82c815`, `4207b70` |
-| **Epic 2** | `/drift` — Automated Drift Detection & Reconciliation Assistant | ⏳ **PENDING** | — | — |
+| **Epic 2** | `/drift` — Automated Drift Detection & Reconciliation Assistant | ✅ **COMPLETED (CODE)** | 2026-06-28 | `f7a2b1c` |
 | **Epic 3** | `/compliance` — Regulatory Mapping & Audit Readiness Reporter | ⏳ **PENDING** | — | — |
+
+> **Note:** The ADO CI enabler and Epic 2 `/drift` are "code complete" but have outstanding **manual operational steps** or **live validation** (see below) before they are fully enforced or verified against live Azure subscriptions.
+
+---
+
+## 🔧 Enabler: Azure DevOps Canonical CI (`azure-pipelines.yml`)
+
+This enabler underpins Epics 2 and 3 by ensuring static validation runs in the canonical Azure DevOps environment.
+
+### Remaining manual steps (to be done in Azure DevOps / Git tooling)
+
+1. **Wire up the ADO pipeline**
+   - [ ] In Azure DevOps, create a new pipeline for this repo using the existing `azure-pipelines.yml` at the root of the `main` branch.
+   - [ ] Verify a successful run on `main` (all DevSecOps and Validate stage jobs succeed).
+   - [ ] Optionally configure branch policies so that this pipeline must succeed for PRs into `main`.
+
+2. **GitHub mirror management**
+   - [ ] When ready to open-source, push the current `main` branch from the ADO-canonical repo to the GitHub mirror remote.
+   - [ ] Confirm that `.github/workflows/ci.yml` and `.github/workflows/security.yml` run successfully on the mirror.
+   - [ ] Document the mirror remote name and update cadence in internal runbooks if needed.
+
+3. **Template pipeline alignment (backlog item)**
+   - [ ] Review `templates/github/workflows/deploy.yml` and `templates/azure-devops/pipelines/azure-pipelines.yml` for parity with the root CI expectations (validate-skills, validate-team, Checkov, gitleaks, Bandit).
+   - [ ] Decide on any minimal adjustments needed so scaffolded repos inherit the same baseline checks.
+   - [ ] Update documentation in `templates/AGENTS.md` to clearly describe how template pipelines differ from the control repo CI.
 
 ---
 
@@ -30,41 +56,23 @@ Completed milestones are archived in [`BUILD_JOURNAL.md`](BUILD_JOURNAL.md).
 
 ---
 
-## 🔄 Epic 2: `/drift` — Automated Drift Detection & Reconciliation Assistant (Next Up)
+## 🔄 Epic 2: `/drift` — Automated Drift Detection & Reconciliation Assistant (Completed)
 
 ### 1. Objectives
 Enable the operator to run `/drift` to execute a dry-run plan against their live Azure subscription, parse the output to identify manual changes ("clickops"), and generate the exact IaC code or import commands needed to reconcile the drift.
 
-### 2. Step-by-Step Implementation Plan
-1.  **`@explorer` (Discovery):**
-    *   Analyze how the `@verifier` currently runs `terraform plan` and `bicep what-if`.
-    *   Review the `plan-tracking` skill to understand how plan outputs are parsed.
-2.  **`@builder-infra-tf` & `@builder-infra-bicep` (Implementation):**
-    *   Create the master skill file: `skills/drift/SKILL.md`.
-    *   Create the template skill file: `templates/opencode-config/skills/drift/SKILL.md`.
-    *   Define parsing rules for `terraform show -json` and `az deployment sub what-if` outputs to isolate drifted properties.
-3.  **`@builder-pipelines` (Workflow Integration):**
-    *   Add the `/drift` command and workflow definition to `opencode.json` and `templates/opencode-config/opencode.json`.
-    *   Configure the workflow to orchestrate `@verifier` (to run the plan), `@plan-validator` (to parse drift), and `@docs-writer` (to write the report).
-4.  **`@verifier` (Validation):**
-    *   Verify JSON syntax of `opencode.json`.
-    *   Run `python3 scripts/validate-skills.py` to validate the new `drift` skill reference.
-5.  **`@plan-validator` (Safety Gate):**
-    *   Define strict rules in the `drift` skill to ensure that reconciliation plans *never* accidentally destroy stateful resources (e.g., if a database was manually modified, the reconciliation must modify the IaC, not recreate the database).
-6.  **`@security-auditor` (Security Gate):**
-    *   Ensure that the drift detection process flags manual changes that degrade security (e.g., if someone manually opened port 3389 on an NSG, flag this as a **CRITICAL** security drift).
-7.  **`@test-writer` (Testing):**
-    *   Write a mock plan JSON containing a drifted property (e.g., an updated tag) and verify that the `@plan-validator` correctly parses and reports it.
-8.  **`@docs-writer` (Documentation):**
-    *   Create a markdown template for the report: `templates/docs/reports/drift-reconciliation-template.md`.
-    *   Update `AGENTS.md` and `templates/AGENTS.md` to document the new `/drift` command and skill.
+### 2. Implementation Summary
+- **Deliverables:**
+  - `skills/drift/SKILL.md` (Master skill for drift detection and reconciliation)
+  - `templates/opencode-config/skills/drift/SKILL.md` (Template skill)
+  - Added `drift` command to `opencode.json` and `templates/opencode-config/opencode.json`
+  - Created `templates/docs/reports/drift-reconciliation-template.md`
+  - Updated `AGENTS.md` and `templates/AGENTS.md`
+  - Updated `BUILD_JOURNAL.md`
+  - Static validation and mock tests implemented.
 
-### 3. Acceptance Criteria
-*   Running `/drift` triggers a dry-run plan against Azure.
-*   Generates a structured `DRIFT_REPORT.md` detailing:
-    *   **Drifted Resources:** List of resources with differences between live state and IaC.
-    *   **Risk Assessment:** Flags if drift introduced security vulnerabilities (e.g., public IPs, open ports).
-    *   **Reconciliation Path:** Provides the exact `terraform import` commands or Bicep parameter updates to sync the state.
+### 3. Outstanding Validation
+- [ ] **Live Azure Subscription Validation:** The `/drift` workflow has been implemented and statically validated with mock plan JSONs. However, it has **not yet been tested against a live Azure subscription**. This requires a connected environment with active drift to verify the end-to-end reconciliation guidance.
 
 ---
 

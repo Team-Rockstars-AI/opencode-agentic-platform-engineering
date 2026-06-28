@@ -87,6 +87,7 @@ Your workspace includes a set of reusable **Skills** — codified procedures tha
 | **`commit-format`** | `@builder-infra-tf`, `@builder-infra-bicep`, `@builder-pipelines` | Conventional Commits specification enforcing structured commit types, scopes, and description format for automated changelog generation. |
 | **`debug`** | `/debug` command | Compilation error tracing and resolution. |
 | **`doc-standards`** | `@docs-writer` | Documentation standards for module READMEs, ADR format, runbooks, and onboarding guides. |
+| **`drift`** | `/drift` command | Detect, classify, and reconcile infrastructure drift against the desired IaC state. |
 | **`expand`** | `/expand` command | Guided rollout of new IaC resource modules under governance guardrails. |
 | **`git-workflow`** | `@builder-infra-tf`, `@builder-infra-bicep`, `@builder-pipelines` | Branch naming, pre-commit hygiene (formatter, precision staging), commit blacklist (no secrets, debug artifacts, commented-out code), and standardised handoff summary for `@test-writer`. |
 | **`model-optimiser`** | `/select-models` command | Discovers the live OpenCode ZEN catalog + installed Ollama models and reasons over each agent's prompt and skills to select the optimal available model per agent (jurisdiction, cost/quality focus, local hardware). |
@@ -99,6 +100,7 @@ Your workspace includes a set of reusable **Skills** — codified procedures tha
 
 *   **`/audit`**: Scans your entire workspace for credentials leaks, compliance defects, and network isolation failures. Outputs a comprehensive compliance report.
 *   **`/debug`**: Directs the verifier and builder agents to inspect failing pipeline logs, trace resource syntax issues, and propose/implement fixes.
+*   **`/drift`**: Executes a dry-run plan against the live Azure subscription to identify, classify, and reconcile manual "clickops" changes. Outputs a reconciliation report with remediation guidance.
 *   **`/expand`**: Initiates a guided rollout to deploy new resource components under strict organization governance.
 *   **`/optimise`**: Scans your entire workspace for cost leaks, oversized SKUs, and resource sizing inefficiencies. Outputs a comprehensive cost optimization report.
 *   **`/select-models`**: Fetches a fresh OpenCode ZEN model list and your installed Ollama models, then assigns the optimal available model per agent (jurisdiction, cost/quality focus, local hardware).

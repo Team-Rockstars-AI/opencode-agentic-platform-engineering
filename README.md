@@ -124,6 +124,7 @@ In addition to scaffolding, this repository contains active local OpenCode confi
 
 *   **`/audit`**: Scans our local landing zone modules, templates, and configurations for secure-by-design baseline compliance (credentials, public IPs, and logging). Leverages the `security-checklist` skill to produce structured PASS/FAIL findings with remediation blocks.
 *   **`/debug`**: Instructs our verifier and builders to identify and resolve any linter warnings or syntax compile errors in our module codebase.
+*   **`/drift`**: Executes a dry-run plan against the live Azure subscription to identify, classify, and reconcile manual "clickops" changes. Leverages the `drift` skill to produce a structured reconciliation report.
 *   **`/expand`**: Assists in adding new resource modules or expanding existing Bicep and Terraform landing zone skeletons.
 *   **`/optimise`**: Scans our local landing zone modules, templates, and configurations for cost-saving opportunities and resource sizing inefficiencies. Leverages the `optimise` skill to produce a structured cost optimization report.
 *   **`/select-models`**: After gathering your jurisdiction, local-model, focus, and hardware preferences, fetches a fresh OpenCode ZEN model list and your installed Ollama models, then reasons over each agent's prompt and skills to assign the optimal *available* model per agent. Leverages the `model-optimiser` skill to update configurations and run verification tests.

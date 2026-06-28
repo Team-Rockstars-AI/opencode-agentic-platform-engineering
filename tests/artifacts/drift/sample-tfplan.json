@@ -1,0 +1,79 @@
+{
+  "format_version": "1.1",
+  "terraform_version": "1.6.6",
+  "resource_changes": [
+    {
+      "address": "azurerm_network_security_rule.allow_ssh",
+      "mode": "managed",
+      "type": "azurerm_network_security_rule",
+      "name": "allow_ssh",
+      "provider_name": "registry.terraform.io/hashicorp/azurerm",
+      "change": {
+        "actions": [
+          "update"
+        ],
+        "before": {
+          "name": "allow-ssh",
+          "priority": 200,
+          "direction": "Inbound",
+          "access": "Allow",
+          "protocol": "Tcp",
+          "source_port_range": "*",
+          "destination_port_range": "22",
+          "source_address_prefix": "10.10.0.0/24",
+          "destination_address_prefix": "*"
+        },
+        "after": {
+          "name": "allow-ssh",
+          "priority": 200,
+          "direction": "Inbound",
+          "access": "Allow",
+          "protocol": "Tcp",
+          "source_port_range": "*",
+          "destination_port_range": "22",
+          "source_address_prefix": "*",
+          "destination_address_prefix": "*"
+        }
+      }
+    },
+    {
+      "address": "azurerm_storage_account.state",
+      "mode": "managed",
+      "type": "azurerm_storage_account",
+      "name": "state",
+      "provider_name": "registry.terraform.io/hashicorp/azurerm",
+      "change": {
+        "actions": [
+          "delete",
+          "create"
+        ],
+        "before": {
+          "name": "ststateprod001",
+          "resource_group_name": "rg-landingzone-prod-westeurope",
+          "account_tier": "Standard",
+          "account_replication_type": "GRS",
+          "enable_https_traffic_only": true,
+          "min_tls_version": "TLS1_2",
+          "allow_blob_public_access": false,
+          "soft_delete_enabled": true,
+          "blob_properties": {
+            "versioning_enabled": true
+          }
+        },
+        "after": {
+          "name": "ststateprod001",
+          "resource_group_name": "rg-landingzone-prod-westeurope",
+          "account_tier": "Standard",
+          "account_replication_type": "GRS",
+          "enable_https_traffic_only": false,
+          "min_tls_version": "TLS1_0",
+          "allow_blob_public_access": true,
+          "soft_delete_enabled": false,
+          "blob_properties": {
+            "versioning_enabled": false
+          }
+        }
+      }
+    }
+  ]
+}

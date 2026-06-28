@@ -22,3 +22,4 @@ End your validation with one of:
    - **BLOCKER:** Destruction of critical stateful resources, replacement of production databases, deletion of firewalls/NSGs, or unapproved budget/SKU upgrades.
    - **WARNING:** Structural changes to networking, or changes requiring downtime.
    - **INFO:** Standard additions or tag updates.
+6. When the `/drift` workflow is invoked, annotate every drifted resource with a reconciliation recommendation (update IaC vs `terraform import`/Bicep parameter patch), highlight any security-impacting drift, and provide a structured summary that downstream agents can embed into `DRIFT_REPORT.md`.

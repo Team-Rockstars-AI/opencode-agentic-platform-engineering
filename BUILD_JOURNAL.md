@@ -627,7 +627,46 @@ python3 agent_config.py                       → all self-tests passed
 
 ---
 
-## Milestone: Azure DevOps Canonical CI Integration
+## Milestone: Automated Drift Detection & Reconciliation Engine
+
+**Date:** 2026-06-28
+
+### Summary
+
+This milestone implemented Epic 2 (Automated Drift Detection & Reconciliation Engine), introducing the ability to detect, classify, and reconcile infrastructure drift against the desired IaC state. This was achieved by authoring the `drift` skill, registering the `/drift` command, and creating a standardized drift reconciliation report template. The engine orchestrates the `@verifier` (to generate plans), `@plan-validator` (to parse and classify drift), and `@security-auditor` (to flag security regressions) to provide actionable reconciliation guidance.
+
+### Changes Made
+
+1. **Created `skills/drift/SKILL.md`** (and template equivalent):
+   - Defined a structured workflow for drift detection, classification, and reconciliation.
+   - Codified drift classification categories: **Benign** (tags, descriptions), **Operational** (SKU changes, scaling), and **Critical/Security** (NSG rules, public endpoints, IAM).
+   - Embedded strict safety rules to prevent accidental destruction of stateful resources during reconciliation.
+   - Specified a structured findings report format with remediation guidance (e.g., `terraform import` commands).
+
+2. **Integrated `/drift` slash command (`opencode.json`):**
+   - Registered the `drift` command in `opencode.json` and its template equivalent, directing the orchestrator to coordinate the automated drift detection workflow.
+   - Created `templates/docs/reports/drift-reconciliation-template.md` as the standardized report template format.
+
+3. **Updated Documentation (`AGENTS.md` & `templates/AGENTS.md`):**
+   - Added the `drift` skill and `/drift` workflow to the central agents, skills, and workflows reference tables.
+
+4. **Static Validation & Testing:**
+   - Verified the new `drift` skill reference using `validate-skills.py`.
+   - Implemented mock tests for the `@plan-validator` to ensure correct parsing and classification of drifted properties from plan JSONs.
+
+### Friction Points
+
+- **Live Azure Validation Deferred:** While the logic for parsing and classifying drift has been implemented and statically validated, the end-to-end workflow has not yet been tested against a live Azure subscription with active drift. This remains a critical next step to verify the accuracy of the generated reconciliation commands.
+- **Bicep What-If Parsing Complexity:** Parsing the text-based output of `az deployment sub what-if` is inherently more fragile than parsing Terraform's structured JSON plan. The current implementation relies on regex patterns that may need refinement as Bicep's output format evolves.
+
+### Next Steps
+
+- **Live Validation:** Execute `/drift` in a connected Azure environment to verify end-to-end functionality.
+- **Epic 3: Compliance Gating Engine (`/compliance`)** to map technical controls to regulatory articles.
+
+### Discoveries & Findings
+
+During the implementation of Epic 2, we discovered that while Terraform provides a robust, machine-readable JSON representation of its execution plan, Bicep's `what-if` output is primarily designed for human consumption. This necessitated a more complex parsing strategy for Bicep drift detection. We also reinforced the importance of the `@plan-validator` as a safety gate, ensuring that drift reconciliation never defaults to resource replacement for stateful components like databases or Key Vaults, even if the IaC change would normally trigger it.
 
 **Date:** 2026-06-18
 

@@ -81,6 +81,7 @@ Skills are the atomic unit of reuse. Prefer extracting a skill when the same pro
 | **`commit-format`** | `skills/commit-format/SKILL.md` | `@builder-infra-tf`, `@builder-infra-bicep`, `@builder-pipelines` | Conventional Commits specification enforcing structured commit types, scopes, and description format for automated changelog generation. |
 | **`debug`** | `skills/debug/SKILL.md` | `/debug` workflow | Compilation error tracing and resolution. |
 | **`doc-standards`** | `skills/doc-standards/SKILL.md` | `@docs-writer` | Documentation standards for module READMEs, ADR format, runbooks, and onboarding guides targeting operations teams and developers. |
+| **`drift`** | `skills/drift/SKILL.md` | `@orchestrator`, `@plan-validator` | Detect, classify, and reconcile infrastructure drift against the desired IaC state. |
 | **`expand`** | `skills/expand/SKILL.md` | `/expand` workflow | Guided rollout of new IaC resource modules. |
 | **`git-workflow`** | `skills/git-workflow/SKILL.md` | `@builder-infra-tf`, `@builder-infra-bicep`, `@builder-pipelines` | Branch naming, pre-commit hygiene (formatter, precision staging), commit blacklist (no secrets, debug artifacts, commented-out code), and standardised handoff summary for `@test-writer`. |
 | **`model-optimiser`** | `skills/model-optimiser/SKILL.md` | `/select-models` workflow | Discovers the live OpenCode ZEN catalog + installed Ollama models and reasons over each agent's prompt/skills to select the optimal available model per agent (jurisdiction, cost/quality focus, local hardware). |
@@ -99,6 +100,11 @@ Documentation-only markdown files that describe the intent and steps of slash co
 2. Runs `python3 scripts/scaffold.py` via the `scaffold` skill to copy matching templates into a target directory
 3. Post-processes placeholders (`{{project_name}}`, `{{azure_location}}`, etc.)
 4. Initializes git and creates the initial commit
+
+**Drift workflow** (`/drift`) detects and reconciles infrastructure drift. It:
+1. Triggers a dry-run plan against the live Azure subscription.
+2. Classifies manual changes (Benign, Operational, Critical).
+3. Generates a reconciliation report with `terraform import` or Bicep parameter updates.
 
 ## Templates (`templates/`)
 

@@ -129,6 +129,7 @@ These commands route through the orchestrator by default:
 | Command | Purpose |
 |---------|---------|
 | `/scaffold` | Bootstrap a new platform-engineering repository from templates |
+| `/drift` | Detect, classify, and reconcile infrastructure drift against live state |
 | `/expand` | Onboard a new workload or expand landing zone infrastructure |
 | `/optimise` | Scan the workspace for cost and resource sizing inefficiencies |
 | `/select-models` | Discover live model catalog and assign optimal models per agent |

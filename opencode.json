@@ -209,6 +209,11 @@
       "description": "Scan the current workspace for cost-saving opportunities and resource sizing inefficiencies.",
       "agent": "orchestrator",
       "template": "Please use the `optimise` skill to scan the current workspace configurations, modules, and templates for cost leaks, oversized SKUs, and resource sizing inefficiencies. Coordinate with the code-reviewer and security-auditor to ensure optimizations do not compromise security or standards, and summon the docs-writer to compile a detailed cost optimization report."
+    },
+    "drift": {
+      "description": "Detect, classify, and reconcile infrastructure drift against the desired IaC state.",
+      "agent": "orchestrator",
+      "template": "Please use the `drift` skill to coordinate the automated drift detection workflow. Direct `@verifier` to run the necessary Terraform plan and/or Bicep what-if commands with JSON outputs, provide those artifacts to `@plan-validator` so they can classify each drift and enforce blast-radius safety rules, summon `@security-auditor` to flag any security regressions introduced by manual drift, and instruct `@docs-writer` to compile `DRIFT_REPORT.md` from `templates/docs/reports/drift-reconciliation-template.md` with remediation guidance."
     }
   }
 }

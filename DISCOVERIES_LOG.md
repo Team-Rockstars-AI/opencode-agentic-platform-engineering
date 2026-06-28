@@ -202,7 +202,21 @@ This log serves as a persistent, in-project memory of discoveries, findings, and
 
 ---
 
-## Milestone: Azure DevOps Canonical CI Integration (June 2026)
+## Milestone: Automated Drift Detection & Reconciliation Engine (June 2026)
+
+### 🔍 Discoveries
+*   **Structured vs. Unstructured Plan Data:** Terraform provides a robust, machine-readable JSON representation of its execution plan (`terraform show -json`), which is ideal for automated drift analysis. In contrast, Bicep's `what-if` output is primarily designed for human consumption, requiring more complex regex-based parsing to isolate drifted properties.
+*   **Drift Classification is Context-Dependent:** Not all drift is equal. Manual tag updates are often benign, while changes to NSG rules or Public IP configurations are critical security regressions. A structured classification system (Benign, Operational, Critical) is essential for prioritizing reconciliation efforts.
+
+### ⚠️ Findings
+*   **Stateful Resource Vulnerability:** Drift reconciliation workflows can accidentally trigger resource replacement (destruction and recreation) if the IaC change required to sync with live state is considered a "replacement" action by the provider. This is unacceptable for stateful resources like databases or Key Vaults.
+*   **Security Regression Visibility:** Manual "clickops" changes often bypass standard security gates, potentially introducing vulnerabilities that remain hidden until the next full deployment or audit.
+
+### 💡 Solutions
+*   **Drift Detection Engine (`/drift`):** Implemented a coordinated workflow that orchestrates the `@verifier` to generate plans, the `@plan-validator` to parse and classify drift, and the `@security-auditor` to flag security regressions.
+*   **Drift Skill (`skills/drift/SKILL.md`):** Authored a new skill that codifies drift classification rules and enforces strict safety gates, ensuring that reconciliation guidance never defaults to resource replacement for stateful components.
+*   **Actionable Reconciliation Guidance:** The engine produces a structured `DRIFT_REPORT.md` (based on a new template) that provides the exact `terraform import` commands or Bicep parameter updates needed to sync the IaC state with reality, reducing manual remediation effort.
+*   **Static Validation & Mock Testing:** Verified the parsing and classification logic using mock plan JSONs to ensure reliability before live Azure subscription testing.
 
 ### 🔍 Discoveries
 *   **Dual-Platform Visibility:** Maintaining a GitHub mirror is essential for public visibility and community engagement, but using it as the primary CI/CD host can conflict with internal enterprise standards that mandate Azure DevOps for authoritative platform governance.
