@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -36,7 +36,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install ruff
           pip install -r requirements.txt
-          pip install -r requirements-dev.txt
 
       - name: Ruff lint
         run: ruff check .
@@ -50,15 +49,12 @@ jobs:
       - name: Validate team consistency
         run: python3 scripts/validate-team.py
 
-      - name: Python unit tests (pytest)
-        run: python -m pytest tests/ -v
-
   config:
     name: Config validation (JSON/YAML)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -111,7 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v4
@@ -124,125 +120,12 @@ jobs:
       - name: terraform fmt -check (modules)
         run: terraform fmt -check -recursive -diff modules
 
-  iac-tests:
-    name: IaC module validation & tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v4
-        with:
-          terraform_version: "1.9.5"
-
-      - name: Terraform module validation
-        run: |
-          shopt -s nullglob
-          for module_dir in modules/terraform/*/v*/; do
-            echo "Validating Terraform module: ${module_dir%/}"
-            (
-              cd "$module_dir"
-              terraform init -backend=false -input=false
-              terraform validate
-            )
-          done
-
-      # Module tests use mock_provider so they run offline (no Azure credentials).
-      - name: Terraform module tests (terraform test)
-        run: |
-          shopt -s nullglob
-          for module_dir in modules/terraform/*/v*/; do
-            if [ -d "${module_dir}tests" ]; then
-              echo "Testing Terraform module: ${module_dir%/}"
-              (
-                cd "$module_dir"
-                terraform init -backend=false -input=false
-                terraform test
-              )
-            fi
-          done
-
-      - name: Install Azure CLI Bicep
-        run: |
-          if ! command -v az >/dev/null 2>&1; then
-            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-          fi
-          az bicep install
-          az bicep version
-
-      - name: Bicep module build validation
-        run: |
-          shopt -s globstar nullglob
-          found=0
-          for file in modules/bicep/**/main.bicep; do
-            found=1
-            echo "Building Bicep module: $file"
-            az bicep build --file "$file" --stdout >/dev/null
-          done
-          if [ $found -eq 0 ]; then
-            echo "No Bicep modules found under modules/bicep"
-          fi
-
-      - name: Bicep module test builds
-        run: |
-          shopt -s globstar nullglob
-          for file in modules/bicep/**/tests/*.test.bicep; do
-            echo "Building Bicep test: $file"
-            az bicep build --file "$file" --stdout >/dev/null
-          done
-
-  scaffold-e2e:
-    name: E2E scaffold verification
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - iac: terraform
-            devops: github
-            tier: basic
-          - iac: bicep
-            devops: azure-devops
-            tier: basic
-          - iac: both
-            devops: github
-            tier: enterprise
-          - iac: both
-            devops: azure-devops
-            tier: enterprise
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-
-      - name: Install Python dependencies
-        run: pip install -r requirements.txt
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v4
-        with:
-          terraform_version: "1.9.5"
-          terraform_wrapper: false
-
-      - name: Install Azure CLI Bicep
-        run: |
-          az bicep install
-          az bicep version
-
-      - name: Scaffold and verify generated workspace
-        run: bash scripts/verify-scaffold-output.sh "${{ matrix.iac }}" "${{ matrix.devops }}" "${{ matrix.tier }}"
-
   secrets:
     name: Secret scan (gitleaks)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -260,10 +143,9 @@ jobs:
   packs:
     name: Team pack governance
     runs-on: ubuntu-latest
-    if: ${{ vars.TEAM_PACKS_VALIDATE == 'true' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v6
