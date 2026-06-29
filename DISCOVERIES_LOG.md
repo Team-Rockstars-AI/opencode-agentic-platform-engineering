@@ -20,6 +20,24 @@ This log serves as a persistent, in-project memory of discoveries, findings, and
 *   **Automated Readiness Reporting:** Created a structured `COMPLIANCE_READINESS_REPORT.md` template that provides an executive summary and a detailed regulatory control matrix, significantly reducing audit preparation effort.
 *   **Architecture Decision Record (ADR 0006):** Formalized the decision to implement continuous regulatory mapping as a core platform capability.
 
+---
+
+## Milestone: Agent Team Packs & Model Profiles (June 2026)
+
+### 🔍 Discoveries
+*   **Combinatorial Complexity:** Manually selecting and balancing models for a multi-agent team (considering cost, quality, and jurisdiction) creates significant cognitive load and brittle configurations.
+*   **Need for Presets:** Platform engineers require "known good" configurations (Team Packs) that can be easily shared, versioned, and applied across different projects or environments.
+
+### ⚠️ Findings
+*   **Brittle Configurations:** Manually tuned agent teams are difficult to reproduce and upgrade safely, leading to inconsistencies across the platform.
+*   **Policy Enforcement Gaps:** While `agent_config.py` enforces jurisdiction, there is no high-level mechanism to bundle these policies with specific agent/model combinations.
+
+### 💡 Solutions
+*   **Agent Team Packs:** Introduced the concept of versioned manifests (`pack.yaml`) that bundle agents, models, prompts, and policies into sharable presets.
+*   **Layered Selection Logic:** Designed packs to work on top of the existing `/select-models` discovery engine, providing the strategic blueprint while maintaining dynamic resilience.
+*   **Lifecycle Management:** Defined core operations (`pack list`, `pack apply`, `pack validate`) to manage the lifecycle of agent configurations.
+*   **ADR 0007:** Formalized the decision to implement Team Packs to standardize agent environments and reduce operational complexity.
+
 
 ### 🔍 Discoveries
 *   **Scattered Workflow Rules:** Scattered workflow rules across individual agent prompt files create structural drift, duplicate instructions, and make it difficult to maintain a single source of truth.
@@ -263,4 +281,22 @@ This log serves as a persistent, in-project memory of discoveries, findings, and
 *   **Codified Mapping Matrix:** Authored the `compliance` skill which contains the source-of-truth mapping between Azure resource configurations and regulatory articles.
 *   **Automated Readiness Reporting:** Created a structured `COMPLIANCE_READINESS_REPORT.md` template that provides an executive summary and a detailed regulatory control matrix, significantly reducing audit preparation effort.
 *   **Architecture Decision Record (ADR 0006):** Formalized the decision to implement continuous regulatory mapping as a core platform capability.
+
+---
+
+## Milestone: Agent Team Packs & Model Profiles (June 2026)
+
+### 🔍 Discoveries
+*   **Combinatorial Complexity:** Manually selecting and balancing models for a multi-agent team (considering cost, quality, and jurisdiction) creates significant cognitive load and brittle configurations.
+*   **Need for Presets:** Platform engineers require "known good" configurations (Team Packs) that can be easily shared, versioned, and applied across different projects or environments.
+
+### ⚠️ Findings
+*   **Brittle Configurations:** Manually tuned agent teams are difficult to reproduce and upgrade safely, leading to inconsistencies across the platform.
+*   **Policy Enforcement Gaps:** While `agent_config.py` enforces jurisdiction, there is no high-level mechanism to bundle these policies with specific agent/model combinations.
+
+### 💡 Solutions
+*   **Agent Team Packs:** Introduced the concept of versioned manifests (`pack.yaml`) that bundle agents, models, prompts, and policies into sharable presets.
+*   **Layered Selection Logic:** Designed packs to work on top of the existing `/select-models` discovery engine, providing the strategic blueprint while maintaining dynamic resilience.
+*   **Lifecycle Management:** Defined core operations (`pack list`, `pack apply`, `pack validate`) to manage the lifecycle of agent configurations.
+*   **ADR 0007:** Formalized the decision to implement Team Packs to standardize agent environments and reduce operational complexity.
 

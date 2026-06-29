@@ -729,3 +729,34 @@ This milestone established Azure DevOps (ADO) as the canonical git host and CI p
 
 - Monitor mirror health and ensure the GitHub mirror remains in sync with the ADO primary.
 - Evaluate if any additional static checks (e.g., `validate-team.py`) should be promoted to the ADO pipeline.
+
+---
+
+## Milestone: Agent Team Packs & Model Profiles (Design)
+
+**Date:** 2026-06-29
+
+### Summary
+
+This milestone initiated the design and documentation for Epic 4 (Agent Team Packs & Model Profiles). We introduced the concept of versioned "team packs" to reduce the combinatorial complexity of per-agent model selection and provide a safer, more predictable upgrade path for platform teams. This included updating the build plan, authoring a new ADR, and introducing a repository-level guide for packs.
+
+### Changes Made
+
+1. **Updated `BUILD_PLAN.md`:**
+   - Added Epic 4: Agent Team Packs & Model Profiles with four milestones (4.1 to 4.4) covering design, implementation, validation, and CI integration.
+2. **Created ADR 0007: Agent Team Packs & Model Profiles:**
+   - Documented the decision to introduce versioned "team packs" as higher-level presets layered on top of the existing `select-models` workflow.
+   - Outlined the manifest format, lifecycle commands, and validation rules.
+3. **Created `PACKS.md`:**
+   - Introduced a repository-level overview of team packs, their core operations (`pack list`, `pack apply`, etc.), and their relationship to jurisdiction and cost policies.
+   - Clearly marked the feature as being in the design phase.
+
+### Friction Points
+
+- **Complexity vs. Flexibility:** Balancing the simplicity of curated packs with the flexibility of dynamic model selection requires a careful layered approach. The design ensures that packs provide the blueprint while `select-models` handles live discovery.
+- **Versioning Overhead:** Introducing versioned manifests adds maintenance overhead for platform teams, which must be mitigated through automated validation and clear governance.
+
+### Next Steps
+
+- **Milestone 4.1:** Refine the `pack.yaml` manifest schema and define the full lifecycle of a pack.
+- **Milestone 4.2:** Implement the core CLI logic for listing and applying packs.

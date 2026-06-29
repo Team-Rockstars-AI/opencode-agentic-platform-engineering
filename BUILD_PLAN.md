@@ -110,3 +110,20 @@ Enable the operator to run `/compliance` to scan their IaC, pipelines, and drift
     *   **Executive Summary:** Overall compliance percentage.
     *   **Regulatory Control Matrix:** A table mapping Azure resources ➔ Technical Controls ➔ Regulatory Articles (e.g., `kv-vault` ➔ Purge Protection ➔ DORA Art. 12).
     *   **Non-Compliance Findings:** List of failed controls with severity and remediation steps.
+
+---
+
+## 🎛️ Epic 4: Agent Team Packs & Model Profiles
+
+### 1. Objectives
+Introduce curated, versioned “team packs” that bundle agents, models, prompts, skills, and policies into sharable, validated configurations. This reduces the combinatorial complexity of per-agent model selection and provides a safer, more predictable upgrade path for platform teams.
+
+### 2. Step-by-Step Implementation Plan
+1.  **Milestone 4.1: Pack concept, manifest schema, and lifecycle (design only).**
+    *   Objective: Define the `pack.yaml` schema and the lifecycle of a pack (discovery, application, validation).
+2.  **Milestone 4.2: Core pack manifest files and pack list/apply commands integrated with `select-models`.**
+    *   Objective: Implement the CLI logic to list available packs and apply a pack's model/agent configuration to `opencode.json`.
+3.  **Milestone 4.3: Pack creation/validation and PR-sharing workflow.**
+    *   Objective: Enable engineers to export their current working configuration as a new pack and validate it against the live model catalog.
+4.  **Milestone 4.4 (optional): CI integration and governance for packs.**
+    *   Objective: Automate pack validation in the CI pipeline to ensure packs remain compatible with the evolving model catalog.
