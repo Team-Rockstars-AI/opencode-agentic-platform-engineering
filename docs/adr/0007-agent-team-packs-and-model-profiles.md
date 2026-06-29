@@ -1,7 +1,7 @@
 # ADR 0007: Agent Team Packs & Model Profiles
 
 ## Status
-Proposed
+Accepted
 
 ## Date
 2026-06-29
@@ -16,6 +16,13 @@ We will introduce versioned "team packs" as higher-level presets that define cur
 2.  **Layered Integration:** Packs will be layered on top of the existing `select-models` workflow. A pack provides the "blueprint," while `select-models` continues to handle the live discovery and application of models from the ZEN and Ollama catalogs.
 3.  **Lifecycle Commands:** Implement `pack list` to discover available packs and `pack apply` to configure the local environment based on a selected pack.
 4.  **Validation Rules:** Each pack will include validation rules to ensure the selected models meet the pack's quality and security requirements before application.
+
+## Implementation
+Milestone 4.2 implemented the core Team Pack infrastructure:
+- **`scripts/team_packs.py`**: A helper CLI for discovering and applying packs.
+- **Example Packs**: `cost-optimised-dev` and `high-quality-prod` presets shipped under `packs/`.
+- **Command Wiring**: Registered `/pack-list` and `/pack-apply` in `opencode.json` to expose the functionality to the agent team.
+- **Template Parity**: Included pack manifests and command definitions in the scaffold templates.
 
 ## Consequences
 - **Positive:** Reduces complexity for end-users by providing "known good" configurations.

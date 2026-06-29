@@ -1,0 +1,54 @@
+name: high-quality-prod
+version: 1.0.0
+description: >-
+  Premium preset tuned for production launches and complex delivery windows.
+  Prefers higher-quality reasoning models while remaining within the EU+US
+  sovereignty guardrails described in .opencode/memory.md.
+jurisdiction_policy: eu+us
+allow_local: no
+optimisation_focus: quality
+agents:
+  orchestrator:
+    role: strategic-planner
+    preferred_model_ids:
+      - opencode/gpt-5.1
+  builder-infra-tf:
+    role: code-generation
+    preferred_model_ids:
+      - opencode/gpt-5.1-codex
+  builder-infra-bicep:
+    role: code-generation
+    preferred_model_ids:
+      - opencode/gpt-5.1-codex
+  builder-pipelines:
+    role: code-generation
+    preferred_model_ids:
+      - opencode/gpt-5.1-codex
+  code-reviewer:
+    role: task-execution
+    preferred_model_ids:
+      - opencode/claude-haiku-4-5
+  security-auditor:
+    role: task-execution
+    preferred_model_ids:
+      - opencode/claude-haiku-4-5
+  plan-validator:
+    role: task-execution
+    preferred_model_ids:
+      - opencode/claude-haiku-4-5
+  verifier:
+    role: task-execution
+    preferred_model_ids:
+      - opencode/gemini-3-flash
+  docs-writer:
+    role: task-execution
+    preferred_model_ids:
+      - opencode/gemini-3-flash
+  explorer:
+    role: research
+    preferred_model_ids:
+      - opencode/gpt-5.4-nano
+  test-writer:
+    role: code-generation
+    preferred_model_ids:
+      - opencode/gpt-5.1-codex-mini

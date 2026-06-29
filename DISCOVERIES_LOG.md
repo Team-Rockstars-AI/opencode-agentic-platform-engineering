@@ -38,6 +38,10 @@ This log serves as a persistent, in-project memory of discoveries, findings, and
 *   **Lifecycle Management:** Defined core operations (`pack list`, `pack apply`, `pack validate`) to manage the lifecycle of agent configurations.
 *   **ADR 0007:** Formalized the decision to implement Team Packs to standardize agent environments and reduce operational complexity.
 
+### 📝 Narrative Summary
+Layering static team pack blueprints over the dynamic model discovery engine (`select-models.py`) proved to be a critical architectural breakthrough. By separating the strategic intent (the "blueprint" in `pack.yaml`) from the tactical availability (the live ZEN/Ollama catalogs), we achieved a resilient and governed model configuration system. This approach allows platform engineers to define "known good" agent teams that automatically adapt to the specific models available in a given environment while strictly enforcing sovereignty and cost policies, effectively eliminating the "model not found" failures that previously plagued the orchestration loop.
+
+
 
 ### 🔍 Discoveries
 *   **Scattered Workflow Rules:** Scattered workflow rules across individual agent prompt files create structural drift, duplicate instructions, and make it difficult to maintain a single source of truth.
@@ -299,4 +303,8 @@ This log serves as a persistent, in-project memory of discoveries, findings, and
 *   **Layered Selection Logic:** Designed packs to work on top of the existing `/select-models` discovery engine, providing the strategic blueprint while maintaining dynamic resilience.
 *   **Lifecycle Management:** Defined core operations (`pack list`, `pack apply`, `pack validate`) to manage the lifecycle of agent configurations.
 *   **ADR 0007:** Formalized the decision to implement Team Packs to standardize agent environments and reduce operational complexity.
+
+### 📝 Narrative Summary
+Layering static team pack blueprints over the dynamic model discovery engine (`select-models.py`) proved to be a critical architectural breakthrough. By separating the strategic intent (the "blueprint" in `pack.yaml`) from the tactical availability (the live ZEN/Ollama catalogs), we achieved a resilient and governed model configuration system. This approach allows platform engineers to define "known good" agent teams that automatically adapt to the specific models available in a given environment while strictly enforcing sovereignty and cost policies, effectively eliminating the "model not found" failures that previously plagued the orchestration loop.
+
 

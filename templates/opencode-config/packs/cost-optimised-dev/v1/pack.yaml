@@ -1,0 +1,54 @@
+name: cost-optimised-dev
+version: 1.0.0
+description: >-
+  Lean, cloud-only preset optimised for day-to-day development work. Prioritises
+  low to mid-cost Zen models that still meet the EU+US-Sovereign residency
+  policy so engineers can iterate quickly without overrunning spend limits.
+jurisdiction_policy: eu+us
+allow_local: no
+optimisation_focus: cost
+agents:
+  orchestrator:
+    role: strategic-planner
+    preferred_model_ids:
+      - opencode/gpt-5.1
+  builder-infra-tf:
+    role: code-generation
+    preferred_model_ids:
+      - opencode/gpt-5.1-codex
+  builder-infra-bicep:
+    role: code-generation
+    preferred_model_ids:
+      - opencode/gpt-5.1-codex
+  builder-pipelines:
+    role: code-generation
+    preferred_model_ids:
+      - opencode/gpt-5.1-codex
+  code-reviewer:
+    role: task-execution
+    preferred_model_ids:
+      - opencode/claude-haiku-4-5
+  security-auditor:
+    role: task-execution
+    preferred_model_ids:
+      - opencode/claude-haiku-4-5
+  plan-validator:
+    role: task-execution
+    preferred_model_ids:
+      - opencode/claude-haiku-4-5
+  verifier:
+    role: task-execution
+    preferred_model_ids:
+      - opencode/gemini-3-flash
+  docs-writer:
+    role: task-execution
+    preferred_model_ids:
+      - opencode/gemini-3-flash
+  explorer:
+    role: research
+    preferred_model_ids:
+      - opencode/gpt-5.4-nano
+  test-writer:
+    role: code-generation
+    preferred_model_ids:
+      - opencode/gpt-5.1-codex-mini

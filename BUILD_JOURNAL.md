@@ -613,7 +613,47 @@ This milestone executed the full `docs/agent-team-refactor-plan.md` refactor, ma
    - Documents actual `scripts/scaffold.py` backend and scaffold template copy paths
 
 7. **`templates/opencode-config/prompts/`** — created (was missing):
-   - All 11 agent prompt `.txt` files copied; generated repos now have the full agent team
+    - All 11 agent prompt `.txt` files copied; generated repos now have the full agent team
+
+---
+
+## Milestone: Agent Team Packs Implementation
+
+**Date:** 2026-06-29
+
+### Summary
+
+This milestone implemented Epic 4 Milestone 4.2, introducing "Team Packs" as versioned, sharable presets for agent and model configurations. This allows platform engineers to quickly switch between "known good" configurations (e.g., cost-optimised vs. high-quality) while maintaining strict jurisdiction and cost policies. The implementation layers on top of the existing `select-models` engine, providing a strategic blueprint that is validated against live model availability.
+
+### Changes Made
+1. **Created `scripts/team_packs.py`**:
+   - Implemented discovery logic to scan `packs/` and `templates/opencode-config/packs/` for `pack.yaml` manifests.
+   - Added `list` command to display available packs, versions, and policies in a tabular format.
+   - Added `apply` command that parses a manifest, generates a model mapping, and delegates to `select-models.py apply` for enforcement.
+2. **Authored Example Pack Manifests**:
+   - `cost-optimised-dev`: A lean, cloud-only preset using mid-cost Zen models.
+   - `high-quality-prod`: A premium preset preferring higher-reasoning models.
+   - Both packs enforce `eu+us` jurisdiction and `allow_local: no` by default.
+3. **Integrated Slash Commands (`opencode.json`)**:
+   - Registered `/pack-list` and `/pack-apply` commands.
+   - Updated the scaffold template `opencode.json` to include these commands for new projects.
+4. **Updated Documentation**:
+   - Updated `PACKS.md` with the YAML schema and usage examples.
+   - Accepted ADR 0007 (Agent Team Packs & Model Profiles).
+   - Created `workflows/packs.md` to document the operator experience.
+5. **Verified with Tests**:
+   - Added `tests/test_team_packs.py` covering manifest loading, version selection, and mapping generation.
+
+### Friction Points
+
+- **Version Selection Logic**: Implementing a robust version selection that handles both directory labels (e.g., `v1`) and semantic versions (e.g., `1.0.0`) required careful filtering in `team_packs.py`.
+- **Mapping Generation**: Ensuring that both explicit `model` IDs and `preferred_model_ids` lists are handled correctly while maintaining compatibility with the `select-models.py` input format.
+
+### Next Steps
+
+- **Pack Validation**: Implement a `pack validate` command to check if a pack's preferred models are currently available in the live ZEN catalog without applying them.
+- **Central Registry**: Explore hosting packs in a central repository or OCI registry for cross-project sharing.
+
 
 8. **`templates/opencode-config/skills/`** — created (was missing):
    - 13 skill directories copied (excluding `scaffold` which generated repos don't need)

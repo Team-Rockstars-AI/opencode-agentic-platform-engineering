@@ -184,6 +184,16 @@
       "agent": "orchestrator",
       "template": "Please use the `model-optimiser` skill. Gather the user's preferences (jurisdiction, local models, focus, hardware), then run `python3 scripts/select-models.py discover` to fetch the live ZEN and Ollama catalogs. Read each agent's prompt and skills to reason out the optimal available model per agent, present a proposal, and on acceptance write a mapping file and run `python3 scripts/select-models.py apply` to implement and verify."
     },
+    "pack-list": {
+      "description": "List curated agent team packs, including their jurisdiction policy, optimisation focus, and manifest source.",
+      "agent": "orchestrator",
+      "template": "Run `python3 scripts/team_packs.py list` and present the available pack names, versions, jurisdictions, optimisation focus, and manifest paths so the operator can decide which preset to apply."
+    },
+    "pack-apply": {
+      "description": "Apply a named agent team pack by delegating to select-models with the pack's mapping blueprint.",
+      "agent": "orchestrator",
+      "template": "Ask the operator for the desired pack (and optional version), then run `python3 scripts/team_packs.py apply <pack-name> [--version vX]` to generate the mapping JSON and invoke `select-models.py apply`. Summarize the resulting model matrix and remind the team to document the change."
+    },
     "audit": {
       "description": "Scan the current workspace for compliance, credentials, and network vulnerability risks.",
       "agent": "security-auditor",
