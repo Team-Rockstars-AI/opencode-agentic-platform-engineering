@@ -22,7 +22,7 @@ Your generated repository contains the following core directories and files:
 │   ├── skills/              # Codified operational procedures (skills)
 │   └── opencode.json        # Central agentic configuration manifest
 ├── docs/
-│   └── adr/                 # Pre-populated Architecture Decision Records (ADRs 0001-0005)
+│   └── adr/                 # Pre-populated Architecture Decision Records (ADRs 0001-0006)
 ├── .pre-commit-config.yaml  # Local compliance hooks (Gitleaks, Checkov, formatters)
 └── AGENTS.md                # Root-level agent operations guide
 ```
@@ -79,7 +79,15 @@ You can interact with your multi-agent platform team directly from the OpenCode 
     /audit
     ```
 
-### 2. `/debug` (Automated Troubleshooting)
+### 2. `/compliance` (Regulatory Mapping)
+*   **Purpose:** Maps technical configurations and audit findings directly to regulatory articles (DORA, BIO, GDPR) to generate an auditor-ready report.
+*   **How it works:** Launches the `orchestrator` agent, which loads the `compliance` skill. It aggregates evidence from `/audit` and `/drift` runs to produce the `COMPLIANCE_READINESS_REPORT.md`.
+*   **Usage:**
+    ```bash
+    /compliance
+    ```
+
+### 3. `/debug` (Automated Troubleshooting)
 *   **Purpose:** Directs the verifier and builder agents to inspect failing pipeline execution logs, trace resource syntax compiler warnings, and propose/implement automated code fixes.
 *   **How it works:** Launches the `verifier` agent, which loads the `debug` skill. It parses compiler errors and coordinates with the builders to apply exact string replacements.
 *   **Usage:**

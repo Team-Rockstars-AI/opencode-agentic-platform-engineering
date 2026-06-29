@@ -75,8 +75,8 @@ In a catastrophic "cold disaster" scenario where an entire Azure region or resou
 ### Step 1: Re-deploy the OIDC Bootstrap Module
 Before the deployment pipeline can run, you must manually bootstrap the OIDC federated credentials to allow GitHub/Azure DevOps to authenticate:
 ```bash
-cd terraform/azure-oidc-bootstrap/v1/
-# OR cd bicep/azure-oidc-bootstrap/v1/
+cd modules/terraform/azure-oidc-bootstrap/v1/
+# OR cd modules/bicep/azure-oidc-bootstrap/v1/
 
 # Initialize and apply the bootstrap module locally
 terraform init

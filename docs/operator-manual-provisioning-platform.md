@@ -40,11 +40,18 @@ Before operating the provisioning platform, ensure the following tools are insta
 ## 3. Installation & Setup
 
 ### Step 1: Clone the Repository
-Clone this generator repository to your local workspace:
+Clone the **canonical** generator repository from Azure DevOps to your local workspace:
 ```bash
-git clone git@github.com:Team-Rockstars-AI/opencode-agentic-platform-engineering.git
-cd platform-engineer
+# Canonical (Azure DevOps)
+git clone https://dev.azure.com/your-org/platform-engineer/_git/opencode-agentic-platform-engineering
+cd opencode-agentic-platform-engineering
+
+# Mirror (GitHub)
+# git clone git@github.com:Team-Rockstars-AI/opencode-agentic-platform-engineering.git
+# cd opencode-agentic-platform-engineering
 ```
+
+> **Note on Canonicality:** Azure DevOps (ADO) is the authoritative home for this repository. All changes must flow through ADO. The GitHub repository is maintained as a mirror for visibility and public CI status. Do not push directly to the GitHub mirror.
 
 ### Step 2: Connect to OpenCode Zen
 OpenCode Zen provides optimized models at cost-price. Connect your OpenCode CLI to the Zen provider:

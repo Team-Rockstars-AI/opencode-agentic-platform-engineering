@@ -18,7 +18,7 @@ Add your subnet definition to the `terraform/main.tf` (or `bicep/main.bicep`) fi
 ```hcl
 # Add your subnet to the network baseline module call
 module "network_baseline" {
-  source = "./modules/azure-network-baseline/v1"
+  source = "../modules/terraform/azure-network-baseline/v1"
 
   project_name        = "sovereign-core"
   environment         = "prod"

@@ -8,25 +8,25 @@ Packs work in conjunction with the `/select-models` command and the `model-optim
 ## Pack Lifecycle
 The lifecycle of a Team Pack follows a structured flow to ensure safety and consistency:
 
-1.  **Discover**: Use `pack list` to find available packs in the local repository or central registry.
+1.  **Discover**: Use `/pack-list` to find available packs in the local repository or central registry.
 2.  **Select**: Choose a pack that aligns with the project's cost, quality, and jurisdiction requirements.
-3.  **Apply**: Use `pack apply <name>` to map the pack's blueprint to the local `opencode.json`.
-4.  **Validate**: The `select-models.py apply` logic (invoked by `pack apply`) validates that the requested models are available in the live ZEN/Ollama catalogs and comply with the `SECURITY_POLICY`.
+3.  **Apply**: Use `/pack-apply <name>` to map the pack's blueprint to the local `opencode.json`.
+4.  **Validate**: The `select-models.py apply` logic (invoked by `/pack-apply`) validates that the requested models are available in the live ZEN/Ollama catalogs and comply with the `SECURITY_POLICY`.
 5.  **Share**: Export custom configurations as new packs and share them via Pull Requests to establish organizational standards.
 
 ## Core Operations
-*   **`pack list`**: Scans `packs/` and `templates/opencode-config/packs/` for `pack.yaml` manifests and displays a summary table of available presets.
-*   **`pack apply <pack-name> [--version <v>]`**: 
+*   **`/pack-list`**: Scans `packs/` and `templates/opencode-config/packs/` for `pack.yaml` manifests and displays a summary table of available presets.
+*   **`/pack-apply <pack-name> [--version <v>]`**: 
     1.  Loads the specified `pack.yaml`.
     2.  Resolves the model mapping (preferring `model` if set, otherwise the first available entry in `preferred_model_ids`).
     3.  Invokes `scripts/select-models.py apply` with the resolved mapping, `jurisdiction_policy`, and `allow_local` settings.
     4.  Updates `opencode.json`, `manifest.yaml`, and `agent_config.py` upon successful validation.
-*   **`pack validate <pack-name> [--version <v>]`** (or `--all`):
+*   **`/pack-validate <pack-name> [--version <v>]`** (or `--all`):
     1.  Discovers the specified pack(s).
     2.  Runs a live discovery of the OpenCode ZEN and Ollama catalogs.
     3.  Verifies that every model referenced in the pack is available and permitted under the pack's jurisdiction policy.
     4.  Reports a PASS/FAIL status per agent without modifying any configuration.
-*   **`pack-create-from-current --name <name> --major <m> --description <text> --optimisation-focus <focus>`**:
+*   **`/pack-create-from-current --name <name> --major <m> --description <text> --optimisation-focus <focus>`**:
     1.  Captures the active agent/model configuration from `opencode.json` and `manifest.yaml`.
     2.  Derives the jurisdiction and local-model policy from `agent_config.py`.
     3.  Generates a new, versioned `pack.yaml` in both the local `packs/` directory and the `templates/` tree.
@@ -69,8 +69,9 @@ To contribute or create a new Team Pack, follow this workflow:
 1.  **Layout**: Create a new directory under `packs/<name>/v<major>/` (e.g., `packs/high-perf/v1/`).
 2.  **Manifest**: Create a `pack.yaml` following the [Pack Schema](#pack-schema).
 3.  **Local Validation**:
-    *   Run `python3 scripts/team_packs.py list` to ensure the pack is discovered and valid.
-    *   Run `python3 scripts/team_packs.py apply <name>` to test the mapping logic against your local environment.
+    *   Run `/pack-list` to ensure the pack is discovered and valid.
+    *   Run `/pack-apply <name>` to test the mapping logic against your local environment.
+    *   **CI Recommendation**: It is highly recommended to run `/pack-validate --all` in CI pipelines to ensure all committed packs remain valid against the live model catalog.
 4.  **Contribution**: Submit a Pull Request containing:
     *   The new pack directory and manifest.
     *   A description of the pack's intent, target use case, and cost/quality trade-offs.
