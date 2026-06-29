@@ -4,6 +4,8 @@
 [![Security Scan](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/security.yml/badge.svg)](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/security.yml)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://www.conventionalcommits.org)
 
+> **Canonical Host:** This repository's primary home is **Azure DevOps**. GitHub is maintained as a manually updated mirror. Contributors must not push directly to the GitHub mirror; all changes must flow through the Azure DevOps repository. Note that `.github/*` assets (workflows, templates) may exist only in the GitHub mirror for visibility, while Azure DevOps remains the authoritative source for CI/CD logic.
+
 Welcome! This repository is a **scaffolding generator** (a "repo that stamps other repos") designed for Azure platform engineering. It enables platform engineers and teams operating under strict regulatory baselines (such as **GDPR, DORA, and BIO**) to rapidly instantiate secure, compliant, and highly automated infrastructure-as-code (IaC) environments.
 
 This platform provides a comprehensive foundation covering:
@@ -39,10 +41,15 @@ This template is designed specifically for organizations operating under strict 
 Follow this step-by-step walkthrough to scaffold your secure platform-engineering workspace:
 
 ### Step 1: Clone the Repository
-Clone this generator repository to your local workspace:
+Clone the **canonical** repository from Azure DevOps (or the GitHub mirror) to your local workspace. **Always prefer the Azure DevOps source for the most up-to-date platform logic.**
 ```bash
-git clone https://github.com/your-org/platform-engineer.git
-cd platform-engineer
+# Canonical (Azure DevOps)
+git clone https://dev.azure.com/your-org/platform-engineer/_git/opencode-agentic-platform-engineering
+cd opencode-agentic-platform-engineering
+
+# Mirror (GitHub)
+# git clone https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering.git
+# cd opencode-agentic-platform-engineering
 ```
 
 ### Step 2: Connect to OpenCode Zen

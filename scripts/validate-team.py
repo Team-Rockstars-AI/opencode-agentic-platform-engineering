@@ -19,6 +19,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import Optional
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TEMPLATE_ROOT = REPO_ROOT / "templates" / "opencode-config"
@@ -43,7 +44,7 @@ def ok(msg: str) -> None:
 # Check 1: JSON validity
 # ---------------------------------------------------------------------------
 
-def check_json_valid(path: Path) -> dict | None:
+def check_json_valid(path: Path) -> Optional[dict]:
     try:
         with path.open(encoding="utf-8") as f:
             data = json.load(f)
@@ -222,7 +223,7 @@ def find_command_skill_refs(config: dict) -> set[str]:
 
 
 def check_orphan_skills(skills_dir: Path, all_prompt_dirs: list[Path], label: str,
-                        command_skill_refs: set[str] | None = None) -> None:
+                        command_skill_refs: Optional[set[str]] = None) -> None:
     print(f"\n  [{label}] Orphan skill check")
     if not skills_dir.exists():
         warn(f"[{label}] Skills directory not found: {skills_dir.relative_to(REPO_ROOT)}")
