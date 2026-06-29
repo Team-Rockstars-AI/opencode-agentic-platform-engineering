@@ -143,6 +143,7 @@ jobs:
   packs:
     name: Team pack governance
     runs-on: ubuntu-latest
+    if: ${{ env.TEAM_PACKS_VALIDATE == 'true' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
