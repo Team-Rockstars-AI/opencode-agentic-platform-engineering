@@ -112,6 +112,12 @@ Documentation-only markdown files that describe the intent and steps of slash co
 2. Maps findings to DORA, BIO, and GDPR articles using the `compliance` skill.
 3. Generates an auditor-ready `COMPLIANCE_READINESS_REPORT.md`.
 
+**Agent Team Packs workflow** (`/pack-list`, `/pack-apply`, `/pack-validate`, `/pack-create-from-current`) manages curated agent configurations. It:
+1. Discovers available presets (`/pack-list`).
+2. Validates pack compatibility with the live environment (`/pack-validate`).
+3. Applies a selected pack to the workspace (`/pack-apply`).
+4. Exports successful local configurations as new packs (`/pack-create-from-current`).
+
 ## Templates (`templates/`)
 
 - Use `{{mustache}}` or `{{handlebars}}` placeholders for all user-provided values.

@@ -4,7 +4,16 @@
 [![Security Scan](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/security.yml/badge.svg)](https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering/actions/workflows/security.yml)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://www.conventionalcommits.org)
 
-Welcome! This repository scaffolds secure, opinionated, **Secure-by-Design**, and compliant Azure platform infrastructures. By cloning this repo and running a few simple commands, you can generate a brand-new target repository fully pre-populated with a highly sophisticated **OpenCode Multi-Agent Team**, workflows, and secure infrastructure blueprints.
+Welcome! This repository is a **scaffolding generator** (a "repo that stamps other repos") designed for Azure platform engineering. It enables platform engineers and teams operating under strict regulatory baselines (such as **GDPR, DORA, and BIO**) to rapidly instantiate secure, compliant, and highly automated infrastructure-as-code (IaC) environments.
+
+This platform provides a comprehensive foundation covering:
+*   **Opinionated IaC:** Secure-by-Design blueprints for Terraform and Bicep.
+*   **DevOps & Governance:** Pre-configured GitHub Actions and Azure DevOps pipelines with OIDC-federated, zero-secret deployments.
+*   **Multi-Agent Team:** A sophisticated OpenCode agent team with specialized roles for infrastructure building, security auditing, and plan validation.
+*   **Reusable Skills:** Codified procedures for audits, compliance reporting, drift detection, and resource optimization.
+*   **Agent Team Packs:** Curated agent configurations and model profiles for different operational needs.
+
+By cloning this repo and running the `/scaffold` command, you can generate a brand-new target repository fully pre-populated with these capabilities, ready for production-grade Azure operations.
 
 ---
 
@@ -95,6 +104,18 @@ Run `/select-models` (see below) and choose your preferences; the team is then o
 *   **Local models (Ollama)** — *hardware allowing*, locally installed Ollama models can be assigned to suitable roles for zero-cost, fully sovereign execution. You declare your hardware tier (`Low-end` ≤8B, `Mid-range` ≤27B, `High-end` 70B+) and the optimizer only picks local models that fit.
 
 > **Shipped default:** out of the box the team ships **cloud-only, EU/US, cost-aware** so it works immediately without any local runtime — no Ollama required. Models are assigned by tier against the OpenCode Zen catalog: `opencode/gpt-5.1` for the `orchestrator`; `opencode/gpt-5.1-codex` for the code-generation builders; `opencode/claude-haiku-4-5` for the review agents (`security-auditor`, `plan-validator`, `code-reviewer`); and low-cost `opencode/gemini-3-flash` / `opencode/gpt-5.4-nano` / `opencode/gpt-5.1-codex-mini` for the lightweight `verifier`, `docs-writer`, `explorer`, and `test-writer` roles. Re-run `/select-models` at any time to re-optimize against the *current* live catalog, pricing, jurisdiction policy, and (optionally) local hardware.
+
+### 📦 Agent Team Packs & Model Profiles
+
+To simplify agent management, the platform supports **Agent Team Packs**. These are curated configurations that bundle specific agent prompts, skills, and model profiles (e.g., "Sovereign-Only", "High-Performance", or "Cost-Optimized").
+
+Key commands for managing packs:
+*   **`/pack-list`**: Discovers available agent team packs in the repository.
+*   **`/pack-validate`**: Validates a pack's compatibility with the current environment.
+*   **`/pack-apply`**: Applies a selected pack to the workspace.
+*   **`/pack-create-from-current`**: Exports the current local agent configuration as a new reusable pack.
+
+For more details on how to use and create packs, refer to the **[Agent Team Packs Guide (PACKS.md)](PACKS.md)** and the **[Packs Workflow Documentation](workflows/packs.md)**.
 
 ---
 

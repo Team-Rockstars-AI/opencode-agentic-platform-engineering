@@ -4,44 +4,7 @@ This log serves as a persistent, in-project memory of discoveries, findings, and
 
 ---
 
-## Milestone: Regulatory Compliance Mapping Engine (June 2026)
-
-### 🔍 Discoveries
-*   **Regulatory-Technical Gap:** There is often a significant gap between high-level regulatory requirements (DORA, BIO, GDPR) and the technical configurations in IaC. Bridging this gap requires a codified mapping matrix that translates technical controls into regulatory articles.
-*   **Continuous Audit Readiness:** Moving from point-in-time audits to continuous compliance mapping reduces the "compliance tax" on engineering teams and provides immediate visibility into the regulatory impact of infrastructure changes.
-
-### ⚠️ Findings
-*   **Manual Mapping Overhead:** Manually mapping every NSG rule or Key Vault setting to a regulatory article is time-consuming and prone to error, especially as infrastructure scales.
-*   **Lack of Auditor-Ready Artifacts:** While the platform was "secure-by-design," it lacked a single, automated artifact that could be presented to an auditor to prove compliance across multiple frameworks.
-
-### 💡 Solutions
-*   **Compliance Mapping Engine (`/compliance`):** Implemented a coordinated workflow that maps technical findings from `@security-auditor` and `@code-reviewer` directly to DORA, BIO, and GDPR articles.
-*   **Codified Mapping Matrix:** Authored the `compliance` skill which contains the source-of-truth mapping between Azure resource configurations and regulatory articles.
-*   **Automated Readiness Reporting:** Created a structured `COMPLIANCE_READINESS_REPORT.md` template that provides an executive summary and a detailed regulatory control matrix, significantly reducing audit preparation effort.
-*   **Architecture Decision Record (ADR 0006):** Formalized the decision to implement continuous regulatory mapping as a core platform capability.
-
----
-
-## Milestone: Agent Team Packs & Model Profiles (June 2026)
-
-### 🔍 Discoveries
-*   **Combinatorial Complexity:** Manually selecting and balancing models for a multi-agent team (considering cost, quality, and jurisdiction) creates significant cognitive load and brittle configurations.
-*   **Need for Presets:** Platform engineers require "known good" configurations (Team Packs) that can be easily shared, versioned, and applied across different projects or environments.
-
-### ⚠️ Findings
-*   **Brittle Configurations:** Manually tuned agent teams are difficult to reproduce and upgrade safely, leading to inconsistencies across the platform.
-*   **Policy Enforcement Gaps:** While `agent_config.py` enforces jurisdiction, there is no high-level mechanism to bundle these policies with specific agent/model combinations.
-
-### 💡 Solutions
-*   **Agent Team Packs:** Introduced the concept of versioned manifests (`pack.yaml`) that bundle agents, models, prompts, and policies into sharable presets.
-*   **Layered Selection Logic:** Designed packs to work on top of the existing `/select-models` discovery engine, providing the strategic blueprint while maintaining dynamic resilience.
-*   **Lifecycle Management:** Defined core operations (`pack list`, `pack apply`, `pack validate`) to manage the lifecycle of agent configurations.
-*   **ADR 0007:** Formalized the decision to implement Team Packs to standardize agent environments and reduce operational complexity.
-
-### 📝 Narrative Summary
-Layering static team pack blueprints over the dynamic model discovery engine (`select-models.py`) proved to be a critical architectural breakthrough. By separating the strategic intent (the "blueprint" in `pack.yaml`) from the tactical availability (the live ZEN/Ollama catalogs), we achieved a resilient and governed model configuration system. This approach allows platform engineers to define "known good" agent teams that automatically adapt to the specific models available in a given environment while strictly enforcing sovereignty and cost policies, effectively eliminating the "model not found" failures that previously plagued the orchestration loop.
-
-
+## Milestone: Formalised Reusable Skills Framework (June 2026)
 
 ### 🔍 Discoveries
 *   **Scattered Workflow Rules:** Scattered workflow rules across individual agent prompt files create structural drift, duplicate instructions, and make it difficult to maintain a single source of truth.
@@ -209,33 +172,21 @@ Layering static team pack blueprints over the dynamic model discovery engine (`s
 *   **Slash Command Integration (`/select-models`):** Registered the `select-models` command in `opencode.json` and its template equivalent, directing the orchestrator to run the model optimization workflow.
 *   **EU Cost-Focused Implementation:** Successfully ran the optimization engine to configure the workspace for EU cost-focused operations using local Ollama models (`ollama/codestral:22b` and `ollama/mistral:7b`) on mid-range hardware, verifying that all configuration files are syntactically valid and all self-tests passed.
 
-
 ---
 
 ## Milestone: Dynamic Model Discovery (June 2026)
 
 ### 🔍 Discoveries
-*   **Static matrices drift from reality:** The hardcoded model-mapping matrix referenced ZEN ids
-    that are not in the live catalog (e.g. `opencode/mistral-large-latest`, `opencode/codestral-latest`)
-    and Ollama ids that are not installed (`ollama/mistral:latest`). The active ZEN catalog
-    (`opencode models opencode`) exposes 45 models and, at the time of writing, **no Mistral models**.
-*   **Live Ollama metadata is richer via HTTP:** The Ollama `/api/tags` endpoint returns
-    `details.parameter_size`, enabling hardware-tier matching that `ollama list` alone cannot provide.
+*   **Static matrices drift from reality:** The hardcoded model-mapping matrix referenced ZEN ids that are not in the live catalog (e.g. `opencode/mistral-large-latest`, `opencode/codestral-latest`) and Ollama ids that are not installed (`ollama/mistral:latest`). The active ZEN catalog (`opencode models opencode`) exposes 45 models and, at the time of writing, **no Mistral models**.
+*   **Live Ollama metadata is richer via HTTP:** The Ollama `/api/tags` endpoint returns `details.parameter_size`, enabling hardware-tier matching that `ollama list` alone cannot provide.
 
 ### ⚠️ Findings
-*   **Availability must be enforced at apply time:** Trusting an agent-proposed mapping without
-    re-checking the live environment can silently re-introduce the model-availability breakage that
-    takes down the entire orchestration loop.
+*   **Availability must be enforced at apply time:** Trusting an agent-proposed mapping without re-checking the live environment can silently re-introduce the model-availability breakage that takes down the entire orchestration loop.
 
 ### 💡 Solutions
-*   **Discovery + apply split (`scripts/select-models.py`):** The script now only fetches live
-    catalogs (`discover`) and validates + writes a mapping (`apply`); selection reasoning moved to
-    the orchestrator agent via the rewritten `model-optimiser` skill.
-*   **Prefix-based jurisdiction inference:** Model jurisdiction is inferred from the id prefix
-    (mistral→EU, claude/gpt/gemini→US, cohere/north→Sovereign, deepseek/glm/qwen/minimax→Global),
-    with unknown ids defaulting to Global so they can never leak into an EU-only configuration.
-*   **Hard availability guard:** `apply` rejects any mapping whose models are absent from the freshly
-    discovered ZEN/Ollama catalogs, and rolls back on any verification failure.
+*   **Discovery + apply split (`scripts/select-models.py`):** The script now only fetches live catalogs (`discover`) and validates + writes a mapping (`apply`); selection reasoning moved to the orchestrator agent via the rewritten `model-optimiser` skill.
+*   **Prefix-based jurisdiction inference:** Model jurisdiction is inferred from the id prefix (mistral→EU, claude/gpt/gemini→US, cohere/north→Sovereign, deepseek/glm/qwen/minimax→Global), with unknown ids defaulting to Global so they can never leak into an EU-only configuration.
+*   **Hard availability guard:** `apply` rejects any mapping whose models are absent from the freshly discovered ZEN/Ollama catalogs, and rolls back on any verification failure.
 
 ---
 
@@ -254,6 +205,10 @@ Layering static team pack blueprints over the dynamic model discovery engine (`s
 *   **Drift Skill (`skills/drift/SKILL.md`):** Authored a new skill that codifies drift classification rules and enforces strict safety gates, ensuring that reconciliation guidance never defaults to resource replacement for stateful components.
 *   **Actionable Reconciliation Guidance:** The engine produces a structured `DRIFT_REPORT.md` (based on a new template) that provides the exact `terraform import` commands or Bicep parameter updates needed to sync the IaC state with reality, reducing manual remediation effort.
 *   **Static Validation & Mock Testing:** Verified the parsing and classification logic using mock plan JSONs to ensure reliability before live Azure subscription testing.
+
+---
+
+## Milestone: Azure DevOps Canonical CI (June 2026)
 
 ### 🔍 Discoveries
 *   **Dual-Platform Visibility:** Maintaining a GitHub mirror is essential for public visibility and community engagement, but using it as the primary CI/CD host can conflict with internal enterprise standards that mandate Azure DevOps for authoritative platform governance.
@@ -305,6 +260,24 @@ Layering static team pack blueprints over the dynamic model discovery engine (`s
 *   **ADR 0007:** Formalized the decision to implement Team Packs to standardize agent environments and reduce operational complexity.
 
 ### 📝 Narrative Summary
-Layering static team pack blueprints over the dynamic model discovery engine (`select-models.py`) proved to be a critical architectural breakthrough. By separating the strategic intent (the "blueprint" in `pack.yaml`) from the tactical availability (the live ZEN/Ollama catalogs), we achieved a resilient and governed model configuration system. This approach allows platform engineers to define "known good" agent teams that automatically adapt to the specific models available in a given environment while strictly enforcing sovereignty and cost policies, effectively eliminating the "model not found" failures that previously plagued the orchestration loop.
+Layering static team pack blueprints over the dynamic model discovery engine (`select-models.py`) proved to be a critical architectural breakthrough. By separating the strategic intent (the "blueprint" in `pack.yaml`) from the tactical availability (the live ZEN/Ollama catalogs), we achieved a resilient and governed model configuration system. This approach allows platform engineers to define "known good" agent teams that automatically adapt to the specific models available in a given environment while strictly enforcing sovereignty and cost policies, effectively eliminating the "model not found" failures that previously plagued the orchestration loop. Codifying the full lifecycle (discover → select → apply → validate → share) ensures that packs are not just static files, but active, governed components of the platform's security and operational posture. The subsequent documentation hardening pass further matured the system by clarifying the trade-offs between cost and reasoning quality in the default packs and establishing a clear, governed workflow for pack authorship and contribution. The final implementation of validation and export workflows (Milestone 4.3) completed the cycle, providing operators with the tools to verify pack health against live catalogs and snapshot successful configurations into new, versioned assets, thereby ensuring that the platform's agentic intelligence remains both portable and verifiable.
 
+---
 
+## Milestone: Pack Validation, Export & Sharing (June 2026)
+
+### 🔍 Discoveries
+*   **Dry-Run Validation Value:** Validating a pack against the live environment *before* application is essential for preventing orchestration failures. It allows operators to identify missing models or policy violations without risking the stability of the current agent team.
+*   **Configuration Capture:** Manually authoring `pack.yaml` manifests is tedious and error-prone. Capturing the active, verified configuration directly from the workspace (`opencode.json`, `manifest.yaml`, `agent_config.py`) is the most reliable way to create new, "known good" presets.
+
+### ⚠️ Findings
+*   **Stale Presets:** Without a validation mechanism, shipped packs can easily become stale as model catalogs evolve (e.g., a model is deprecated or renamed in ZEN).
+*   **Sharing Friction:** The lack of an export mechanism created a high barrier to entry for sharing successful agent configurations, limiting the growth of the platform's preset ecosystem.
+
+### 💡 Solutions
+*   **Live Validation Engine:** Implemented `pack validate`, which performs a live discovery of model catalogs and verifies pack compatibility against both availability and jurisdiction policies.
+*   **Automated Export Engine:** Implemented `pack-create-from-current`, which captures the active agent/model configuration and automatically generates a versioned `pack.yaml` manifest.
+*   **Dual-Tree Export:** Configured the export engine to write to both the local `packs/` directory and the `templates/` tree, ensuring that new presets are immediately available for both the current project and future scaffolded repositories.
+
+### 📝 Narrative Summary
+The final documentation hardening pass focused on refining the platform's entry-point experience, ensuring that the root `README.md` clearly communicates the repository's dual nature as both a generator and a governed operational environment. By explicitly defining the 'repo that stamps other repos' paradigm and elevating the visibility of the Agent Team Packs ecosystem, we've reduced the cognitive load for new operators and provided a clear map of the platform's advanced automation capabilities. This alignment between technical implementation and documentation ensures that the platform's sophisticated multi-agent orchestration and regulatory mapping features are immediately discoverable and actionable for teams operating under high-compliance mandates.

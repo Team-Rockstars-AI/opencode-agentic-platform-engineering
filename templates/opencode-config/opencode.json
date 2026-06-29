@@ -194,6 +194,16 @@
       "agent": "orchestrator",
       "template": "Ask the operator for the desired pack (and optional version), then run `python3 scripts/team_packs.py apply <pack-name> [--version vX]` to generate the mapping JSON and invoke `select-models.py apply`. Summarize the resulting model matrix and remind the team to document the change."
     },
+    "pack-validate": {
+      "description": "Validate a pack's referenced models against the live OpenCode ZEN and Ollama catalogs without applying it.",
+      "agent": "orchestrator",
+      "template": "Ask the operator which pack (and optional version) to verify, then run `python3 scripts/team_packs.py validate <pack-name> [--version vX]`. Summarize the OK/MISSING/DISALLOWED status per agent and report whether the pack passed or failed validation."
+    },
+    "pack-create-from-current": {
+      "description": "Export the current agent/model configuration into a versioned team pack for sharing via PRs.",
+      "agent": "orchestrator",
+      "template": "Gather the desired pack name, major version, description, and optimisation focus from the operator. Run `python3 scripts/team_packs.py create-from-current --name <name> --major <major> --description <text> --optimisation-focus <focus>` and summarize the generated pack paths plus the included agents/models."
+    },
     "audit": {
       "description": "Scan the current workspace for compliance, credentials, and network vulnerability risks.",
       "agent": "security-auditor",

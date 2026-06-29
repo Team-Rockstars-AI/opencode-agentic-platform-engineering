@@ -108,6 +108,31 @@ stages:
               PY
             displayName: Validate JSON/YAML config files
 
+      - job: PackGovernance
+        displayName: Team pack governance
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+
+          - task: UsePythonVersion@0
+            displayName: Use Python 3.12
+            inputs:
+              versionSpec: "3.12"
+              addToPath: true
+
+          - bash: |
+              set -euo pipefail
+              python -m pip install --upgrade pip
+              pip install -r requirements.txt
+            displayName: Install Python dependencies
+
+          - bash: |
+              set -euo pipefail
+              python3 scripts/team_packs.py list
+              python3 scripts/team_packs.py validate --all
+            displayName: Validate agent team packs
+
       - job: TerraformFmt
         displayName: Terraform fmt (modules only)
         pool:

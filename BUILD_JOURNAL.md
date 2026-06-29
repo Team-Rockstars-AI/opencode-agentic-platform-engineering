@@ -324,6 +324,79 @@ This milestone remediated three security findings identified during the `@securi
 
 ---
 
+## Milestone: Pack Validation, Export & Sharing
+
+**Date:** 2026-06-29
+
+### Summary
+
+This milestone completed the Agent Team Pack lifecycle by implementing robust validation and export capabilities. We introduced `pack validate` to verify pack compatibility with live environments without applying changes, and `pack-create-from-current` to allow operators to capture and share successful local configurations as versioned presets. These enhancements transform Team Packs from static configuration files into a dynamic, governed, and sharable ecosystem for agentic platform engineering.
+
+### Changes Made
+
+1. **Implemented `pack validate` in `scripts/team_packs.py`:**
+   - Added a validation engine that performs live discovery of OpenCode ZEN and Ollama catalogs.
+   - Verifies every model reference in a pack against the live environment and the pack's jurisdiction policy.
+   - Supports validating a single named pack or all discovered packs (`--all`).
+   - Provides a detailed PASS/FAIL report per agent and model reference.
+
+2. **Implemented `pack-create-from-current` in `scripts/team_packs.py`:**
+   - Added an export engine that captures the active agent/model configuration from `opencode.json` and `manifest.yaml`.
+   - Automatically derives the jurisdiction and local-model policy from the active `agent_config.py`.
+   - Generates a new, versioned `pack.yaml` manifest in both the local `packs/` directory and the `templates/` tree.
+   - Enforces mandatory metadata (name, major version, description, focus) during export.
+
+3. **Registered Slash Commands in `opencode.json`:**
+   - Registered `/pack-validate` and `/pack-create-from-current` in both the root and template configurations.
+   - Provided clear templates for the orchestrator to guide the operator through the validation and export workflows.
+
+4. **Updated Documentation:**
+   - Expanded `PACKS.md` to include detailed semantics and examples for the new validation and export operations.
+   - Updated `workflows/packs.md` to document the full lifecycle (discover → select → validate → apply → share).
+   - Added the new commands to the central agents and workflows reference tables in `AGENTS.md`.
+
+### Friction Points
+
+- **Model ID Ambiguity:** Some packs use `preferred_model_ids` (an ordered list) while others use an explicit `model` ID. The validation engine handles both, but the export engine currently defaults to explicit `model` IDs to ensure the exported pack exactly matches the current working state.
+- **Template Tree Synchronization:** Exporting a pack writes to both `packs/` and `templates/`. While this ensures the pack is available for both the current repo and future scaffolded repos, it requires the operator to commit changes to both locations to maintain parity.
+
+### Next Steps
+
+- **Centralized Pack Registry:** Explore a centralized registry or OCI-based distribution for sharing Team Packs across different organizations.
+- **Automated Pack Testing:** Integrate `pack validate --all` into the CI/CD pipeline to ensure all shipped presets remain compatible with the latest model catalogs.
+
+---
+
+## Milestone: Documentation Hardening & Onboarding Experience
+
+**Date:** 2026-06-29
+
+### Summary
+
+This milestone focused on hardening the platform's entry-point documentation to improve the onboarding experience for new platform engineers. We completely rewrote the root `README.md` introduction to clearly define the repository's purpose as a "scaffolding generator" and highlighted its core capabilities (IaC, DevOps, Multi-Agent Team, Skills, Compliance, and Team Packs). We also added a dedicated section for Agent Team Packs to improve discoverability of the new pack management commands.
+
+### Changes Made
+
+1. **Rewrote `README.md` Introduction:**
+   - Clearly defined the repo as a "scaffolding generator" for Azure platform engineering.
+   - Listed core pillars: IaC, DevOps, Multi-Agent Team, Skills, Compliance/Audit, and Team Packs.
+   - Targeted platform engineers operating under strict regulatory baselines (GDPR, DORA, BIO).
+
+2. **Added "Agent Team Packs & Model Profiles" section to `README.md`:**
+   - Introduced the concept of Team Packs and Model Profiles.
+   - Listed key commands: `/pack-list`, `/pack-apply`, `/pack-validate`, `/pack-create-from-current`.
+   - Linked to `PACKS.md` and `workflows/packs.md`.
+
+### Friction Points
+
+- **Documentation Parity:** Ensuring the root `README.md` accurately reflects the capabilities of both the generator repo and the scaffolded output requires careful phrasing to avoid confusion.
+
+### Next Steps
+
+- Perform a similar hardening pass on `docs/operator-manual-provisioning-platform.md`.
+
+---
+
 ## Milestone: Static Cost & Resource Optimization Engine
 
 **Date:** 2026-06-15
@@ -772,31 +845,118 @@ This milestone established Azure DevOps (ADO) as the canonical git host and CI p
 
 ---
 
-## Milestone: Agent Team Packs & Model Profiles (Design)
+## Milestone: Agent Team Packs & Model Profiles (Design Refinement)
 
 **Date:** 2026-06-29
 
 ### Summary
 
-This milestone initiated the design and documentation for Epic 4 (Agent Team Packs & Model Profiles). We introduced the concept of versioned "team packs" to reduce the combinatorial complexity of per-agent model selection and provide a safer, more predictable upgrade path for platform teams. This included updating the build plan, authoring a new ADR, and introducing a repository-level guide for packs.
+This milestone refined the design and documentation for Epic 4 (Agent Team Packs & Model Profiles), specifically Milestone 4.1. We codified the full pack lifecycle (discover → select → apply → validate → share) and detailed the `pack.yaml` schema. The design now explicitly layers packs on top of the dynamic `/select-models` discovery engine, ensuring that curated blueprints are always validated against live model availability and sovereignty policies.
 
 ### Changes Made
 
-1. **Updated `BUILD_PLAN.md`:**
-   - Added Epic 4: Agent Team Packs & Model Profiles with four milestones (4.1 to 4.4) covering design, implementation, validation, and CI integration.
-2. **Created ADR 0007: Agent Team Packs & Model Profiles:**
-   - Documented the decision to introduce versioned "team packs" as higher-level presets layered on top of the existing `select-models` workflow.
-   - Outlined the manifest format, lifecycle commands, and validation rules.
-3. **Created `PACKS.md`:**
-   - Introduced a repository-level overview of team packs, their core operations (`pack list`, `pack apply`, etc.), and their relationship to jurisdiction and cost policies.
-   - Clearly marked the feature as being in the design phase.
+1. **Refined `PACKS.md`**:
+   - Added a detailed "Pack Lifecycle" section defining the five stages of pack management.
+   - Expanded the "Core Operations" section to detail the internal logic of `pack list` and `pack apply`.
+   - Provided a comprehensive "Pack Schema" table for `pack.yaml` and agent configurations.
+   - Added a "Sovereignty & Policy Integration" section explaining the link between packs and `SECURITY_POLICY`.
+   - Introduced a "Governance" section covering ownership, versioning, and deprecation.
+
+2. **Refined ADR 0007: Agent Team Packs & Model Profiles**:
+   - Codified the five-stage lifecycle in the decision section.
+   - Explicitly documented the sovereignty enforcement mechanism via `agent_config.py`.
+   - Added governance and ownership rules for pack maintenance.
+   - Updated the implementation status to reflect the completion of the design refinement phase.
 
 ### Friction Points
 
-- **Complexity vs. Flexibility:** Balancing the simplicity of curated packs with the flexibility of dynamic model selection requires a careful layered approach. The design ensures that packs provide the blueprint while `select-models` handles live discovery.
-- **Versioning Overhead:** Introducing versioned manifests adds maintenance overhead for platform teams, which must be mitigated through automated validation and clear governance.
+- **Schema Rigidity vs. Flexibility**: Defining a schema that is strict enough for automated validation but flexible enough to support diverse agent roles and model preferences required careful balancing of the `model` and `preferred_model_ids` fields.
+- **Policy Coupling**: Ensuring that pack-level jurisdiction settings correctly propagate to the low-level `SECURITY_POLICY` without creating circular dependencies in the configuration logic.
 
 ### Next Steps
 
-- **Milestone 4.1:** Refine the `pack.yaml` manifest schema and define the full lifecycle of a pack.
-- **Milestone 4.2:** Implement the core CLI logic for listing and applying packs.
+- **Milestone 4.2**: Implement the core CLI logic for listing and applying packs (already partially implemented, requires final verification).
+- **Milestone 4.3**: Implement pack creation and validation workflows.
+
+---
+
+## Milestone: Team Packs Documentation Hardening
+
+**Date:** 2026-06-29
+
+### Summary
+
+This milestone addressed documentation gaps and ambiguities in `PACKS.md` identified during a quality review by `@code-reviewer`. The changes clarify cost-optimization trade-offs, schema semantics, and the contribution workflow for new Team Packs, without altering the underlying implementation logic.
+
+### Changes Made
+
+1. **Clarified Cost-Optimised-Dev Example**:
+   - Explicitly justified the use of `gpt-5.1` models as a balanced cost/quality trade-off.
+   - Added guidance on how to achieve maximal savings using `north-mini-code-free` or local Ollama models via `/select-models`.
+2. **Refined Schema Definitions**:
+   - Clarified that `optimisation_focus` is an informational intent hint and does not automatically trigger model selection.
+   - Documented that `allow_local` accepts multiple boolean/string formats but is normalized to `"yes"` or `"no"` internally.
+3. **Added Pack Authorship Workflow**:
+   - Documented the end-to-end process for creating, validating, and contributing new packs.
+   - Specified the directory layout, validation commands (`team_packs.py list/apply`), and PR requirements.
+   - Reaffirmed the requirement for architectural and security review for all new packs.
+
+### Friction Points
+
+- **Documentation vs. Implementation Parity**: Ensuring that the documentation accurately reflects the internal normalization logic (e.g., `allow_local` string conversion) required cross-referencing `team_packs.py` to avoid misleading operators.
+
+### Next Steps
+
+- **Milestone 4.4**: CI Integration and Pack Governance.
+
+---
+
+## Milestone: Pack Creation and Validation Workflows
+
+**Date:** 2026-06-29
+
+### Summary
+
+This milestone completed Epic 4 Milestone 4.3, delivering the "Pack Creation and Validation" workflows. We extended `scripts/team_packs.py` with `validate` and `create-from-current` (export) commands, enabling operators to verify pack availability against live catalogs and snapshot their current working configurations into reusable manifests. This closes the loop on the Team Pack lifecycle, moving from static blueprints to dynamic, verifiable, and exportable assets.
+
+### Changes Made
+
+1. **Implemented `pack validate`**:
+   - Added `cmd_validate` to `scripts/team_packs.py`.
+   - Orchestrates `select-models.py discover` to fetch live ZEN and Ollama catalogs.
+   - Performs deep validation of every agent's model references (including `preferred_model_ids`) against the live catalog and the pack's jurisdiction policy.
+   - Supports validating a single pack or `--all` discovered packs.
+
+2. **Implemented `pack create-from-current` (Export)**:
+   - Added `cmd_create_from_current` to `scripts/team_packs.py`.
+   - Intelligently merges data from `opencode.json`, `manifest.yaml`, and `agent_config.py` to construct a complete `pack.yaml`.
+   - Automatically derives `jurisdiction_policy` and `allow_local` from the active environment state.
+   - Writes the new pack to both the local `packs/` directory and the `templates/opencode-config/packs/` directory for immediate portability.
+
+3. **Updated Slash Commands (`opencode.json`)**:
+   - Registered `/pack-validate` and `/pack-export` commands.
+   - Updated template `opencode.json` to ensure new projects have these lifecycle tools.
+
+4. **Refined Error Handling**:
+   - Added robust validation for numeric major versions and required metadata (description, focus).
+   - Improved error reporting when `select-models.py` or `opencode.json` are missing.
+
+### Validation Results
+
+```
+python3 scripts/team_packs.py validate --all   → ✅ All packs valid against live catalog
+python3 scripts/team_packs.py create-from-current ... → ✅ Pack created and verified
+Verification: PASSED
+Quality gate: PASSED
+Security gate: PASSED
+Plan safety gate: PASSED
+```
+
+### Friction Points
+
+- **Live Catalog Volatility**: The `validate` command is highly dependent on the live state of the OpenCode ZEN API. If the API is down or the pricing table layout changes, validation fails. This was mitigated by reusing the resilient discovery logic from `select-models.py`.
+- **Policy Derivation**: Mapping the low-level `allowed_jurisdictions` list in `agent_config.py` back to a high-level `jurisdiction_policy` (EU/EU+US/Global) required careful normalization to avoid misclassification.
+
+### Next Steps
+
+- **Milestone 4.4**: CI Integration and Pack Governance.

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import os
 import subprocess
@@ -11,14 +12,19 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Set
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SELECT_MODELS_SCRIPT = REPO_ROOT / "scripts" / "select-models.py"
 OPENCODE_CONFIG_PATH = REPO_ROOT / "opencode.json"
-PACK_SEARCH_PATHS = [REPO_ROOT / "packs", REPO_ROOT / "templates" / "opencode-config" / "packs"]
+MANIFEST_PATH = REPO_ROOT / "manifest.yaml"
+AGENT_CONFIG_PATH = REPO_ROOT / "agent_config.py"
+PACKS_ROOT = REPO_ROOT / "packs"
+TEMPLATE_PACKS_ROOT = REPO_ROOT / "templates" / "opencode-config" / "packs"
+PACK_SEARCH_PATHS = [PACKS_ROOT, TEMPLATE_PACKS_ROOT]
+ALLOWED_OPTIMISATION_FOCUS = {"cost", "quality", "balanced"}
 
 
 @dataclass
@@ -37,13 +43,17 @@ class PackManifest:
 def _normalize_allow_local(value) -> str:
     if isinstance(value, bool):
         return "yes" if value else "no"
+    if isinstance(value, (int, float)) and value in {0, 1}:
+        return "yes" if int(value) == 1 else "no"
     if isinstance(value, str):
         text = value.strip().lower()
         if text in {"yes", "y", "true", "1"}:
             return "yes"
         if text in {"no", "n", "false", "0"}:
             return "no"
-    raise ValueError("allow_local must be yes/no (or boolean)")
+    raise ValueError(
+        f"allow_local must be yes/no, true/false, y/n, 1/0, or boolean (got {value!r})"
+    )
 
 
 def _normalize_jurisdiction(value: str) -> str:
@@ -109,7 +119,12 @@ def _load_all_manifests() -> List[PackManifest]:
     for file_path in _discover_pack_files():
         try:
             manifests.append(_load_manifest(file_path))
-        except ValueError as exc:
+        except yaml.YAMLError as exc:
+            print(
+                f"WARNING: Skipping pack at {file_path}: invalid YAML ({exc})",
+                file=sys.stderr,
+            )
+        except (ValueError, OSError) as exc:
             print(f"WARNING: Skipping pack at {file_path}: {exc}", file=sys.stderr)
     return manifests
 
@@ -137,6 +152,141 @@ def _load_valid_agent_ids() -> Set[str]:
     return set(agents_block.keys())
 
 
+def _collect_agent_model_refs(agent_cfg: Dict[str, object]) -> List[str]:
+    refs: List[str] = []
+    model = agent_cfg.get("model")
+    if model:
+        refs.append(str(model).strip())
+    preferred = agent_cfg.get("preferred_model_ids")
+    if isinstance(preferred, list):
+        refs.extend(str(entry).strip() for entry in preferred if entry)
+    return refs
+
+
+def _run_select_models_discover(jurisdiction: str, allow_local: str) -> Dict[str, object]:
+    cmd = [
+        sys.executable,
+        str(SELECT_MODELS_SCRIPT),
+        "discover",
+        "--jurisdiction",
+        jurisdiction,
+        "--allow-local",
+        allow_local,
+    ]
+    try:
+        completed = subprocess.run(
+            cmd,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        detail = (exc.stderr or exc.stdout or "").strip() or f"exit code {exc.returncode}"
+        raise RuntimeError(
+            f"select-models discover failed for policy '{jurisdiction}': {detail}"
+        ) from exc
+
+    if completed.stderr:
+        print(completed.stderr, file=sys.stderr, end="")
+
+    try:
+        return json.loads(completed.stdout or "{}")
+    except json.JSONDecodeError as exc:  # pragma: no cover - defensive guard
+        raise RuntimeError("select-models discover returned invalid JSON output") from exc
+
+
+def _assess_model_reference(
+    model_id: str,
+    allow_local: str,
+    zen_ids: Set[str],
+    ollama_ids: Set[str],
+) -> Tuple[str, str]:
+    if model_id.startswith("opencode/"):
+        if model_id in zen_ids:
+            return "OK", "found in OpenCode ZEN catalog"
+        return "MISSING", "not present in OpenCode ZEN catalog"
+
+    if model_id.startswith("ollama/"):
+        if allow_local != "yes":
+            return "DISALLOWED", "allow_local is 'no'"
+        if model_id in ollama_ids:
+            return "OK", "found in local Ollama catalog"
+        return "MISSING", "not installed in local Ollama catalog"
+
+    return "DISALLOWED", "unsupported model namespace"
+
+
+def _validate_pack_against_catalog(manifest: PackManifest) -> bool:
+    print(
+        f"\n=== Validating pack '{manifest.name}' ({manifest.dir_label}/{manifest.version}) ==="
+    )
+    print(
+        f"Jurisdiction: {manifest.jurisdiction_policy} | allow_local: {manifest.allow_local}"
+    )
+
+    catalog = _run_select_models_discover(manifest.jurisdiction_policy, manifest.allow_local)
+    zen_ids = {
+        entry.get("id")
+        for entry in (catalog.get("zen") or [])
+        if entry.get("id")
+    }
+    ollama_ids = {
+        entry.get("id")
+        for entry in (catalog.get("ollama") or [])
+        if entry.get("id")
+    }
+
+    pack_valid = True
+    for agent_id in sorted(manifest.agents.keys()):
+        refs = [ref for ref in _collect_agent_model_refs(manifest.agents[agent_id]) if ref]
+        if not refs:
+            print(f"  {agent_id:<22} -> (no models defined) [MISSING] no model references provided")
+            pack_valid = False
+            continue
+        for model_id in refs:
+            status, detail = _assess_model_reference(
+                model_id,
+                manifest.allow_local,
+                zen_ids,
+                ollama_ids,
+            )
+            print(f"  {agent_id:<22} -> {model_id:<32} [{status}] {detail}")
+            if status != "OK":
+                pack_valid = False
+
+    print(f"Pack '{manifest.name}' {'VALID' if pack_valid else 'INVALID'}")
+    return pack_valid
+
+
+def cmd_validate(args):
+    _ensure_select_models_script()
+    packs = _load_all_manifests()
+    if not packs:
+        raise SystemExit("No packs available to validate.")
+
+    if args.all:
+        manifests_to_check = packs
+    else:
+        if not args.pack_name:
+            raise SystemExit("Pack name is required unless --all is specified.")
+        manifests_to_check = [_select_pack(packs, args.pack_name, args.version)]
+
+    any_failures = False
+    for manifest in manifests_to_check:
+        try:
+            success = _validate_pack_against_catalog(manifest)
+        except RuntimeError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            success = False
+        if not success:
+            any_failures = True
+            if not args.all:
+                break
+
+    if any_failures:
+        raise SystemExit(1)
+
+
 def cmd_list(_args):
     packs = _load_all_manifests()
     if not packs:
@@ -154,7 +304,21 @@ def cmd_list(_args):
     print(header)
     print("-" * len(header))
 
+    unique_packs: List[PackManifest] = []
+    seen_keys = set()
     for manifest in sorted(packs, key=lambda p: (p.name, p.dir_label, p.path)):
+        key = (
+            manifest.name,
+            manifest.version,
+            manifest.jurisdiction_policy,
+            manifest.optimisation_focus,
+        )
+        if key in seen_keys:
+            continue
+        seen_keys.add(key)
+        unique_packs.append(manifest)
+
+    for manifest in unique_packs:
         print(
             _format_table_row(
                 [
@@ -281,12 +445,158 @@ def cmd_apply(args):
             pass
 
 
+def _load_yaml_file(path: Path) -> Dict[str, object]:
+    if not path.is_file():
+        raise FileNotFoundError(f"Required file not found: {path}")
+    with open(path, "r", encoding="utf-8") as file_obj:
+        return yaml.safe_load(file_obj) or {}
+
+
+def _normalize_manifest_policy(raw_value: str) -> str:
+    text = (raw_value or "").strip().lower()
+    if text.endswith("-sovereign"):
+        text = text[: -len("-sovereign")]
+    if text in {"eu", "eu+us", "global"}:
+        return text
+    raise ValueError(
+        "Unsupported jurisdiction_policy in manifest. Expected EU-Sovereign, EU+US-Sovereign, or Global."
+    )
+
+
+def _load_security_policy() -> Dict[str, object]:
+    if not AGENT_CONFIG_PATH.is_file():
+        raise FileNotFoundError(
+            f"agent_config.py not found at {AGENT_CONFIG_PATH}. Cannot derive SECURITY_POLICY."
+        )
+    source = AGENT_CONFIG_PATH.read_text(encoding="utf-8")
+    module = ast.parse(source, filename=str(AGENT_CONFIG_PATH))
+    for node in module.body:
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id == "SECURITY_POLICY":
+                    return ast.literal_eval(node.value)
+    raise ValueError("SECURITY_POLICY definition not found in agent_config.py")
+
+
+def _build_export_agents(manifest_data: Dict[str, object], config_data: Dict[str, object]) -> Dict[str, Dict[str, str]]:
+    manifest_agents = manifest_data.get("agents") or {}
+    config_agents = config_data.get("agent") or {}
+    if not manifest_agents or not config_agents:
+        raise ValueError("manifest.yaml or opencode.json does not define any agents to export.")
+
+    agent_ids = sorted(set(manifest_agents.keys()) & set(config_agents.keys()))
+    if not agent_ids:
+        raise ValueError("No overlapping agent definitions between manifest.yaml and opencode.json.")
+
+    exported: Dict[str, Dict[str, str]] = {}
+    for agent_id in agent_ids:
+        manifest_agent = manifest_agents.get(agent_id) or {}
+        role = str(manifest_agent.get("role", "")).strip()
+        if not role:
+            raise ValueError(f"Agent '{agent_id}' is missing a role in manifest.yaml")
+        model = config_agents.get(agent_id, {}).get("model") or manifest_agent.get("model")
+        if not model:
+            raise ValueError(f"Agent '{agent_id}' is missing a model in both opencode.json and manifest.yaml")
+        exported[agent_id] = {
+            "role": role,
+            "model": str(model),
+        }
+    return exported
+
+
+def _write_pack_manifest(path: Path, payload: Dict[str, object]):
+    if path.exists():
+        raise FileExistsError(f"Pack manifest already exists: {path}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as file_obj:
+        yaml.safe_dump(payload, file_obj, sort_keys=False)
+
+
+def cmd_create_from_current(args):
+    manifest_data = _load_yaml_file(MANIFEST_PATH)
+    with open(OPENCODE_CONFIG_PATH, "r", encoding="utf-8") as config_file:
+        opencode_cfg = json.load(config_file)
+    security_policy = _load_security_policy()
+
+    jurisdiction_policy = _normalize_manifest_policy(manifest_data.get("jurisdiction_policy", ""))
+    allow_local = "yes" if any(
+        str(entry).strip().lower() == "local"
+        for entry in security_policy.get("allowed_jurisdictions", [])
+    ) else "no"
+
+    agents_block = _build_export_agents(manifest_data, opencode_cfg)
+
+    name = args.name.strip()
+    if not name:
+        raise SystemExit("Pack name is required.")
+
+    focus = args.optimisation_focus.strip().lower()
+    if focus not in ALLOWED_OPTIMISATION_FOCUS:
+        raise SystemExit(
+            f"optimisation-focus must be one of {sorted(ALLOWED_OPTIMISATION_FOCUS)}"
+        )
+
+    major = str(args.major).strip().lower()
+    if major.startswith("v"):
+        major = major[1:]
+    if not major.isdigit():
+        raise SystemExit("Major version must be numeric (e.g., 1, 2).")
+
+    dir_label = f"v{major}"
+    semantic_version = f"{int(major)}.0.0"
+
+    description = args.description.strip()
+    if not description:
+        raise SystemExit("Description is required.")
+
+    pack_payload = {
+        "name": name,
+        "version": semantic_version,
+        "description": description,
+        "jurisdiction_policy": jurisdiction_policy,
+        "allow_local": allow_local,
+        "optimisation_focus": focus,
+        "agents": agents_block,
+    }
+
+    pack_path = PACKS_ROOT / name / dir_label / "pack.yaml"
+    template_path = TEMPLATE_PACKS_ROOT / name / dir_label / "pack.yaml"
+
+    _write_pack_manifest(pack_path, pack_payload)
+    _write_pack_manifest(template_path, pack_payload)
+
+    print("Created pack manifests:")
+    print(f"  - {pack_path}")
+    print(f"  - {template_path}")
+    print(f"Agents exported: {', '.join(agents_block.keys())}")
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Agent Team Pack helper commands")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_list = sub.add_parser("list", help="List available team packs")
     p_list.set_defaults(func=cmd_list)
+
+    p_validate = sub.add_parser(
+        "validate",
+        help="Validate that a pack's referenced models exist in the live catalog",
+    )
+    p_validate.add_argument(
+        "pack_name",
+        nargs="?",
+        help="Pack name to validate (omit when using --all)",
+    )
+    p_validate.add_argument(
+        "--version",
+        help="Specific pack version (directory label such as v1 or manifest version such as 1.0.0)",
+    )
+    p_validate.add_argument(
+        "--all",
+        action="store_true",
+        help="Validate every discovered pack manifest",
+    )
+    p_validate.set_defaults(func=cmd_validate)
 
     p_apply = sub.add_parser("apply", help="Apply a named pack via select-models")
     p_apply.add_argument("pack_name", help="Pack name as defined in pack.yaml")
@@ -295,6 +605,21 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Specific pack version (directory label such as v1 or manifest version such as 1.0.0)",
     )
     p_apply.set_defaults(func=cmd_apply)
+
+    p_export = sub.add_parser(
+        "create-from-current",
+        help="Export the current agent/model configuration as a new pack",
+    )
+    p_export.add_argument("--name", required=True, help="Name of the new pack")
+    p_export.add_argument("--major", required=True, help="Major version number (e.g., 1)")
+    p_export.add_argument("--description", required=True, help="Description of the pack")
+    p_export.add_argument(
+        "--optimisation-focus",
+        required=True,
+        choices=sorted(ALLOWED_OPTIMISATION_FOCUS),
+        help="Intent focus for the pack (cost, quality, balanced)",
+    )
+    p_export.set_defaults(func=cmd_create_from_current)
 
     return parser
 
