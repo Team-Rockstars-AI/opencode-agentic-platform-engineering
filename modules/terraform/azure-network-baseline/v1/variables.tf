@@ -128,3 +128,25 @@ variable "log_analytics_workspace_id" {
   default     = null
   description = "The resource ID of the central Log Analytics workspace for diagnostics"
 }
+
+variable "appgw_autoscale_min_capacity" {
+  type        = number
+  description = "Minimum instance count for Application Gateway autoscaling"
+  default     = 1
+
+  validation {
+    condition     = var.appgw_autoscale_min_capacity >= 0 && var.appgw_autoscale_min_capacity <= 100
+    error_message = "The appgw_autoscale_min_capacity must be between 0 and 100."
+  }
+}
+
+variable "appgw_autoscale_max_capacity" {
+  type        = number
+  description = "Maximum instance count for Application Gateway autoscaling"
+  default     = 3
+
+  validation {
+    condition     = var.appgw_autoscale_max_capacity >= 2 && var.appgw_autoscale_max_capacity <= 125
+    error_message = "The appgw_autoscale_max_capacity must be between 2 and 125."
+  }
+}

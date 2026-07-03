@@ -38,7 +38,7 @@ param runnerToken string = 'placeholder-pat'
   '1.75'
   '2.0'
 ])
-param runnerCpu string = '1.0'
+param runnerCpu string = '0.5'
 
 @description('Memory allocated to the runner container (e.g., "0.5Gi", "1.0Gi", "2.0Gi")')
 @allowed([
@@ -49,7 +49,12 @@ param runnerCpu string = '1.0'
   '3.0Gi'
   '4.0Gi'
 ])
-param runnerMemory string = '2.0Gi'
+param runnerMemory string = '1.0Gi'
+
+@minValue(1)
+@maxValue(25)
+@description('Maximum replica count for the runner Container App')
+param maxReplicas int = 5
 
 param tags object = {}
 
@@ -132,7 +137,7 @@ resource runnerApp 'Microsoft.App/containerApps@2023-05-01' = {
       ]
       scale: {
         minReplicas: 0
-        maxReplicas: 5
+        maxReplicas: maxReplicas
         rules: [
           {
             name: 'github-queue-scaler'

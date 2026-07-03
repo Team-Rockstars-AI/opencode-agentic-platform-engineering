@@ -38,6 +38,23 @@ param githubRepoName string = '{{github_repo_name}}'
 @secure()
 param runnerToken string = 'placeholder-pat'
 
+@description('Assign the subscription-scope Azure Policy baseline (runtime enforcement of the secure-by-design controls)')
+param enablePolicyBaseline bool = true
+
+@description('Azure regions resources may be deployed to (data-residency guardrail). Empty array defaults to the platform primary location.')
+param policyAllowedLocations array = []
+
+@description('Effect for the parameterisable baseline policies: Audit reports violations, Deny blocks them. Applies to the whole subscription.')
+@allowed([
+  'Audit'
+  'Deny'
+  'Disabled'
+])
+param policyEffect string = 'Audit'
+
+@description('When false, baseline policy assignments are created in DoNotEnforce mode (evaluate and report only)')
+param policyEnforcementMode bool = true
+
 // Core resource group
 resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: 'rg-${projectName}-${environment}-${location}'
@@ -59,6 +76,8 @@ module network '../../modules/bicep/azure-network-baseline/v1/main.bicep' = {
     environment: environment
     location: location
     isEnterprise: (governanceTier == 'enterprise')
+    appgwAutoscaleMinCapacity: (environment == 'prod') ? 2 : 1
+    appgwAutoscaleMaxCapacity: (environment == 'prod') ? 10 : 2
     tags: rg.tags
     logAnalyticsWorkspaceId: logging.outputs.workspaceId
   }
@@ -100,8 +119,26 @@ module runners '../../modules/bicep/azure-private-runner/v1/main.bicep' = if (go
     githubOrgName: githubOrgName
     githubRepoName: githubRepoName
     runnerToken: runnerToken
+    maxReplicas: (environment == 'prod') ? 5 : 2
+    runnerCpu: (environment == 'prod') ? '1.0' : '0.5'
+    runnerMemory: (environment == 'prod') ? '2.0Gi' : '1.0Gi'
     tags: rg.tags
     logAnalyticsWorkspaceId: logging.outputs.workspaceId
+  }
+}
+
+// Subscription-scope Azure Policy baseline — runtime enforcement of the
+// secure-by-design controls (data residency, PaaS public-access lockdown,
+// Key Vault purge protection, NAT-only egress). Assignments default to
+// Audit effect; raise policyEffect to 'Deny' once the subscription is clean.
+module policyBaseline '../../modules/bicep/azure-policy-baseline/v1/main.bicep' = if (enablePolicyBaseline) {
+  name: 'policy-baseline-deployment'
+  params: {
+    projectName: projectName
+    environment: environment
+    allowedLocations: empty(policyAllowedLocations) ? [location] : policyAllowedLocations
+    policyEffect: policyEffect
+    enforcementMode: policyEnforcementMode
   }
 }
 

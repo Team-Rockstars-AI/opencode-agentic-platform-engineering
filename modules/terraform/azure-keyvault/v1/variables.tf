@@ -71,3 +71,9 @@ variable "public_network_access_enabled" {
   description = "Is public network access enabled for this Key Vault?"
   default     = false
 }
+
+variable "log_analytics_workspace_id" {
+  type        = string
+  description = "The resource ID of the central Log Analytics workspace for diagnostics"
+  default     = null
+}

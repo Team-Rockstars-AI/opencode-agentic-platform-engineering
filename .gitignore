@@ -12,6 +12,10 @@ __pycache__/
 scripts/.zen-pricing-cache.json
 *.bak
 
+# Terraform working dirs (created by local `terraform init`/`terraform test` runs)
+.terraform/
+.terraform.lock.hcl
+
 # IDEs/Editors
 .vscode/
 .idea/

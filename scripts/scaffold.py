@@ -7,9 +7,16 @@ Zero external dependencies (uses only Python's standard library).
 
 import os
 import sys
+import json
 import shutil
+import hashlib
 import argparse
+import datetime
 import subprocess
+
+# Version/inputs stamp written into every scaffolded workspace; consumed by
+# scripts/update.py to sync the workspace with newer template versions.
+STAMP_FILENAME = ".platform-scaffold.json"
 
 def prompt_choice(question, choices, default):
     choices_str = "/".join(choices)
@@ -39,6 +46,12 @@ def prompt_input(question, default, required=False):
             print("\nOperation cancelled by user.")
             sys.exit(1)
 
+# Transient local artifacts that must never ship into a scaffolded workspace
+# (e.g. .terraform/ provider binaries left behind by local validation runs).
+SKIP_DIRS = {".git", ".terraform", "__pycache__", ".pytest_cache", ".ruff_cache", "node_modules"}
+SKIP_FILES = {".terraform.lock.hcl", ".DS_Store"}
+
+
 def copy_dir(src, dst):
     if not os.path.exists(src):
         return
@@ -48,8 +61,12 @@ def copy_dir(src, dst):
         s = os.path.join(src, item)
         d = os.path.join(dst, item)
         if os.path.isdir(s):
+            if item in SKIP_DIRS:
+                continue
             copy_dir(s, d)
         else:
+            if item in SKIP_FILES:
+                continue
             shutil.copy2(s, d)
 
 def copy_file(src, dst):
@@ -152,6 +169,56 @@ def create_gitignore(target_dir, iac_framework):
     with open(gitignore_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
+def get_template_git_info(repo_root):
+    """Best-effort git identity of this template repo (works from a tarball too)."""
+    info = {"template_repo": "unknown", "template_commit": "unknown"}
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=repo_root, capture_output=True, text=True
+        )
+        if commit.returncode == 0 and commit.stdout.strip():
+            info["template_commit"] = commit.stdout.strip()
+        remote = subprocess.run(
+            ["git", "config", "--get", "remote.origin.url"], cwd=repo_root, capture_output=True, text=True
+        )
+        if remote.returncode == 0 and remote.stdout.strip():
+            info["template_repo"] = remote.stdout.strip()
+    except Exception:
+        pass
+    return info
+
+
+def write_scaffold_stamp(target_dir, repo_root, inputs):
+    """Record template version, scaffold inputs, and a hash manifest of the output.
+
+    Hashes are computed after placeholder substitution, so they reflect exactly
+    what the user received; update.py compares against them to detect local edits.
+    """
+    files = {}
+    for root, dirs, names in os.walk(target_dir):
+        dirs[:] = [d for d in dirs if d != ".git"]
+        for name in names:
+            if name == STAMP_FILENAME:
+                continue
+            path = os.path.join(root, name)
+            rel = os.path.relpath(path, target_dir).replace(os.sep, "/")
+            digest = hashlib.sha256()
+            with open(path, "rb") as file_obj:
+                digest.update(file_obj.read())
+            files[rel] = f"sha256:{digest.hexdigest()}"
+
+    stamp = {
+        "schema_version": 1,
+        **get_template_git_info(repo_root),
+        "scaffolded_at": datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat(),
+        "inputs": inputs,
+        "files": files,
+    }
+    with open(os.path.join(target_dir, STAMP_FILENAME), "w", encoding="utf-8") as file_obj:
+        json.dump(stamp, file_obj, indent=2, sort_keys=True)
+        file_obj.write("\n")
+
+
 def initialize_git(target_dir):
     print("\nInitializing Git repository in the target directory...")
     try:
@@ -193,6 +260,7 @@ def main():
     parser.add_argument("--github-runner-pool", help="GitHub runner pool (default: ubuntu-latest)")
     parser.add_argument("--ado-runner-pool", help="Azure DevOps runner pool (default: ubuntu-latest)")
     parser.add_argument("--non-interactive", action="store_true", help="Disable interactive prompting")
+    parser.add_argument("--no-git", action="store_true", help="Skip git init/commit in the target (used by update.py re-renders)")
 
     args = parser.parse_args()
 
@@ -358,6 +426,8 @@ def main():
     copy_file(os.path.join(config_src, "agent_config.py"), os.path.join(target_dir, "agent_config.py"))
     copy_file(os.path.join(config_src, "scripts", "validate-skills.py"), os.path.join(target_dir, "scripts", "validate-skills.py"))
     copy_file(os.path.join(config_src, "scripts", "select-models.py"), os.path.join(target_dir, "scripts", "select-models.py"))
+    copy_file(os.path.join(config_src, "scripts", "update.py"), os.path.join(target_dir, "scripts", "update.py"))
+    copy_file(os.path.join(config_src, "scripts", "team_packs.py"), os.path.join(target_dir, "scripts", "team_packs.py"))
 
     # 5. Copy AGENTS.md
     copy_file(os.path.join(repo_root, "templates", "AGENTS.md"), os.path.join(target_dir, "AGENTS.md"))
@@ -398,6 +468,12 @@ def main():
     # 7. Cleanup unused scaffolding metadata files
     cleanup_unused(target_dir)
 
+    # 7b. Stamp the workspace with template version + inputs + file manifest
+    write_scaffold_stamp(target_dir, repo_root, replacements | {
+        "iac_framework": iac_framework,
+        "devops_platform": devops_platform,
+    })
+
     # 8. Set execution permissions for any copied scripts
     target_validate_script = os.path.join(target_dir, "scripts", "validate-skills.py")
     if os.path.exists(target_validate_script):
@@ -409,7 +485,8 @@ def main():
     print("✅ Files copied and configured successfully.")
 
     # 9. Git initialization
-    initialize_git(target_dir)
+    if not args.no_git:
+        initialize_git(target_dir)
 
     print("\n🎉 Scaffolding complete! Your new platform engineering repository is ready at:")
     print(f"   {target_dir}\n")
