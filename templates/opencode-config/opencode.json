@@ -203,6 +203,11 @@
       "description": "Scan the current workspace for cost-saving opportunities and resource sizing inefficiencies.",
       "agent": "orchestrator",
       "template": "Please use the `optimise` skill to scan the current workspace configurations, modules, and templates for cost leaks, oversized SKUs, and resource sizing inefficiencies. Coordinate with the code-reviewer and security-auditor to ensure optimizations do not compromise security or standards, and summon the docs-writer to compile a detailed cost optimization report."
+    },
+    "update": {
+      "description": "Sync this scaffolded repository with the latest upstream platform template version.",
+      "agent": "orchestrator",
+      "template": "Please use the `update` skill. Ask the user for the local path (or git URL to clone) of the upstream template repository, run `python3 scripts/update.py --template-path <path> --dry-run` first, present the classification summary for approval, then apply and coordinate conflict merges between the builders, verifier, and security-auditor. Finish by having the docs-writer complete the update report."
     }
   }
 }

@@ -112,6 +112,19 @@ You can interact with your multi-agent platform team directly from the OpenCode 
     /select-models
     ```
 
+### 6. `/update` (Template Synchronisation — Keeping Your Platform Up to Date)
+*   **Purpose:** Pulls upstream platform-template improvements (module fixes, new skills, security patches, pipeline updates) into your workspace without losing local changes. Your repository is never orphaned from the template that generated it.
+*   **How it works:** At scaffold time, `scaffold.py` stamped this repository with `.platform-scaffold.json` (template commit, your scaffold inputs, and a sha256 manifest of every generated file). The `/update` command drives `scripts/update.py`, which re-renders the templates at the new version with your recorded inputs and classifies every file three-way (original render vs. your current file vs. new render). Files you never touched are auto-updated; files you modified are kept; files changed on *both* sides are flagged as conflicts and merged with agent assistance (builders merge, `@verifier` re-validates, `@security-auditor` reviews). A report lands in `docs/reports/`.
+*   **Safety:** Requires a clean `git status` first; nothing is committed automatically; conflicts in `*.tfvars`, `backend.tf`, or pipeline credential/OIDC configuration are always escalated to you rather than merged.
+*   **Usage:**
+    ```bash
+    # Clone or pull the template repo first, then:
+    /update
+    # Or run the tool directly:
+    python3 scripts/update.py --template-path ../platform-engineer --dry-run
+    python3 scripts/update.py --template-path ../platform-engineer
+    ```
+
 ---
 
 ## 6. Secure Governance Guardrails

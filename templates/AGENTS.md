@@ -94,6 +94,7 @@ Your workspace includes a set of reusable **Skills** — codified procedures tha
 | **`plan-tracking`** | `@plan-validator`, `@docs-writer` | Execution plan JSON conversion, resource action tracking, milestone status updates, and session state maintenance. |
 | **`security-checklist`** | `@security-auditor`, `audit` skill | Structured PASS/FAIL/NA review checklist covering OIDC, network isolation, soft-delete, least-privilege IAM, diagnostic logging, and strict typing. Produces findings with severity ratings and remediation blocks. |
 | **`test-patterns`** | `@test-writer`, `@builder-infra-tf` | Unit and validation test guidelines for Terraform (.tftest.hcl) and Bicep modules, including plan assertions and what-if validation patterns. |
+| **`update`** | `/update` command | Template synchronisation — pulls upstream platform-template improvements into this workspace via `scripts/update.py` and the `.platform-scaffold.json` stamp, with agent-assisted conflict merging. |
 
 ## Developer Commands & Slash Actions
 
@@ -102,6 +103,7 @@ Your workspace includes a set of reusable **Skills** — codified procedures tha
 *   **`/expand`**: Initiates a guided rollout to deploy new resource components under strict organization governance.
 *   **`/optimise`**: Scans your entire workspace for cost leaks, oversized SKUs, and resource sizing inefficiencies. Outputs a comprehensive cost optimization report.
 *   **`/select-models`**: Fetches a fresh OpenCode ZEN model list and your installed Ollama models, then assigns the optimal available model per agent (jurisdiction, cost/quality focus, local hardware).
+*   **`/update`**: Syncs this workspace with the latest upstream platform template version — auto-applies files you never touched, keeps your local modifications, and coordinates agent-assisted merges for conflicts. Outputs an update report under `docs/reports/`.
 
 ## Adding New Content
 

@@ -58,7 +58,12 @@ The platform agent team will automatically:
 *   Copy your selected landing zone skeletons.
 *   Inject the complete, pre-configured **11-Agent Team** and prompts into `.opencode/`.
 *   Replace all variable placeholders (`{{project_name}}`, `{{azure_location}}`, etc.) across modules and pipelines.
+*   Stamp the workspace with `.platform-scaffold.json` (template version, inputs, and file manifest) so it can receive upstream updates later.
 *   Initialize Git and run compliance validations.
+
+### Keeping scaffolded repositories up to date
+
+Scaffolded workspaces are not orphaned: each ships with `scripts/update.py` and an `/update` slash command. When this template repository improves (module fixes, new skills, security patches), run `/update` inside the generated repo — files you never touched are updated automatically, your local modifications are preserved, and genuine conflicts are flagged for agent-assisted merging with a full report under `docs/reports/`.
 
 ---
 
