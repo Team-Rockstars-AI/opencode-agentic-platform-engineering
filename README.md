@@ -203,6 +203,7 @@ Continuous integration and security scanning run automatically on each PR (and w
 | **CI (ADO/GitHub)** | IaC Linting | `terraform fmt -check`, `tflint`, and `bicep lint` |
 | **CI (ADO/GitHub)** | Python unit tests | `pytest` over the scaffolding engine, validators, and model selector |
 | **CI (ADO/GitHub)** | IaC module tests | `terraform test` (provider-mocked) and Bicep test-file builds for every module |
+| **CI (ADO/GitHub)** | E2E scaffold verification | Generates real workspaces (4 IaC/platform/tier combos) and validates placeholders, configs, and rendered IaC |
 | **CI (ADO/GitHub)** | Secret scan (gitleaks) | Block leaked credentials |
 | **Security Scan** | Bandit (Python SAST) | Block on HIGH-severity findings |
 | **Security Scan** | Checkov (IaC) | Report Terraform/Bicep misconfigurations |

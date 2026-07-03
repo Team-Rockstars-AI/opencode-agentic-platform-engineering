@@ -39,6 +39,12 @@ def prompt_input(question, default, required=False):
             print("\nOperation cancelled by user.")
             sys.exit(1)
 
+# Transient local artifacts that must never ship into a scaffolded workspace
+# (e.g. .terraform/ provider binaries left behind by local validation runs).
+SKIP_DIRS = {".git", ".terraform", "__pycache__", ".pytest_cache", ".ruff_cache", "node_modules"}
+SKIP_FILES = {".terraform.lock.hcl", ".DS_Store"}
+
+
 def copy_dir(src, dst):
     if not os.path.exists(src):
         return
@@ -48,8 +54,12 @@ def copy_dir(src, dst):
         s = os.path.join(src, item)
         d = os.path.join(dst, item)
         if os.path.isdir(s):
+            if item in SKIP_DIRS:
+                continue
             copy_dir(s, d)
         else:
+            if item in SKIP_FILES:
+                continue
             shutil.copy2(s, d)
 
 def copy_file(src, dst):

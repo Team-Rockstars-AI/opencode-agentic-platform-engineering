@@ -108,6 +108,22 @@ def test_module_paths_rewritten(tmp_path):
         assert "../../modules/" not in content, f"unrewritten module path in {path}"
 
 
+def test_transient_artifacts_not_copied(tmp_path):
+    """Local .terraform/ provider binaries etc. must never ship into a scaffold."""
+    target = tmp_path / "out"
+    result = run_scaffold(target, "-i", "both", "-d", "github", "-g", "basic")
+    assert result.returncode == 0, result.stderr
+    offenders = [
+        p.relative_to(target).as_posix()
+        for p in target.rglob("*")
+        if ".git" not in p.relative_to(target).parts
+        and (
+            p.name in {".terraform", "__pycache__", ".pytest_cache", ".terraform.lock.hcl"}
+        )
+    ]
+    assert not offenders, f"transient artifacts leaked into scaffold: {offenders}"
+
+
 def test_scaffold_metadata_removed(tmp_path):
     target = tmp_path / "out"
     result = run_scaffold(target, "-i", "both", "-d", "github", "-g", "basic")
