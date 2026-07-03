@@ -16,7 +16,7 @@ Completed milestones are archived in [`BUILD_JOURNAL.md`](BUILD_JOURNAL.md).
 | **Epic 3** | `/compliance` — Regulatory Mapping & Audit Readiness Reporter | ⏳ **PENDING** | — | — |
 | **Epic 4** | Test the Product — pytest suite, IaC module tests, E2E scaffold CI ([plan](VALUE_ADDS_PLAN.md)) | ✅ **COMPLETED** | 2026-07-03 | `3d397b1`, `bc21250`, `912a4ff` |
 | **Epic 5** | `/update` — Template Sync for Scaffolded Repos ([plan](VALUE_ADDS_PLAN.md)) | ✅ **COMPLETED** | 2026-07-03 | `818bb6f` |
-| **Epic 6** | `azure-policy-baseline` — Runtime Governance Enforcement ([plan](VALUE_ADDS_PLAN.md)) | ✅ **COMPLETED** | 2026-07-03 | see branch |
+| **Epic 6** | `azure-policy-baseline` — Runtime Governance Enforcement ([plan](VALUE_ADDS_PLAN.md)) | ✅ **COMPLETED** | 2026-07-03 | `93b0c79` |
 
 ---
 
