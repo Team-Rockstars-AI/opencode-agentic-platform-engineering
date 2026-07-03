@@ -14,6 +14,9 @@ Completed milestones are archived in [`BUILD_JOURNAL.md`](BUILD_JOURNAL.md).
 | **Epic 1** | `/optimise` — Static Cost & Resource Optimization Engine | ✅ **COMPLETED** | 2026-06-15 | `e82c815`, `4207b70` |
 | **Epic 2** | `/drift` — Automated Drift Detection & Reconciliation Assistant | ⏳ **PENDING** | — | — |
 | **Epic 3** | `/compliance` — Regulatory Mapping & Audit Readiness Reporter | ⏳ **PENDING** | — | — |
+| **Epic 4** | Test the Product — pytest suite, IaC module tests, E2E scaffold CI ([plan](VALUE_ADDS_PLAN.md)) | 🔨 **IN PROGRESS** | — | — |
+| **Epic 5** | `/update` — Template Sync for Scaffolded Repos ([plan](VALUE_ADDS_PLAN.md)) | ⏳ **PENDING** | — | — |
+| **Epic 6** | `azure-policy-baseline` — Runtime Governance Enforcement ([plan](VALUE_ADDS_PLAN.md)) | ⏳ **PENDING** | — | — |
 
 ---
 

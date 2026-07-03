@@ -31,6 +31,7 @@ stages:
               python -m pip install --upgrade pip
               pip install ruff
               pip install -r requirements.txt
+              pip install -r requirements-dev.txt
             displayName: Install Python dependencies
 
           - bash: |
@@ -52,6 +53,11 @@ stages:
               set -euo pipefail
               python3 scripts/validate-team.py
             displayName: Validate team consistency
+
+          - bash: |
+              set -euo pipefail
+              python -m pytest tests/ -v
+            displayName: Python unit tests (pytest)
 
       - job: ConfigValidation
         displayName: Config validation (JSON/YAML)

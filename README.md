@@ -146,6 +146,9 @@ python3 scripts/validate-skills.py
 
 # Full team consistency check (agents, prompts, skills, commands, root/template parity)
 python3 scripts/validate-team.py
+
+# Run the Python tooling unit tests (scaffolding engine, validators, model selector)
+python3 -m pytest tests/
 ```
 
 ---

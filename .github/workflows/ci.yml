@@ -36,6 +36,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install ruff
           pip install -r requirements.txt
+          pip install -r requirements-dev.txt
 
       - name: Ruff lint
         run: ruff check .
@@ -48,6 +49,9 @@ jobs:
 
       - name: Validate team consistency
         run: python3 scripts/validate-team.py
+
+      - name: Python unit tests (pytest)
+        run: python -m pytest tests/ -v
 
   config:
     name: Config validation (JSON/YAML)
