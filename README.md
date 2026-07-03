@@ -135,6 +135,9 @@ Run the following commands within your directory to manually compile and check c
 # Validate all Terraform modules
 for d in modules/terraform/*/; do (cd "$d" && terraform init -backend=false && terraform validate); done
 
+# Run all Terraform module tests (offline, provider-mocked — requires Terraform >= 1.7)
+for d in modules/terraform/*/v1/; do (cd "$d" && terraform init -backend=false && terraform test); done
+
 # Compile and syntax check all Bicep modules
 for f in modules/bicep/**/main.bicep; do bicep build "$f" --stdout > /dev/null; done
 
@@ -198,6 +201,8 @@ Continuous integration and security scanning run automatically on each PR (and w
 | **CI (ADO/GitHub)** | Python lint & skill validation | `ruff`, byte-compile, `validate-skills.py`, and `validate-team.py` |
 | **CI (ADO/GitHub)** | Config validation (JSON/YAML) | Parse all repo JSON/YAML config |
 | **CI (ADO/GitHub)** | IaC Linting | `terraform fmt -check`, `tflint`, and `bicep lint` |
+| **CI (ADO/GitHub)** | Python unit tests | `pytest` over the scaffolding engine, validators, and model selector |
+| **CI (ADO/GitHub)** | IaC module tests | `terraform test` (provider-mocked) and Bicep test-file builds for every module |
 | **CI (ADO/GitHub)** | Secret scan (gitleaks) | Block leaked credentials |
 | **Security Scan** | Bandit (Python SAST) | Block on HIGH-severity findings |
 | **Security Scan** | Checkov (IaC) | Report Terraform/Bicep misconfigurations |

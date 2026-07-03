@@ -4,6 +4,24 @@ This log serves as a persistent, in-project memory of discoveries, findings, and
 
 ---
 
+## Milestone: Test the Product — Epic 4 (July 2026)
+
+### 🔍 Discoveries
+*   **`terraform validate` misses value-level errors behind `count = 0`:** The runners subnet in `modules/terraform/azure-network-baseline/v1` carried an invalid delegation action (`Microsoft.Network/virtualNetworks/subnets/prepareNetwork/action` — not a valid azurerm enum value; the ACA delegation only needs `join/action`). CI's `terraform validate` never caught it because the resource sits behind `count = var.is_enterprise ? 1 : 0` and is skipped by default; a `terraform test` plan with `is_enterprise = true` surfaced it immediately.
+*   **Report templates are legitimate placeholder carriers in scaffold output:** `docs/reports/*.md` files copied into a scaffolded workspace intentionally retain `{{tokens}}` (filled by agents at report-writing time). Any "no unresolved placeholders" gate over scaffold output must exempt `docs/reports/`.
+*   **`mock_provider "azurerm" {}` (Terraform >= 1.7) lets module tests run fully offline:** no Azure credentials are needed in CI for `command = plan` test runs.
+
+### ⚠️ Findings
+*   3 of 4 IaC modules had no tests at all, and the tests that existed were never executed by any pipeline.
+*   The Bicep network-baseline module was unaffected by the delegation bug because it omits delegation `actions` entirely (ARM infers them from `serviceName`) — an accidental asymmetry between the twin stacks.
+
+### 💡 Solutions
+*   Added a pytest suite (`tests/`) covering the scaffolding engine end-to-end (layout per IaC/DevOps/tier combination, placeholder resolution, module-path rewriting, git init) plus validator and model-selector pure functions.
+*   Added provider-mocked `terraform test` suites to all four Terraform modules and compile-check `tests/main.test.bicep` files to all four Bicep modules; both CI platforms now execute them.
+*   Fixed the invalid ACA delegation action in the Terraform network-baseline module.
+
+---
+
 ## Milestone: Formalised Reusable Skills Framework (June 2026)
 
 ### 🔍 Discoveries

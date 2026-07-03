@@ -124,6 +124,74 @@ jobs:
       - name: terraform fmt -check (modules)
         run: terraform fmt -check -recursive -diff modules
 
+  iac-tests:
+    name: IaC module validation & tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.5"
+
+      - name: Terraform module validation
+        run: |
+          shopt -s nullglob
+          for module_dir in modules/terraform/*/v*/; do
+            echo "Validating Terraform module: ${module_dir%/}"
+            (
+              cd "$module_dir"
+              terraform init -backend=false -input=false
+              terraform validate
+            )
+          done
+
+      # Module tests use mock_provider so they run offline (no Azure credentials).
+      - name: Terraform module tests (terraform test)
+        run: |
+          shopt -s nullglob
+          for module_dir in modules/terraform/*/v*/; do
+            if [ -d "${module_dir}tests" ]; then
+              echo "Testing Terraform module: ${module_dir%/}"
+              (
+                cd "$module_dir"
+                terraform init -backend=false -input=false
+                terraform test
+              )
+            fi
+          done
+
+      - name: Install Azure CLI Bicep
+        run: |
+          if ! command -v az >/dev/null 2>&1; then
+            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          fi
+          az bicep install
+          az bicep version
+
+      - name: Bicep module build validation
+        run: |
+          shopt -s globstar nullglob
+          found=0
+          for file in modules/bicep/**/main.bicep; do
+            found=1
+            echo "Building Bicep module: $file"
+            az bicep build --file "$file" --stdout >/dev/null
+          done
+          if [ $found -eq 0 ]; then
+            echo "No Bicep modules found under modules/bicep"
+          fi
+
+      - name: Bicep module test builds
+        run: |
+          shopt -s globstar nullglob
+          for file in modules/bicep/**/tests/*.test.bicep; do
+            echo "Building Bicep test: $file"
+            az bicep build --file "$file" --stdout >/dev/null
+          done
+
   secrets:
     name: Secret scan (gitleaks)
     runs-on: ubuntu-latest

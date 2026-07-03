@@ -246,6 +246,21 @@ stages:
               done
             displayName: Terraform module validation
 
+          - bash: |
+              set -euo pipefail
+              shopt -s nullglob
+              for module_dir in modules/terraform/*/v*/; do
+                if [ -d "${module_dir}tests" ]; then
+                  echo "Testing Terraform module: ${module_dir%/}"
+                  (
+                    cd "$module_dir"
+                    terraform init -backend=false -input=false
+                    terraform test
+                  )
+                fi
+              done
+            displayName: Terraform module tests (terraform test)
+
           # templates/terraform contains scaffold placeholders ({{ }}) and is skipped intentionally.
 
           - bash: |
@@ -270,5 +285,14 @@ stages:
                 echo "No Bicep modules found under modules/bicep"
               fi
             displayName: Bicep module build validation
+
+          - bash: |
+              set -euo pipefail
+              shopt -s globstar nullglob
+              for file in modules/bicep/**/tests/*.test.bicep; do
+                echo "Building Bicep test: $file"
+                az bicep build --file "$file" --stdout >/dev/null
+              done
+            displayName: Bicep module test builds
 
           # templates/bicep contains scaffold placeholders ({{ }}) and is intentionally skipped until rendered in a consumer repo.

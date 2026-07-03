@@ -1,5 +1,8 @@
 # Modern Terraform 1.6+ Test File
 
+# Mocked provider so tests run offline (no Azure credentials in CI).
+mock_provider "azurerm" {}
+
 variables {
   name                = "kv-test-vault"
   resource_group_name = "rg-test-vault"
