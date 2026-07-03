@@ -22,6 +22,9 @@ param softDeleteRetentionInDays int = 90
 ])
 param publicNetworkAccess string = 'Disabled'
 
+@description('The resource ID of the central Log Analytics workspace for diagnostics')
+param logAnalyticsWorkspaceId string = ''
+
 resource kv 'Microsoft.KeyVault/vaults@2021-10-01' = {
   name: name
   location: location
@@ -41,6 +44,26 @@ resource kv 'Microsoft.KeyVault/vaults@2021-10-01' = {
       defaultAction: 'Deny'
     }
     accessPolicies: []
+  }
+}
+
+resource kvDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (!empty(logAnalyticsWorkspaceId)) {
+  name: 'ds-kv-${name}'
+  scope: kv
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logs: [
+      {
+        category: 'AuditEvent'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
   }
 }
 

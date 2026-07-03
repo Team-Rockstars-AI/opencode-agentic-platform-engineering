@@ -1,0 +1,4 @@
+# Development/test dependencies for this repository's tooling.
+# Not shipped to scaffolded repos.
+pytest>=8.0,<9.0
+PyYAML>=6.0.3,<7.0

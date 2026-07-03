@@ -36,6 +36,9 @@ Work through every item. Mark each PASS / FAIL / N/A.
 - [ ] Central Log Analytics diagnostic stream deployed for all infrastructure components.
 - [ ] Diagnostic logs do not leak sensitive data (PII, secrets, connection strings).
 
+### F. Runtime Policy Guardrails
+- [ ] Azure Policy baseline assigned at subscription scope (`azure-policy-baseline` module): allowed locations, storage secure transfer, storage/Key Vault public network access disabled, Key Vault purge protection, no public IPs on NICs.
+
 ## Finding report format
 
 For each failure:

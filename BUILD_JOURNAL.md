@@ -1,5 +1,84 @@
 # Build Journal
 
+## Milestone: Governance Audit Remediation (REMEDIATION_PLAN.md)
+
+**Date:** 2026-07-03
+
+### Summary
+
+Executed all 5 findings from [REMEDIATION_PLAN.md](REMEDIATION_PLAN.md) (governance audit of 2026-07-02), which identified discrepancies between the repo's own governance docs (AGENTS.md guardrails, security-checklist, cost-governance-guide, compliance-mapping-guide) and the actual IaC. All fixes applied to both the Terraform and Bicep stacks with parity maintained.
+
+### Changes Made
+
+1. **Key Vault module diagnostics (Finding 1):** `azure-keyvault/v1` (both stacks) now accepts `log_analytics_workspace_id` / `logAnalyticsWorkspaceId` and emits a conditional `AuditEvent`/`AllMetrics` diagnostic setting, matching the pattern of the other three modules. The module is now independently compliant with the "audit trails for all components" hard block — previously only the composition layer satisfied it. Tests added for both the 0-and-1 diagnostic cases; READMEs updated (the Bicep module gained a full Inputs table).
+2. **App Gateway autoscale (Finding 2):** replaced hardcoded `capacity = 1` with `autoscale_configuration` / `autoscaleConfiguration` driven by new validated `appgw_autoscale_min/max_capacity` params (defaults 1/3). Composed templates wire environment-aware values (prod: 2–10, dev/test: 1–2) per cost-governance-guide §3.2. Tests assert the defaults and configurability.
+3. **Runner `max_replicas` parameterized (Finding 3):** new validated `max_replicas` / `maxReplicas` param (default 5, range 1–25); composed templates cap non-prod at 2 per §3.1. Tests assert default and override.
+4. **Log Analytics retention/quota (Finding 4):** the composed workspace is now environment-aware — prod: 90-day retention, uncapped ingestion; dev/test: 30-day retention, 1 GB/day quota (`daily_quota_gb` / `workspaceCapping.dailyQuotaGb`) per §3.3 and Rule 8.
+5. **Runner sizing defaults (Finding 5):** module and template defaults lowered to the conservative dev/test values (0.5 CPU / 1.0Gi); composed templates explicitly raise prod to 1.0 CPU / 2.0Gi so production no longer silently inherits dev sizing.
+
+### Verification
+
+`terraform fmt`, `terraform validate` + `terraform test` for all 5 modules (mocked provider), `bicep build` for all modules and test files, `validate-skills.py`, `validate-team.py`, the 53-test pytest suite, and the full 4-combo E2E scaffold matrix — all green. Note: the plan predated Epic 4; its caveat that template-layer edits can't be machine-validated no longer holds, as the E2E scaffold verification renders and compiles the templates.
+
+---
+
+## Milestone: Epic 6 — azure-policy-baseline Runtime Governance Enforcement
+
+**Date:** 2026-07-03
+
+### Summary
+
+The platform's GDPR/DORA/BIO/NEN 7510 posture was enforced only at authoring time (agent audits, Checkov, checklists) — nothing prevented non-compliant resources from being created or modified in the live subscription after deployment. This milestone (per [VALUE_ADDS_PLAN.md](VALUE_ADDS_PLAN.md), Epic 6) ships a dual-stack `azure-policy-baseline/v1` module assigning six **built-in** Azure Policy definitions at subscription scope, wired into both composed templates.
+
+### Changes Made
+
+1. **Modules** — `modules/terraform/azure-policy-baseline/v1` and `modules/bicep/azure-policy-baseline/v1`: allowed locations (deny, fixed), storage secure transfer, storage public access disabled, Key Vault public access disabled, Key Vault purge protection (all four via `policy_effect`, default `Audit`), and no-public-IPs-on-NICs (deny, toggleable). All six definition GUIDs verified against the Microsoft Learn built-in policy index. `enforcement_mode` flips everything to DoNotEnforce for shared subscriptions. Provider-mocked tftest suite (5 runs) + compile-check Bicep test file.
+2. **Composition** — `templates/terraform/policy.tf` + four template variables; policy module block in `templates/bicep/main.bicep` (already subscription-scoped). Allowed locations default to the scaffold's chosen region.
+3. **Docs** — compliance-mapping-guide §5 "Runtime Policy Guardrails" (incl. the NL BIO U.11 mapping Microsoft itself publishes for the secure-transfer policy) + auditor-guide item; architecture-blueprint §7; README feature bullet; guardrail bullets in both AGENTS.md; security-checklist skill section F (both copies).
+4. **Validation caught by Epic 4's gates:** the E2E scaffold matrix flagged a BCP036 cross-module type error (composed template passes `environment: 'staging'`, which the new module's `@allowed` rejected) — resolved by matching the sibling Bicep modules' unconstrained `environment` param.
+
+---
+
+## Milestone: Epic 5 — /update Template Sync for Scaffolded Repos
+
+**Date:** 2026-07-03
+
+### Summary
+
+Scaffolded workspaces were orphaned the moment they were generated: no record of which template version produced them and no way to receive upstream improvements. This milestone (per [VALUE_ADDS_PLAN.md](VALUE_ADDS_PLAN.md), Epic 5) closes the loop: every scaffold is stamped, and a shipped `update.py` + `/update` command performs a three-way sync against newer template versions.
+
+### Changes Made
+
+1. **`scaffold.py`** — writes `.platform-scaffold.json` (schema v1: template repo/commit, all scaffold inputs, sha256 manifest of every generated file, hashed post-substitution); new `--no-git` flag for re-renders.
+2. **`templates/opencode-config/scripts/update.py`** (shipped into every scaffold) — re-renders the templates at the new version with the recorded inputs and classifies each file: auto-update / new-file / removed-upstream applied automatically; user-modified/user-deleted preserved; conflicts left untouched and reported (exit code 2). Stamp refreshed so modified files stay detectable. No network I/O, no auto-commits.
+3. **`update` skill** (master marked unused-in-root + template copy) and **`/update` command** in the template `opencode.json`, orchestrating dry-run → approval → apply → agent-assisted conflict merges (builders merge, verifier re-validates, security-auditor reviews) with hard safety rules for `*.tfvars`, `backend.tf`, and OIDC/pipeline credentials.
+4. **Docs** — update-report template, operator-manual section "Keeping Your Platform Up to Date", `templates/AGENTS.md` skill/command entries, README subsection.
+5. **Tests** — 6 pytest cases: stamp validity/committed, up-to-date no-op, auto-update with stamp refresh, conflict (exit 2, file untouched, original hash kept), user-deleted skip, dry-run immutability.
+
+**Commits:** `818bb6f`
+
+---
+
+## Milestone: Epic 4 — Test the Product
+
+**Date:** 2026-07-03
+
+### Summary
+
+CI previously validated this repository statically but never tested its actual product — the scaffolded workspace — nor the ~1,600 lines of Python tooling, nor the IaC module tests that existed. This milestone adds all three layers of testing (per [VALUE_ADDS_PLAN.md](VALUE_ADDS_PLAN.md), Epic 4) and fixed two real product bugs the new tests surfaced.
+
+### Changes Made
+
+1. **pytest suite (`tests/`)** — 47 tests covering the scaffolding engine end-to-end (layout per IaC/DevOps/tier combination, placeholder resolution, module-path rewriting, metadata cleanup, git init, org/repo parsing, generated config validity), validator regression runs and pure functions, and `select-models.py` jurisdiction/pricing/mapping logic. New `requirements-dev.txt`; pytest wired into both CI platforms.
+2. **IaC module tests** — provider-mocked (`mock_provider "azurerm" {}`) `terraform test` suites for all four Terraform modules and compile-check `tests/main.test.bicep` files for all four Bicep modules; executed by both CI platforms (GitHub CI also gained the IaC validation job it was missing).
+3. **E2E scaffold verification** — `scripts/verify-scaffold-output.sh` generates a real workspace and asserts no unresolved placeholders, valid configs/skills, parseable YAML, and compiling rendered IaC; runs as a 4-combo matrix on both CI platforms.
+4. **Bug fix:** invalid ACA subnet delegation action (`prepareNetwork/action`) in the Terraform network-baseline module — invisible to `terraform validate` behind `count = 0`, caught by the enterprise-tier test.
+5. **Bug fix:** `scaffold.py` copied transient local artifacts (`.terraform/` provider binaries, `__pycache__`, lock files) into generated workspaces — caught by the E2E run.
+
+**Commits:** `3d397b1`, `bc21250`, `912a4ff`
+
+---
+
 ## Milestone: Formalised Reusable Skills Framework
 
 **Date:** 2026-06-14
@@ -815,6 +894,10 @@ This milestone implemented Epic 2 (Automated Drift Detection & Reconciliation En
 ### Discoveries & Findings
 
 During the implementation of Epic 2, we discovered that while Terraform provides a robust, machine-readable JSON representation of its execution plan, Bicep's `what-if` output is primarily designed for human consumption. This necessitated a more complex parsing strategy for Bicep drift detection. We also reinforced the importance of the `@plan-validator` as a safety gate, ensuring that drift reconciliation never defaults to resource replacement for stateful components like databases or Key Vaults, even if the IaC change would normally trigger it.
+
+---
+
+## Milestone: Azure DevOps Canonical CI Integration
 
 **Date:** 2026-06-18
 

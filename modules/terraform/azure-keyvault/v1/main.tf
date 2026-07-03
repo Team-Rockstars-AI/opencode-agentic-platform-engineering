@@ -20,3 +20,18 @@ resource "azurerm_key_vault" "kv" {
     Version = "v1"
   }
 }
+
+resource "azurerm_monitor_diagnostic_setting" "kv" {
+  count                      = var.log_analytics_workspace_id != null ? 1 : 0
+  name                       = "ds-kv-${var.name}"
+  target_resource_id         = azurerm_key_vault.kv.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  enabled_log {
+    category = "AuditEvent"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}

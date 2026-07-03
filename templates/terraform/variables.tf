@@ -81,7 +81,7 @@ variable "runner_token" {
 variable "runner_cpu" {
   type        = string
   description = "CPU cores allocated to the runner container (e.g., \"0.5\", \"1.0\", \"2.0\")"
-  default     = "1.0"
+  default     = "0.5"
 
   validation {
     condition     = contains(["0.25", "0.5", "0.75", "1.0", "1.25", "1.5", "1.75", "2.0"], var.runner_cpu)
@@ -92,10 +92,39 @@ variable "runner_cpu" {
 variable "runner_memory" {
   type        = string
   description = "Memory allocated to the runner container (e.g., \"0.5Gi\", \"1.0Gi\", \"2.0Gi\")"
-  default     = "2.0Gi"
+  default     = "1.0Gi"
 
   validation {
     condition     = contains(["0.5Gi", "1.0Gi", "1.5Gi", "2.0Gi", "3.0Gi", "4.0Gi"], var.runner_memory)
     error_message = "The runner_memory must be one of: 0.5Gi, 1.0Gi, 1.5Gi, 2.0Gi, 3.0Gi, 4.0Gi."
   }
+}
+
+variable "enable_policy_baseline" {
+  type        = bool
+  description = "Assign the subscription-scope Azure Policy baseline (runtime enforcement of the secure-by-design controls)"
+  default     = true
+}
+
+variable "policy_allowed_locations" {
+  type        = list(string)
+  description = "Azure regions resources may be deployed to (data-residency guardrail). Empty list defaults to the platform's primary location."
+  default     = []
+}
+
+variable "policy_effect" {
+  type        = string
+  description = "Effect for the parameterisable baseline policies: Audit reports violations, Deny blocks them. Applies to the whole subscription — raise to Deny once the subscription is clean."
+  default     = "Audit"
+
+  validation {
+    condition     = contains(["Audit", "Deny", "Disabled"], var.policy_effect)
+    error_message = "The policy_effect must be one of: Audit, Deny, Disabled."
+  }
+}
+
+variable "policy_enforcement_mode" {
+  type        = bool
+  description = "When false, baseline policy assignments are created in DoNotEnforce mode (evaluate and report only)"
+  default     = true
 }

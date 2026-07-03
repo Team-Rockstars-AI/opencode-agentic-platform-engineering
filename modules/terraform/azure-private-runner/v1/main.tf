@@ -63,7 +63,7 @@ resource "azurerm_container_app" "runner_app" {
 
     # Scale rule KEDA github-runner scaler (Enterprise scale-to-zero)
     min_replicas = 0
-    max_replicas = 5
+    max_replicas = var.max_replicas
 
     # Conditional or dummy KEDA rule representing scale-to-zero queue monitoring
     custom_scale_rule {

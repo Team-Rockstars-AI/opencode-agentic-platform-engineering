@@ -113,3 +113,20 @@ All network and infrastructure components are wired up to stream diagnostic logs
 *   **NSG Flow Logs:** Network Security Groups stream `NetworkSecurityGroupEvent` and `NetworkSecurityGroupRuleCounter` logs to audit network traffic and rule evaluations.
 *   **Key Vault Audit Logs:** Key Vault streams `AuditEvent` logs to track all secret, key, and certificate access operations.
 *   **Application Gateway Logs:** Streams access logs, WAF firewall logs, and performance metrics to monitor application health and security events.
+
+---
+
+## 7. Runtime Policy Guardrails (Azure Policy Baseline)
+
+The authoring-time gates (agent audits, Checkov, pre-commit hooks) prevent non-compliant IaC from merging. The **`azure-policy-baseline`** module extends that protection to the *live* subscription, catching post-deployment drift and clickops changes made outside the pipelines. Six built-in Azure Policy definitions are assigned at subscription scope:
+
+| Guardrail | Effect | Architectural role |
+|---|---|---|
+| Allowed locations | deny | Data residency — resources only deploy to approved (EU) regions |
+| Secure transfer to storage accounts | Audit → Deny | Encryption in transit for all storage traffic |
+| Storage public network access disabled | Audit → Deny | Private-endpoint-only posture for storage |
+| Key Vault public network access disabled | Audit → Deny | Matches the Private Link Key Vault design (§4) |
+| Key Vault deletion (purge) protection | Audit → Deny | Non-negotiable recovery baseline |
+| No public IPs on network interfaces | deny (toggleable) | Enforces NAT-Gateway-only egress (§3) — workloads can never attach a public IP directly |
+
+The parameterisable policies ship with **Audit** effect and enforcement on; operators raise `policy_effect` / `policyEffect` to `Deny` once the subscription reports clean. All assignments can be switched to `DoNotEnforce` (report-only) for shared subscriptions via `policy_enforcement_mode` / `policyEnforcementMode`.

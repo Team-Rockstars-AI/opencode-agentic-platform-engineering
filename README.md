@@ -28,6 +28,7 @@ This template is designed specifically for organizations operating under strict 
 *   **Zero-Secrets Pipelines (OIDC):** Fully passwordless deployments using OpenID Connect (OIDC) Federated Credentials, eliminating long-lived credentials, Client Secrets, and connection strings from source code.
 *   **Private PaaS Isolation (Private Link):** Disables public internet access to Key Vault and Storage Accounts, restricting routing to **Private Endpoints** inside micro-segmented subnets.
 *   **Scale-to-Zero Private Runner Pools (Enterprise Tier):** Automatically deploys transient, KEDA-scaled, **Ubuntu-based self-hosted runners** inside Azure Container Apps (ACA). Runners scale up on pipeline demand to execute secure private deployments and scale to zero when idle, saving all operational costs.
+*   **Runtime Policy Guardrails (Azure Policy Baseline):** Subscription-scope assignments of six built-in Azure Policy definitions (allowed EU locations, storage secure transfer, storage/Key Vault public-access lockdown, Key Vault purge protection, no public IPs on NICs) enforce the secure-by-design controls against the **live estate** — catching post-deployment drift and clickops that authoring-time gates can't see.
 *   **Continuous DevSecOps Validation:**
     *   **Gitleaks & Checkov:** Automatic pipeline gates scanning for leaked credentials or IaC misconfigurations.
     *   **Plan Validator Safety Gate:** The verifier generates execution logs and triggers the `@plan-validator` agent. The run is **instantly terminated** if databases, Key Vaults, or Hub networking are slated for destruction or replacement.
@@ -71,7 +72,12 @@ The platform agent team will automatically:
 *   Copy your selected landing zone skeletons.
 *   Inject the complete, pre-configured **11-Agent Team** and prompts into `.opencode/`.
 *   Replace all variable placeholders (`{{project_name}}`, `{{azure_location}}`, etc.) across modules and pipelines.
+*   Stamp the workspace with `.platform-scaffold.json` (template version, inputs, and file manifest) so it can receive upstream updates later.
 *   Initialize Git and run compliance validations.
+
+### Keeping scaffolded repositories up to date
+
+Scaffolded workspaces are not orphaned: each ships with `scripts/update.py` and an `/update` slash command. When this template repository improves (module fixes, new skills, security patches), run `/update` inside the generated repo — files you never touched are updated automatically, your local modifications are preserved, and genuine conflicts are flagged for agent-assisted merging with a full report under `docs/reports/`.
 
 ---
 
@@ -162,6 +168,9 @@ Run the following commands within your directory to manually compile and check c
 # Validate all Terraform modules
 for d in modules/terraform/*/; do (cd "$d" && terraform init -backend=false && terraform validate); done
 
+# Run all Terraform module tests (offline, provider-mocked — requires Terraform >= 1.7)
+for d in modules/terraform/*/v1/; do (cd "$d" && terraform init -backend=false && terraform test); done
+
 # Compile and syntax check all Bicep modules
 for f in modules/bicep/**/main.bicep; do bicep build "$f" --stdout > /dev/null; done
 
@@ -173,6 +182,9 @@ python3 scripts/validate-skills.py
 
 # Full team consistency check (agents, prompts, skills, commands, root/template parity)
 python3 scripts/validate-team.py
+
+# Run the Python tooling unit tests (scaffolding engine, validators, model selector)
+python3 -m pytest tests/
 ```
 
 ---
@@ -222,6 +234,9 @@ Continuous integration and security scanning run automatically on each PR (and w
 | **CI (ADO/GitHub)** | Python lint & skill validation | `ruff`, byte-compile, `validate-skills.py`, and `validate-team.py` |
 | **CI (ADO/GitHub)** | Config validation (JSON/YAML) | Parse all repo JSON/YAML config |
 | **CI (ADO/GitHub)** | IaC Linting | `terraform fmt -check`, `tflint`, and `bicep lint` |
+| **CI (ADO/GitHub)** | Python unit tests | `pytest` over the scaffolding engine, validators, and model selector |
+| **CI (ADO/GitHub)** | IaC module tests | `terraform test` (provider-mocked) and Bicep test-file builds for every module |
+| **CI (ADO/GitHub)** | E2E scaffold verification | Generates real workspaces (4 IaC/platform/tier combos) and validates placeholders, configs, and rendered IaC |
 | **CI (ADO/GitHub)** | Secret scan (gitleaks) | Block leaked credentials |
 | **Security Scan** | Bandit (Python SAST) | Block on HIGH-severity findings |
 | **Security Scan** | Checkov (IaC) | Report Terraform/Bicep misconfigurations |

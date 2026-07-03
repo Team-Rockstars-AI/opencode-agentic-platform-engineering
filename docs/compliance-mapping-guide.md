@@ -46,6 +46,13 @@ The following matrix maps specific technical controls implemented in this platfo
 *   **DORA Art. 10 Alignment:** Establishes continuous monitoring and logging of ICT systems to detect, identify, and report security incidents in real time.
 *   **Dutch BIO Control 12.4 Alignment:** Enforces comprehensive logging of security events, system access, and administrative actions to support forensic investigations.
 
+### 5. Runtime Policy Guardrails (Azure Policy Baseline)
+*   **Technical Implementation:** The `azure-policy-baseline` module (Terraform and Bicep) assigns six built-in Azure Policy definitions at subscription scope: Allowed locations (deny), secure transfer to storage accounts, storage/Key Vault public network access disabled, Key Vault deletion (purge) protection, and no public IPs on network interfaces (deny). Assignments ship enabled with **Audit** effect for the parameterisable policies by default; operators raise `policy_effect` to `Deny` once the subscription is clean. Unlike the authoring-time gates (agent audits, Checkov, pre-commit), these controls also catch **post-deployment drift and clickops** changes made outside the pipelines.
+*   **GDPR Art. 44+ (data transfers) Alignment:** The Allowed-locations deny policy technically restricts resource deployment to approved (EU) regions, enforcing data-residency by construction.
+*   **DORA Art. 6/9 Alignment:** Continuous, platform-level enforcement of the ICT risk-management baseline independent of the deployment pipeline.
+*   **Dutch BIO / NL BIO Cloud Theme Alignment:** "Secure transfer to storage accounts should be enabled" is itself mapped by Microsoft to NL BIO controls U.11.1/U.11.2 (cryptoservices); the public-access and purge-protection policies support U.09/U.10 access-control objectives.
+*   **NEN 7510 Control 13.1 Alignment:** Subscription-wide technical enforcement that patient-data-bearing PaaS resources cannot be exposed to public networks.
+
 ---
 
 ## 3. Auditor Presentation Guide
@@ -56,6 +63,7 @@ When presenting this platform engineering repository to external compliance audi
 2.  **Local Gating:** Show the `.pre-commit-config.yaml` file to demonstrate that Gitleaks (secret scanning) and Checkov (SAST compliance) are enforced locally on every developer's machine before code can be committed.
 3.  **Blast Radius Safety:** Explain the role of the `@plan-validator` agent, which automatically parses dry-run execution plans and blocks any deployment that schedules critical stateful resources (databases, vaults) for destruction or replacement.
 4.  **Zero-Secrets Trail:** Demonstrate that your deployment pipelines contain zero long-lived credentials, relying entirely on short-lived, auditable OIDC federated tokens.
+5.  **Runtime Enforcement:** Open the Azure Policy compliance blade to show the subscription-scope baseline assignments (`modules/*/azure-policy-baseline/v1`) — evidence that the documented controls are continuously evaluated against the *live* estate, not only at authoring time.
 
 ---
 
