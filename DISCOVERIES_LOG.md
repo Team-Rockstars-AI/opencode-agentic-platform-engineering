@@ -19,6 +19,7 @@ This log serves as a persistent, in-project memory of discoveries, findings, and
 *   Added a pytest suite (`tests/`) covering the scaffolding engine end-to-end (layout per IaC/DevOps/tier combination, placeholder resolution, module-path rewriting, git init) plus validator and model-selector pure functions.
 *   Added provider-mocked `terraform test` suites to all four Terraform modules and compile-check `tests/main.test.bicep` files to all four Bicep modules; both CI platforms now execute them.
 *   Fixed the invalid ACA delegation action in the Terraform network-baseline module.
+*   Fixed `scaffold.py` to skip transient local artifacts (`.terraform/`, `__pycache__`, `.pytest_cache`, lock files) during template copying — previously a scaffold run from a repo with local validation state shipped hundreds of MB of provider binaries into the generated workspace.
 
 ---
 

@@ -1,5 +1,25 @@
 # Build Journal
 
+## Milestone: Epic 4 — Test the Product
+
+**Date:** 2026-07-03
+
+### Summary
+
+CI previously validated this repository statically but never tested its actual product — the scaffolded workspace — nor the ~1,600 lines of Python tooling, nor the IaC module tests that existed. This milestone adds all three layers of testing (per [VALUE_ADDS_PLAN.md](VALUE_ADDS_PLAN.md), Epic 4) and fixed two real product bugs the new tests surfaced.
+
+### Changes Made
+
+1. **pytest suite (`tests/`)** — 47 tests covering the scaffolding engine end-to-end (layout per IaC/DevOps/tier combination, placeholder resolution, module-path rewriting, metadata cleanup, git init, org/repo parsing, generated config validity), validator regression runs and pure functions, and `select-models.py` jurisdiction/pricing/mapping logic. New `requirements-dev.txt`; pytest wired into both CI platforms.
+2. **IaC module tests** — provider-mocked (`mock_provider "azurerm" {}`) `terraform test` suites for all four Terraform modules and compile-check `tests/main.test.bicep` files for all four Bicep modules; executed by both CI platforms (GitHub CI also gained the IaC validation job it was missing).
+3. **E2E scaffold verification** — `scripts/verify-scaffold-output.sh` generates a real workspace and asserts no unresolved placeholders, valid configs/skills, parseable YAML, and compiling rendered IaC; runs as a 4-combo matrix on both CI platforms.
+4. **Bug fix:** invalid ACA subnet delegation action (`prepareNetwork/action`) in the Terraform network-baseline module — invisible to `terraform validate` behind `count = 0`, caught by the enterprise-tier test.
+5. **Bug fix:** `scaffold.py` copied transient local artifacts (`.terraform/` provider binaries, `__pycache__`, lock files) into generated workspaces — caught by the E2E run.
+
+**Commits:** `3d397b1`, `bc21250`, `912a4ff`
+
+---
+
 ## Milestone: Formalised Reusable Skills Framework
 
 **Date:** 2026-06-14
