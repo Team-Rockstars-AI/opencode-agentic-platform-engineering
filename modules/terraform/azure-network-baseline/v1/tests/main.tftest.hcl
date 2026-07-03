@@ -31,6 +31,30 @@ run "waf_v2_and_prevention_mode_enforced" {
     condition     = azurerm_application_gateway.app_gateway.waf_configuration[0].firewall_mode == "Prevention"
     error_message = "WAF must run in Prevention mode, not Detection"
   }
+
+  assert {
+    condition     = azurerm_application_gateway.app_gateway.autoscale_configuration[0].min_capacity == 1
+    error_message = "Application Gateway must autoscale with a default minimum of 1 instance"
+  }
+
+  assert {
+    condition     = azurerm_application_gateway.app_gateway.autoscale_configuration[0].max_capacity == 3
+    error_message = "Application Gateway must autoscale with a default maximum of 3 instances"
+  }
+}
+
+run "appgw_autoscale_capacities_configurable" {
+  command = plan
+
+  variables {
+    appgw_autoscale_min_capacity = 2
+    appgw_autoscale_max_capacity = 10
+  }
+
+  assert {
+    condition     = azurerm_application_gateway.app_gateway.autoscale_configuration[0].max_capacity == 10
+    error_message = "Application Gateway autoscale max capacity must be configurable"
+  }
 }
 
 run "basic_tier_has_no_runner_resources" {

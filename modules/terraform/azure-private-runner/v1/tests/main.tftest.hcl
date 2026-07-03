@@ -17,6 +17,24 @@ run "scale_to_zero_enforced_by_default" {
     condition     = azurerm_container_app.runner_app.template[0].min_replicas == 0
     error_message = "Runners must scale to zero when idle (min_replicas = 0)"
   }
+
+  assert {
+    condition     = azurerm_container_app.runner_app.template[0].max_replicas == 5
+    error_message = "Runner max_replicas must default to 5"
+  }
+}
+
+run "max_replicas_configurable" {
+  command = plan
+
+  variables {
+    max_replicas = 2
+  }
+
+  assert {
+    condition     = azurerm_container_app.runner_app.template[0].max_replicas == 2
+    error_message = "Runner max_replicas must be configurable (cost-governance scaling cap)"
+  }
 }
 
 run "runner_environment_is_internal_only" {

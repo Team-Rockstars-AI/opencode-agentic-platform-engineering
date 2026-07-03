@@ -268,9 +268,13 @@ resource "azurerm_application_gateway" "app_gateway" {
   tags                = var.tags
 
   sku {
-    name     = "WAF_v2"
-    tier     = "WAF_v2"
-    capacity = 1
+    name = "WAF_v2"
+    tier = "WAF_v2"
+  }
+
+  autoscale_configuration {
+    min_capacity = var.appgw_autoscale_min_capacity
+    max_capacity = var.appgw_autoscale_max_capacity
   }
 
   gateway_ip_configuration {

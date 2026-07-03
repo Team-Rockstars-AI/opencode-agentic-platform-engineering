@@ -41,6 +41,16 @@ param sslCertificateKeyVaultSecretId string = ''
 @description('Disable the port 80 HTTP listener entirely on the Application Gateway')
 param disableHttp bool = false
 
+@minValue(0)
+@maxValue(100)
+@description('Minimum instance count for Application Gateway autoscaling')
+param appgwAutoscaleMinCapacity int = 1
+
+@minValue(2)
+@maxValue(125)
+@description('Maximum instance count for Application Gateway autoscaling')
+param appgwAutoscaleMaxCapacity int = 3
+
 @description('The resource ID of the central Log Analytics workspace for diagnostics')
 param logAnalyticsWorkspaceId string = ''
 
@@ -328,7 +338,10 @@ resource appGateway 'Microsoft.Network/applicationGateways@2021-08-01' = {
     sku: {
       name: 'WAF_v2'
       tier: 'WAF_v2'
-      capacity: 1
+    }
+    autoscaleConfiguration: {
+      minCapacity: appgwAutoscaleMinCapacity
+      maxCapacity: appgwAutoscaleMaxCapacity
     }
     gatewayIPConfigurations: [
       {

@@ -1,5 +1,27 @@
 # Build Journal
 
+## Milestone: Governance Audit Remediation (REMEDIATION_PLAN.md)
+
+**Date:** 2026-07-03
+
+### Summary
+
+Executed all 5 findings from [REMEDIATION_PLAN.md](REMEDIATION_PLAN.md) (governance audit of 2026-07-02), which identified discrepancies between the repo's own governance docs (AGENTS.md guardrails, security-checklist, cost-governance-guide, compliance-mapping-guide) and the actual IaC. All fixes applied to both the Terraform and Bicep stacks with parity maintained.
+
+### Changes Made
+
+1. **Key Vault module diagnostics (Finding 1):** `azure-keyvault/v1` (both stacks) now accepts `log_analytics_workspace_id` / `logAnalyticsWorkspaceId` and emits a conditional `AuditEvent`/`AllMetrics` diagnostic setting, matching the pattern of the other three modules. The module is now independently compliant with the "audit trails for all components" hard block — previously only the composition layer satisfied it. Tests added for both the 0-and-1 diagnostic cases; READMEs updated (the Bicep module gained a full Inputs table).
+2. **App Gateway autoscale (Finding 2):** replaced hardcoded `capacity = 1` with `autoscale_configuration` / `autoscaleConfiguration` driven by new validated `appgw_autoscale_min/max_capacity` params (defaults 1/3). Composed templates wire environment-aware values (prod: 2–10, dev/test: 1–2) per cost-governance-guide §3.2. Tests assert the defaults and configurability.
+3. **Runner `max_replicas` parameterized (Finding 3):** new validated `max_replicas` / `maxReplicas` param (default 5, range 1–25); composed templates cap non-prod at 2 per §3.1. Tests assert default and override.
+4. **Log Analytics retention/quota (Finding 4):** the composed workspace is now environment-aware — prod: 90-day retention, uncapped ingestion; dev/test: 30-day retention, 1 GB/day quota (`daily_quota_gb` / `workspaceCapping.dailyQuotaGb`) per §3.3 and Rule 8.
+5. **Runner sizing defaults (Finding 5):** module and template defaults lowered to the conservative dev/test values (0.5 CPU / 1.0Gi); composed templates explicitly raise prod to 1.0 CPU / 2.0Gi so production no longer silently inherits dev sizing.
+
+### Verification
+
+`terraform fmt`, `terraform validate` + `terraform test` for all 5 modules (mocked provider), `bicep build` for all modules and test files, `validate-skills.py`, `validate-team.py`, the 53-test pytest suite, and the full 4-combo E2E scaffold matrix — all green. Note: the plan predated Epic 4; its caveat that template-layer edits can't be machine-validated no longer holds, as the E2E scaffold verification renders and compiles the templates.
+
+---
+
 ## Milestone: Epic 6 — azure-policy-baseline Runtime Governance Enforcement
 
 **Date:** 2026-07-03

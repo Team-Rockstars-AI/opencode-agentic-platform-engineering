@@ -76,6 +76,8 @@ module network '../../modules/bicep/azure-network-baseline/v1/main.bicep' = {
     environment: environment
     location: location
     isEnterprise: (governanceTier == 'enterprise')
+    appgwAutoscaleMinCapacity: (environment == 'prod') ? 2 : 1
+    appgwAutoscaleMaxCapacity: (environment == 'prod') ? 10 : 2
     tags: rg.tags
     logAnalyticsWorkspaceId: logging.outputs.workspaceId
   }
@@ -117,6 +119,9 @@ module runners '../../modules/bicep/azure-private-runner/v1/main.bicep' = if (go
     githubOrgName: githubOrgName
     githubRepoName: githubRepoName
     runnerToken: runnerToken
+    maxReplicas: (environment == 'prod') ? 5 : 2
+    runnerCpu: (environment == 'prod') ? '1.0' : '0.5'
+    runnerMemory: (environment == 'prod') ? '2.0Gi' : '1.0Gi'
     tags: rg.tags
     logAnalyticsWorkspaceId: logging.outputs.workspaceId
   }

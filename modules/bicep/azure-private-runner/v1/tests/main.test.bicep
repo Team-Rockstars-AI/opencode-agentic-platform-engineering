@@ -22,6 +22,7 @@ module testRunnerDiagnostics '../main.bicep' = {
     subnetRunnersId: '/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-x/providers/Microsoft.Network/virtualNetworks/vnet-x/subnets/snet-runners'
     githubOrgName: 'acme'
     githubRepoName: 'infra'
+    maxReplicas: 2
     logAnalyticsWorkspaceId: '/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-x/providers/Microsoft.OperationalInsights/workspaces/law-x'
   }
 }

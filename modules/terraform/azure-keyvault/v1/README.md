@@ -23,6 +23,7 @@ module "vault" {
 | location | string | Azure region | - | yes |
 | tenant_id | string | Active Directory tenant ID | - | yes |
 | sku_name | string | SKU name (standard/premium) | `standard` | no |
+| log_analytics_workspace_id | string | The resource ID of the central Log Analytics workspace for diagnostics | `null` | no |
 
 ## Outputs
 

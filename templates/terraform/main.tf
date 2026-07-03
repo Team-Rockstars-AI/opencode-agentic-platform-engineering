@@ -16,19 +16,22 @@ resource "azurerm_log_analytics_workspace" "ops" {
   location            = azurerm_resource_group.core.location
   resource_group_name = azurerm_resource_group.core.name
   sku                 = "PerGB2018"
-  retention_in_days   = 30
+  retention_in_days   = var.environment == "prod" ? 90 : 30
+  daily_quota_gb      = var.environment == "prod" ? -1 : 1
 }
 
 # Secure Network Baseline Subnets, NAT Gateway & App Gateway
 module "network" {
-  source                     = "../../modules/terraform/azure-network-baseline/v1"
-  project_name               = var.project_name
-  environment                = var.environment
-  location                   = var.location
-  resource_group_name        = azurerm_resource_group.core.name
-  is_enterprise              = var.governance_tier == "enterprise"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.ops.id
-  tags                       = azurerm_resource_group.core.tags
+  source                       = "../../modules/terraform/azure-network-baseline/v1"
+  project_name                 = var.project_name
+  environment                  = var.environment
+  location                     = var.location
+  resource_group_name          = azurerm_resource_group.core.name
+  is_enterprise                = var.governance_tier == "enterprise"
+  appgw_autoscale_min_capacity = var.environment == "prod" ? 2 : 1
+  appgw_autoscale_max_capacity = var.environment == "prod" ? 10 : 2
+  log_analytics_workspace_id   = azurerm_log_analytics_workspace.ops.id
+  tags                         = azurerm_resource_group.core.tags
 }
 
 # Secure Key Vault for Platform Secrets (Private Endpoint enabled)
@@ -95,8 +98,9 @@ module "runners" {
   github_org_name            = var.github_org_name
   github_repo_name           = var.github_repo_name
   runner_token               = var.runner_token
-  runner_cpu                 = var.runner_cpu
-  runner_memory              = var.runner_memory
+  max_replicas               = var.environment == "prod" ? 5 : 2
+  runner_cpu                 = var.environment == "prod" ? "1.0" : var.runner_cpu
+  runner_memory              = var.environment == "prod" ? "2.0Gi" : var.runner_memory
   log_analytics_workspace_id = azurerm_log_analytics_workspace.ops.id
   tags                       = azurerm_resource_group.core.tags
 }
