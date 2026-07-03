@@ -74,6 +74,7 @@ All infrastructure and application workloads must adhere to the following secure
 - **Strict Error Propagation**: Pipeline scripts must use `set -e` (or equivalent) to ensure failures stop the pipeline.
 - **Continuous Validation**: Every commit/PR must run `terraform validate` / `bicep build` and security scanners (Checkov/tfsec).
 - **Strict Typing**: Avoid `type = any` in Terraform or loose parameter types in Bicep. Enforce variable validation blocks and decorators.
+- **Runtime Policy Guardrails**: The `azure-policy-baseline` module assigns the built-in Azure Policy baseline at subscription scope — allowed locations (deny), storage secure transfer, storage/Key Vault public access disabled, Key Vault purge protection, no public IPs on NICs. Audit effect by default; raise `policy_effect` / `policyEffect` to `Deny` once the subscription reports clean.
 
 ## Reusable Skills (`.opencode/skills/`)
 

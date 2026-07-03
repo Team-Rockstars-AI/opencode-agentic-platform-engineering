@@ -127,6 +127,7 @@ All platform development and generated templates must adhere to strict security 
 - **Strict Error Propagation:** Pipeline scripts must use `set -e` (or equivalent) to ensure failures stop the pipeline.
 - **Continuous Validation:** Every commit/PR must run `terraform validate` / `bicep build` and security scanners (Checkov/tfsec).
 - **Strict Typing:** Avoid `type = any` in Terraform or loose parameter types in Bicep. Enforce variable validation blocks and decorators.
+- **Runtime Policy Guardrails:** The `azure-policy-baseline` module (both frameworks) assigns the built-in Azure Policy baseline at subscription scope — allowed locations (deny), storage secure transfer, storage/Key Vault public access disabled, Key Vault purge protection, no public IPs on NICs — so the secure-by-design controls are enforced against the live estate, not only at authoring time.
 
 ## Development commands
 

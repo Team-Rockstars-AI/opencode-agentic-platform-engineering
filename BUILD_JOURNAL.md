@@ -1,5 +1,22 @@
 # Build Journal
 
+## Milestone: Epic 6 — azure-policy-baseline Runtime Governance Enforcement
+
+**Date:** 2026-07-03
+
+### Summary
+
+The platform's GDPR/DORA/BIO/NEN 7510 posture was enforced only at authoring time (agent audits, Checkov, checklists) — nothing prevented non-compliant resources from being created or modified in the live subscription after deployment. This milestone (per [VALUE_ADDS_PLAN.md](VALUE_ADDS_PLAN.md), Epic 6) ships a dual-stack `azure-policy-baseline/v1` module assigning six **built-in** Azure Policy definitions at subscription scope, wired into both composed templates.
+
+### Changes Made
+
+1. **Modules** — `modules/terraform/azure-policy-baseline/v1` and `modules/bicep/azure-policy-baseline/v1`: allowed locations (deny, fixed), storage secure transfer, storage public access disabled, Key Vault public access disabled, Key Vault purge protection (all four via `policy_effect`, default `Audit`), and no-public-IPs-on-NICs (deny, toggleable). All six definition GUIDs verified against the Microsoft Learn built-in policy index. `enforcement_mode` flips everything to DoNotEnforce for shared subscriptions. Provider-mocked tftest suite (5 runs) + compile-check Bicep test file.
+2. **Composition** — `templates/terraform/policy.tf` + four template variables; policy module block in `templates/bicep/main.bicep` (already subscription-scoped). Allowed locations default to the scaffold's chosen region.
+3. **Docs** — compliance-mapping-guide §5 "Runtime Policy Guardrails" (incl. the NL BIO U.11 mapping Microsoft itself publishes for the secure-transfer policy) + auditor-guide item; architecture-blueprint §7; README feature bullet; guardrail bullets in both AGENTS.md; security-checklist skill section F (both copies).
+4. **Validation caught by Epic 4's gates:** the E2E scaffold matrix flagged a BCP036 cross-module type error (composed template passes `environment: 'staging'`, which the new module's `@allowed` rejected) — resolved by matching the sibling Bicep modules' unconstrained `environment` param.
+
+---
+
 ## Milestone: Epic 5 — /update Template Sync for Scaffolded Repos
 
 **Date:** 2026-07-03
