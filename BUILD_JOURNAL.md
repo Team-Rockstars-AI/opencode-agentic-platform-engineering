@@ -1,5 +1,25 @@
 # Build Journal
 
+## Milestone: Epic 5 — /update Template Sync for Scaffolded Repos
+
+**Date:** 2026-07-03
+
+### Summary
+
+Scaffolded workspaces were orphaned the moment they were generated: no record of which template version produced them and no way to receive upstream improvements. This milestone (per [VALUE_ADDS_PLAN.md](VALUE_ADDS_PLAN.md), Epic 5) closes the loop: every scaffold is stamped, and a shipped `update.py` + `/update` command performs a three-way sync against newer template versions.
+
+### Changes Made
+
+1. **`scaffold.py`** — writes `.platform-scaffold.json` (schema v1: template repo/commit, all scaffold inputs, sha256 manifest of every generated file, hashed post-substitution); new `--no-git` flag for re-renders.
+2. **`templates/opencode-config/scripts/update.py`** (shipped into every scaffold) — re-renders the templates at the new version with the recorded inputs and classifies each file: auto-update / new-file / removed-upstream applied automatically; user-modified/user-deleted preserved; conflicts left untouched and reported (exit code 2). Stamp refreshed so modified files stay detectable. No network I/O, no auto-commits.
+3. **`update` skill** (master marked unused-in-root + template copy) and **`/update` command** in the template `opencode.json`, orchestrating dry-run → approval → apply → agent-assisted conflict merges (builders merge, verifier re-validates, security-auditor reviews) with hard safety rules for `*.tfvars`, `backend.tf`, and OIDC/pipeline credentials.
+4. **Docs** — update-report template, operator-manual section "Keeping Your Platform Up to Date", `templates/AGENTS.md` skill/command entries, README subsection.
+5. **Tests** — 6 pytest cases: stamp validity/committed, up-to-date no-op, auto-update with stamp refresh, conflict (exit 2, file untouched, original hash kept), user-deleted skip, dry-run immutability.
+
+**Commits:** `818bb6f`
+
+---
+
 ## Milestone: Epic 4 — Test the Product
 
 **Date:** 2026-07-03
