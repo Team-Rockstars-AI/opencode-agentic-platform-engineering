@@ -147,6 +147,64 @@ All platform development and generated templates must adhere to strict security 
 - **Strict Typing:** Avoid `type = any` in Terraform or loose parameter types in Bicep. Enforce variable validation blocks and decorators.
 - **Runtime Policy Guardrails:** The `azure-policy-baseline` module (both frameworks) assigns the built-in Azure Policy baseline at subscription scope — allowed locations (deny), storage secure transfer, storage/Key Vault public access disabled, Key Vault purge protection, no public IPs on NICs — so the secure-by-design controls are enforced against the live estate, not only at authoring time.
 
+## Engineering Discipline (Karpathy-Inspired Rules)
+
+These edit-time and self-check rules apply to all agents in this repository **as meta-principles**. They sit *under* workspace-specific AGENTS/CLAUDE files (those remain authoritative) and are enforced with pragmatic exceptions so they do not materially degrade platform throughput or token usage.
+
+### Edit-time principles
+
+1. **Think Before Coding**
+   - State assumptions and unknowns before significant changes (new modules, pipelines, skills, or scripts).
+   - If a requirement, constraint, or file ownership is unclear, **stop and ask/flag** instead of guessing.
+   - Surface trade-offs (security vs cost vs complexity) when they influence design.
+
+2. **Simplicity First**
+   - Implement the **minimum** change that satisfies the current acceptance criteria or ticket.
+   - Avoid speculative features and pre-emptive abstractions; defer them to explicit follow-up work items.
+   - Refactors that *reduce* complexity are encouraged, but should have their own goal and tests.
+
+3. **Surgical Changes**
+   - Touch only files that are in scope for the current task; avoid drive-by refactors.
+   - Match existing style and patterns even if you would design it differently today.
+   - Broader refactors are allowed when they are the primary goal of the task and are covered by tests.
+
+4. **Goal-Driven Execution**
+   - Before editing, articulate what "done" means in terms of **machine-verifiable checks** (tests, linters, plans, scripts).
+   - Prefer explicit acceptance criteria (e.g., "pytest X passes", "terraform test Y passes", "validate-team.py succeeds").
+   - A change is only complete when these checks have been run and are green.
+
+### Agent self-check rules
+
+5. **Debugging Discipline**
+   - Read the full error/stack trace before acting; do not patch based on partial output.
+   - Reproduce the problem (locally or in CI) before attempting a fix whenever feasible.
+   - Change one variable at a time; avoid shotgun edits spanning many files.
+
+6. **Reproduce Before Fixing**
+   - For bugs in code, scripts, or IaC, prefer the flow: write a failing test → fix → test passes.
+   - **Exception:** trivial typos or comment-only fixes may skip writing a dedicated test, but must still pass existing suites.
+   - For emergency hotfixes, it is acceptable to patch first and capture a follow-up task to add a regression test.
+
+7. **Dependency Hygiene**
+   - Prefer the standard library, built-in Terraform/Bicep capabilities, and existing repo utilities.
+   - Treat each new runtime dependency as a long-lived commitment; document why it was chosen.
+   - Dev-only tooling (test helpers, linters) is acceptable with brief documentation and must respect existing governance.
+
+8. **Honest Communication**
+   - Report uncertainty explicitly (e.g., "not yet validated against live Azure"), rather than implying success.
+   - Do not present guesses as facts; if you are unsure, say so and propose next checks.
+   - Surface blockers early (missing credentials, missing tools, non-reproducible bugs).
+
+9. **Recognize Failure Modes**
+   - Watch for confident but unverified diagnoses, scope creep, and silent guessing past confusion.
+   - In autonomous or long-running workflows, **stop and flag** when these patterns appear instead of pushing through.
+   - Escalate to the user when safety, blast radius, or compliance might be affected.
+
+10. **Verify Before Done**
+    - No change is "done" until its success criteria are demonstrably met (tests run, plans/what-if inspected, validators green).
+    - For infra and pipeline changes, this always includes the mandatory gates (verify, review, security, safety, test).
+    - For trivial documentation-only edits, a lighter check (e.g., `validate-team.py`) is sufficient.
+
 ## Development commands
 
 ```bash

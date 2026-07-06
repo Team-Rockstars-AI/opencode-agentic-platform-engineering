@@ -38,6 +38,17 @@ Examples:
 - Console.log / print debug statements in pipeline scripts
 - Generated build artifacts (dist/, node_modules/)
 
+## Karpathy edit-time discipline (lightweight checklist)
+
+Use this compact checklist while editing to avoid unnecessary token usage:
+
+- **Think before coding:** State assumptions and open questions in the plan or summary before large edits.
+- **Simplicity first:** Implement only what the current ticket/epic requires; defer extra ideas to follow-up issues.
+- **Surgical changes:** Limit edits to the files and concerns in scope. If you need a broader refactor, make it a separate, test-backed task.
+- **Goal-driven:** Decide up front which checks must pass (e.g., `pytest`, `terraform test`, `validate-team.py`) and run them before calling a change done.
+
+These principles apply strongest to infra, pipeline, and architecture changes. For trivial documentation or comment-only tweaks, keep them in mind but avoid over-ceremony.
+
 ## Handing off to test-writer
 
 When done, output a summary in this exact format so the test-writer knows what to cover:

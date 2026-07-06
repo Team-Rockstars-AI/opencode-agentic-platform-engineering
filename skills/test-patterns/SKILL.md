@@ -59,3 +59,11 @@ Describe "Key Vault Unit Tests" {
     }
 }
 ```
+
+### 3. Karpathy-aligned testing discipline
+
+Apply these lightweight rules when designing tests:
+
+- **Reproduce before fixing:** When a bug is reported, first add or update a test that captures it; only then change the implementation.
+- **Verify before done:** Treat a change as complete only when the relevant tests and validators (e.g., `terraform test`, `bicep build`, `pytest`) have run and passed.
+- **Right-sized coverage:** Focus tests on critical paths (security, stateful resources, pipelines). For trivial documentation or comment-only changes, rely on existing suites rather than adding new tests.
