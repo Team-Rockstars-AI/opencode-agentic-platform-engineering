@@ -275,8 +275,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Validate Agent Team Packs
+      - name: Validate Agent Team Packs (optional, requires OpenCode CLI)
         run: |
           set -euo pipefail
+          if ! command -v opencode >/dev/null 2>&1; then
+            echo "opencode CLI not installed; skipping team pack validation."
+            exit 0
+          fi
           python3 scripts/team_packs.py list
           python3 scripts/team_packs.py validate --all
