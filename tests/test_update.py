@@ -16,6 +16,25 @@ COPY_IGNORE = shutil.ignore_patterns(
 )
 
 
+def get_update_report_text(target):
+    """Return the contents of the dynamically generated update report.
+
+    The scaffolded workspace also ships a static markdown template
+    (update-report-template.md); tests should assert against the
+    per-run report written by scripts/update.py, not the static
+    template.
+    """
+    reports = sorted((target / "docs" / "reports").glob("update-report-*.md"))
+    for path in reports:
+        if path.name != "update-report-template.md":
+            return path.read_text(encoding="utf-8")
+    # Fallback: if only the template exists, use it to surface a clear
+    # failure in assertions rather than raising StopIteration.
+    if reports:
+        return reports[0].read_text(encoding="utf-8")
+    raise AssertionError("no update report written")
+
+
 def run_update(workdir, template_path, *extra):
     cmd = [sys.executable, str(workdir / "scripts" / "update.py"),
            "--template-path", str(template_path), *extra]
@@ -132,7 +151,7 @@ def test_update_flags_conflict_and_keeps_local_file(tmp_path):
     content = local_agents.read_text(encoding="utf-8")
     assert "LOCAL-EDIT" in content and "UPSTREAM-EDIT" not in content, "conflicted file was touched"
 
-    report = next((target / "docs" / "reports").glob("update-report-*.md")).read_text(encoding="utf-8")
+    report = get_update_report_text(target)
     assert "AGENTS.md" in report
     assert "Conflicts (manual merge required)" in report
 
@@ -156,7 +175,7 @@ def test_update_skips_user_deleted_files(tmp_path):
     result = run_update(target, template)
     assert result.returncode == 0, result.stdout + result.stderr
     assert not (target / "AGENTS.md").exists(), "user-deleted file was recreated"
-    report = next((target / "docs" / "reports").glob("update-report-*.md")).read_text(encoding="utf-8")
+    report = get_update_report_text(target)
     assert "Skipped (deleted locally)" in report
 
 
@@ -176,4 +195,5 @@ def test_update_dry_run_changes_nothing(tmp_path):
     assert result.returncode == 0, result.stdout + result.stderr
     assert (target / STAMP).read_text(encoding="utf-8") == before_stamp
     assert (target / "AGENTS.md").read_text(encoding="utf-8") == before_agents
-    assert "dry-run" in next((target / "docs" / "reports").glob("update-report-*.md")).read_text(encoding="utf-8")
+    report = get_update_report_text(target)
+    assert "dry-run" in report
