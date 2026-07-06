@@ -1,4 +1,7 @@
 # Development/test dependencies for this repository's tooling.
 # Not shipped to scaffolded repos.
-pytest>=8.0,<9.0
+#
+# Note: pytest < 9.0.3 is affected by GHSA-6w46-j5rx-g56g / CVE-2025-71176
+# (insecure tmpdir handling on UNIX). Pin to a fixed 9.x release.
+pytest>=9.0.3,<10.0
 PyYAML>=6.0.3,<7.0
