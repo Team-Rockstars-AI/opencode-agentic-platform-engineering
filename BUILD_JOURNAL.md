@@ -897,13 +897,13 @@ During the implementation of Epic 2, we discovered that while Terraform provides
 
 ---
 
-## Milestone: Azure DevOps Canonical CI Integration
+## Milestone: Azure DevOps Canonical CI Integration (historical)
 
 **Date:** 2026-06-18
 
 ### Summary
 
-This milestone established Azure DevOps (ADO) as the canonical git host and CI platform for the repository, while maintaining GitHub as a mirror. A root-level `azure-pipelines.yml` was added to provide authoritative static validation for all commits.
+This milestone (June 2026) established Azure DevOps (ADO) as the canonical git host and CI platform for the repository, while maintaining GitHub as a mirror. A root-level `azure-pipelines.yml` was added to provide authoritative static validation for all commits.
 
 ### Changes Made
 
@@ -918,13 +918,15 @@ This milestone established Azure DevOps (ADO) as the canonical git host and CI p
 
 ### Friction Points
 
-- **Dual-Platform Maintenance:** Maintaining CI configurations across both GitHub Actions and Azure DevOps introduces a small amount of duplication. However, this is necessary to ensure visibility on the GitHub mirror while maintaining ADO as the source of truth for internal operations.
+- **Dual-Platform Maintenance:** Maintaining CI configurations across both GitHub Actions and Azure DevOps introduces a small amount of duplication. However, this was initially necessary to ensure visibility on the GitHub mirror while treating ADO as the source of truth for internal operations.
 - **Static-Only Scope:** The decision to keep the root pipeline static-only (no Azure login) simplifies the bootstrap process and reduces the security surface area of the main repository CI, but means that full integration tests still require manual or downstream execution.
 
 ### Next Steps
 
 - Monitor mirror health and ensure the GitHub mirror remains in sync with the ADO primary.
 - Evaluate if any additional static checks (e.g., `validate-team.py`) should be promoted to the ADO pipeline.
+
+> **Status update (July 2026):** The governance model has since been revised. GitHub is now the canonical git host and CI platform for this repository, and the ADO pipeline is retained only as an optional, non-authoritative integration. The historical record of this milestone is preserved for auditability.
 
 ---
 

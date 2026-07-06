@@ -23,19 +23,19 @@ Completed milestones are archived in [`BUILD_JOURNAL.md`](BUILD_JOURNAL.md).
 
 ---
 
-## 🔧 Enabler: Azure DevOps Canonical CI (`azure-pipelines.yml`)
+## 🔧 Enabler: Azure DevOps Canonical CI (`azure-pipelines.yml`) *(historical / optional)*
 
-This enabler underpins Epics 2 and 3 by ensuring static validation runs in the canonical Azure DevOps environment.
+This enabler originally underpinned Epics 2 and 3 by ensuring static validation runs in a canonical Azure DevOps environment. As of July 2026, GitHub Actions is the primary CI/CD platform; the ADO pipeline remains in the codebase as an optional integration and is not required for normal operation.
 
 ### Remaining manual steps (to be done in Azure DevOps / Git tooling)
 
-1. **Wire up the ADO pipeline**
-   - [ ] In Azure DevOps, create a new pipeline for this repo using the existing `azure-pipelines.yml` at the root of the `main` branch.
-   - [ ] Verify a successful run on `main` (all DevSecOps and Validate stage jobs succeed).
-   - [ ] Optionally configure branch policies so that this pipeline must succeed for PRs into `main`.
+1. **Wire up the ADO pipeline (optional / deferred)**
+   - [ ] (Optional) In Azure DevOps, create a new pipeline for this repo using the existing `azure-pipelines.yml` at the root of the `main` branch.
+   - [ ] (Optional) Verify a successful run on `main` (all DevSecOps and Validate stage jobs succeed).
+   - [ ] (Optional) Configure branch policies only if your organization decides to treat ADO as authoritative again.
 
-2. **GitHub mirror management**
-   - [ ] When ready to open-source, push the current `main` branch from the ADO-canonical repo to the GitHub mirror remote.
+2. **GitHub mirror management (historical)**
+   - [ ] When ADO was canonical, this step ensured the GitHub mirror was updated from the ADO repo. It is preserved for teams that still choose to operate ADO as primary.
    - [ ] Confirm that `.github/workflows/ci.yml` and `.github/workflows/security.yml` run successfully on the mirror.
    - [ ] Document the mirror remote name and update cadence in internal runbooks if needed.
 

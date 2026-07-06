@@ -116,7 +116,7 @@ Together, these let a cloned environment be maintained agentically via OpenCode 
   - Repository: https://github.com/Team-Rockstars-AI/opencode-agentic-platform-engineering
   - GitHub Actions workflows provide CI and security scanning for collaborators.
 
-- **Azure DevOps (ADO)** remains the intended canonical CI once licensing is available:
+- **Azure DevOps (ADO)** was originally planned as the canonical CI once licensing was available, but this decision has since been superseded: GitHub Actions is now the canonical CI for this repository, and ADO configuration is retained only for potential future use:
   - Root `azure-pipelines.yml` defines authoritative CI (static validation only; no deployments).
   - Future work: wire an ADO pipeline to this repo and enforce branch policies once ADO is fully available.
 

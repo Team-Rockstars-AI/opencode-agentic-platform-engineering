@@ -6,10 +6,10 @@ This repo scaffolds opinionated platform-engineering repositories. A user clones
 
 ## Canonical CI/CD & Git Hosting
 
-Azure DevOps (ADO) is the canonical home for this repository.
-- **Git Host:** The primary repository resides in Azure DevOps. GitHub is maintained as a manually updated mirror.
-- **CI/CD:** The root-level `azure-pipelines.yml` is the authoritative CI pipeline. It performs static validation only (Python linting, config validation, Terraform/Bicep linting, secret scanning, and SAST). It does **not** perform Azure login, plan/apply, or deployments.
-- **GitHub Mirroring:** GitHub continues to run `.github/workflows/ci.yml` and `.github/workflows/security.yml` for visibility and mirror health. Contributors must not push directly to the GitHub mirror; all changes must flow through the Azure DevOps repository.
+GitHub is the canonical home for this repository.
+- **Git Host:** The primary repository resides on GitHub under the Team-Rockstars-AI organization. Azure DevOps remotes may exist for historical or experimental CI, but are **not** authoritative and may be stale.
+- **CI/CD:** The primary CI runs via GitHub Actions (`.github/workflows/ci.yml`, `.github/workflows/security.yml`) and performs static validation (Python linting, config validation, Terraform/Bicep linting, secret scanning, and SAST). It does **not** perform Azure login, plan/apply, or deployments.
+- **Azure DevOps Pipeline (optional):** A root-level `azure-pipelines.yml` is kept for potential future Azure DevOps integration but is **not wired up or required** today. Operators SHOULD NOT rely on ADO as the source of truth for this repository.
 
 ## Enforced structure
 
